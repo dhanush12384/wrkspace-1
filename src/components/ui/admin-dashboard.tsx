@@ -17,7 +17,7 @@ import {
 	UserPlusIcon,
 	PlusIcon,
 } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents } from '@/app/admin/actions';
 import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessagesView } from './messages-view';
@@ -185,6 +185,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [eventReps, setEventReps] = useState<string[]>(['', '', '', '', '']);
 	const [eventMessage, setEventMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAddingEvent, setIsAddingEvent] = useState(false);
+	const [eventsSubTab, setEventsSubTab] = useState<'active' | 'crawler'>('active');
+	const [crawlEventCity, setCrawlEventCity] = useState('');
+	const [crawlEventArea, setCrawlEventArea] = useState('');
+	const [isCrawlingEvents, setIsCrawlingEvents] = useState(false);
+	const [eventsCrawlMsg, setEventsCrawlMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	// CRUD Modals and Edit States
 	const [editModalType, setEditModalType] = useState<'employee' | 'task' | 'leave' | 'attendance' | 'event' | 'submission' | null>(null);
@@ -622,6 +627,69 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			setEventMessage({ type: 'error', text: result.error || 'Failed to create event.' });
 		}
 		setIsAddingEvent(false);
+	};
+
+	const handleEventsCrawl = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!crawlEventCity.trim()) return alert('Please enter a target city.');
+		setIsCrawlingEvents(true);
+		setEventsCrawlMsg(null);
+		try {
+			const res: any = await triggerEventsCrawl(crawlEventCity, crawlEventArea);
+			if (res.success) {
+				setEventsCrawlMsg({ type: 'success', text: `Crawler successfully parsed and imported ${res.count} events from Student Tribe, Luma, Devfolio, and Unstop.` });
+				fetchEvents();
+			} else {
+				setEventsCrawlMsg({ type: 'error', text: res.error || 'Failed to crawl events.' });
+			}
+		} catch (err: any) {
+			setEventsCrawlMsg({ type: 'error', text: err.message || 'Crawler failure.' });
+		} finally {
+			setIsCrawlingEvents(false);
+		}
+	};
+
+	const handleAllowEvent = async (id: string) => {
+		try {
+			const res: any = await allowEvent(id, true);
+			if (res.success) {
+				fetchEvents();
+			} else {
+				alert(res.error || 'Failed to approve event.');
+			}
+		} catch (err: any) {
+			console.error(err);
+		}
+	};
+
+	const handleAllowAllEvents = async () => {
+		if (!confirm('Are you sure you want to approve all crawled events?')) return;
+		try {
+			const res: any = await allowAllEvents();
+			if (res.success) {
+				alert(`Successfully approved ${res.count} crawled events.`);
+				fetchEvents();
+			} else {
+				alert(res.error || 'Failed to approve all events.');
+			}
+		} catch (err: any) {
+			console.error(err);
+		}
+	};
+
+	const handleDeleteAllCrawledEvents = async () => {
+		if (!confirm('Are you sure you want to clear all crawled events?')) return;
+		try {
+			const res: any = await deleteAllCrawledEvents();
+			if (res.success) {
+				alert(`Successfully deleted ${res.count} crawled events.`);
+				fetchEvents();
+			} else {
+				alert(res.error || 'Failed to clear crawled events.');
+			}
+		} catch (err: any) {
+			console.error(err);
+		}
 	};
 
 	useEffect(() => {
@@ -1919,245 +1987,430 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				)}
 
 				{/* TAB: EVENTS */}
-				{activeTab === 'events' && (
-					<div className="space-y-6">
-						{/* Header */}
-						<div className="flex items-center justify-between">
-							<div>
-								<h2 className="text-xl font-bold text-white flex items-center gap-2">
-									<CalendarIcon className="size-5 text-brand-400" />
-									Events
-								</h2>
-								<p className="text-zinc-400 text-sm mt-0.5">Manage company events, college visits, and external engagements</p>
+				{activeTab === 'events' && (() => {
+					const activeEvents = eventsList.filter(e => e.allowed !== false);
+					const crawledEvents = eventsList.filter(e => e.allowed === false);
+					const fmt = (d: Date) => d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+					return (
+						<div className="space-y-6">
+							{/* Header */}
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+								<div>
+									<h2 className="text-xl font-bold text-white flex items-center gap-2">
+										<CalendarIcon className="size-5 text-brand-400" />
+										Events Directory
+									</h2>
+									<p className="text-zinc-400 text-sm mt-0.5">
+										{eventsSubTab === 'active' 
+											? `${activeEvents.length} active events listed in calendar` 
+											: `${crawledEvents.length} pending events fetched by crawler`
+										}
+									</p>
+								</div>
+								<div className="flex items-center gap-3">
+									<div className="flex border border-zinc-800 bg-zinc-950 p-0.5">
+										<button
+											onClick={() => setEventsSubTab('active')}
+											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", eventsSubTab === 'active' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+										>
+											Active Calendar
+										</button>
+										<button
+											onClick={() => setEventsSubTab('crawler')}
+											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", eventsSubTab === 'crawler' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+										>
+											Events Crawler
+										</button>
+									</div>
+									
+									{eventsSubTab === 'active' && (
+										<button
+											onClick={() => { setShowEventForm(v => !v); setEventMessage(null); }}
+											className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-4 py-2 h-8.5 rounded-none cursor-pointer transition-colors"
+										>
+											<PlusIcon className="size-3.5" />
+											{showEventForm ? 'Cancel' : 'Create Event'}
+										</button>
+									)}
+								</div>
 							</div>
-							<button
-								onClick={() => { setShowEventForm(v => !v); setEventMessage(null); }}
-								className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-4 py-2 rounded-none cursor-pointer transition-colors"
-							>
-								<PlusIcon className="size-3.5" />
-								{showEventForm ? 'Cancel' : 'Create Event'}
-							</button>
-						</div>
 
-						{eventMessage && (
-							<div className={cn(
-								"p-3 text-xs border font-mono font-bold",
-								eventMessage.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400"
-							)}>
-								{eventMessage.text}
-							</div>
-						)}
+							{eventMessage && (
+								<div className={cn(
+									"p-3 text-xs border font-mono font-bold",
+									eventMessage.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400"
+								)}>
+									{eventMessage.text}
+								</div>
+							)}
 
-						{/* Create Event Form */}
-						{showEventForm && (
-							<form onSubmit={handleCreateEvent} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-5">
-								<h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider border-b border-zinc-800 pb-3">New Event Details</h3>
+							{/* Create Event Form */}
+							{eventsSubTab === 'active' && showEventForm && (
+								<form onSubmit={handleCreateEvent} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-5">
+									<h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider border-b border-zinc-800 pb-3">New Event Details</h3>
 
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Event Title *</label>
+											<Input
+												value={eventTitle}
+												onChange={e => setEventTitle(e.target.value)}
+												required
+												placeholder="e.g. Tech Career Fair 2026"
+												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+											/>
+										</div>
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Organising College *</label>
+											<Input
+												value={eventCollege}
+												onChange={e => setEventCollege(e.target.value)}
+												required
+												placeholder="e.g. IIT Bombay"
+												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+											/>
+										</div>
+									</div>
+
 									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Event Title *</label>
-										<Input
-											value={eventTitle}
-											onChange={e => setEventTitle(e.target.value)}
+										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Event Description *</label>
+										<textarea
+											value={eventDescription}
+											onChange={e => setEventDescription(e.target.value)}
 											required
-											placeholder="e.g. Tech Career Fair 2026"
+											rows={3}
+											placeholder="Brief description of the event, goals, and activities..."
+											className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
+										/>
+									</div>
+
+									<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Start Date *</label>
+											<Input
+												type="date"
+												value={eventStartDate}
+												onChange={e => setEventStartDate(e.target.value)}
+												required
+												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+											/>
+										</div>
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">End Date *</label>
+											<Input
+												type="date"
+												value={eventEndDate}
+												onChange={e => setEventEndDate(e.target.value)}
+												required
+												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+											/>
+										</div>
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Start Time *</label>
+											<Input
+												type="time"
+												value={eventStartTime}
+												onChange={e => setEventStartTime(e.target.value)}
+												required
+												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+											/>
+										</div>
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">End Time *</label>
+											<Input
+												type="time"
+												value={eventEndTime}
+												onChange={e => setEventEndTime(e.target.value)}
+												required
+												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+											/>
+										</div>
+									</div>
+
+									<div className="space-y-1.5">
+										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Venue / Address *</label>
+										<Input
+											value={eventVenue}
+											onChange={e => setEventVenue(e.target.value)}
+											required
+											placeholder="e.g. Main Auditorium, IIT Bombay, Powai, Mumbai 400076"
 											className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
 										/>
 									</div>
-									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Organising College *</label>
-										<Input
-											value={eventCollege}
-											onChange={e => setEventCollege(e.target.value)}
-											required
-											placeholder="e.g. IIT Bombay"
-											className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
-										/>
-									</div>
-								</div>
 
-								<div className="space-y-1.5">
-									<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Event Description *</label>
-									<textarea
-										value={eventDescription}
-										onChange={e => setEventDescription(e.target.value)}
-										required
-										rows={3}
-										placeholder="Brief description of the event, goals, and activities..."
-										className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
-									/>
-								</div>
+									<div className="space-y-3">
+										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Company Representatives (up to 5)</label>
+										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+											{eventReps.map((rep, idx) => (
+												<div key={idx} className="flex items-center gap-2">
+													<span className="text-xs text-zinc-600 font-mono w-4">{idx + 1}.</span>
+													<Input
+														value={rep}
+														onChange={e => {
+															const updated = [...eventReps];
+															updated[idx] = e.target.value;
+															setEventReps(updated);
+														}}
+														placeholder={`Representative ${idx + 1} name`}
+														className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+													/>
+												</div>
+											))}
+										</div>
+									</div>
 
-								<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Start Date *</label>
-										<Input
-											type="date"
-											value={eventStartDate}
-											onChange={e => setEventStartDate(e.target.value)}
-											required
-											className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
-										/>
+									<div className="flex justify-end pt-2 border-t border-zinc-800">
+										<button
+											type="submit"
+											disabled={isAddingEvent}
+											className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-6 py-2.5 rounded-none cursor-pointer transition-colors disabled:opacity-50"
+										>
+											{isAddingEvent ? 'Creating...' : 'Create Event'}
+										</button>
 									</div>
-									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">End Date *</label>
-										<Input
-											type="date"
-											value={eventEndDate}
-											onChange={e => setEventEndDate(e.target.value)}
-											required
-											className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
-										/>
-									</div>
-									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Start Time *</label>
-										<Input
-											type="time"
-											value={eventStartTime}
-											onChange={e => setEventStartTime(e.target.value)}
-											required
-											className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
-										/>
-									</div>
-									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">End Time *</label>
-										<Input
-											type="time"
-											value={eventEndTime}
-											onChange={e => setEventEndTime(e.target.value)}
-											required
-											className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
-										/>
-									</div>
-								</div>
+								</form>
+							)}
 
-								<div className="space-y-1.5">
-									<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Venue / Address *</label>
-									<Input
-										value={eventVenue}
-										onChange={e => setEventVenue(e.target.value)}
-										required
-										placeholder="e.g. Main Auditorium, IIT Bombay, Powai, Mumbai 400076"
-										className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
-									/>
-								</div>
-
-								<div className="space-y-3">
-									<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Company Representatives (up to 5)</label>
-									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-										{eventReps.map((rep, idx) => (
-											<div key={idx} className="flex items-center gap-2">
-												<span className="text-xs text-zinc-600 font-mono w-4">{idx + 1}.</span>
-												<Input
-													value={rep}
-													onChange={e => {
-														const updated = [...eventReps];
-														updated[idx] = e.target.value;
-														setEventReps(updated);
-													}}
-													placeholder={`Representative ${idx + 1} name`}
-													className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+							{/* Events Crawler Subtab */}
+							{eventsSubTab === 'crawler' && (
+								<div className="space-y-6">
+									{/* Crawler control panel */}
+									<form onSubmit={handleEventsCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
+										<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+											<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Automated Events Crawler</h3>
+											<span className="text-[10px] text-zinc-555 font-mono">Targets: Student Tribe, Luma, Devfolio, Unstop</span>
+										</div>
+										<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+											<div className="space-y-1">
+												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target City *</label>
+												<input
+													type="text"
+													value={crawlEventCity}
+													onChange={e => setCrawlEventCity(e.target.value)}
+													placeholder="e.g. Hyderabad"
+													required
+													className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono"
 												/>
 											</div>
-										))}
-									</div>
-								</div>
-
-								<div className="flex justify-end pt-2 border-t border-zinc-800">
-									<button
-										type="submit"
-										disabled={isAddingEvent}
-										className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-6 py-2.5 rounded-none cursor-pointer transition-colors disabled:opacity-50"
-									>
-										{isAddingEvent ? 'Creating...' : 'Create Event'}
-									</button>
-								</div>
-							</form>
-						)}
-
-						{/* Events List */}
-						{eventsList.length === 0 ? (
-							<div className="text-center py-16 text-zinc-600 border border-zinc-900">
-								<CalendarIcon className="size-10 mx-auto mb-3 opacity-40" />
-								<p className="text-sm font-medium">No events created yet</p>
-								<p className="text-xs mt-1">Click "Create Event" to add the first event</p>
-							</div>
-						) : (
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-								{eventsList.map((event: any) => {
-									const reps: { id: string; name: string }[] = JSON.parse(event.representatives || '[]');
-									const startD = new Date(event.startDate);
-									const endD = new Date(event.endDate);
-									const fmt = (d: Date) => d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-									return (
-										<div key={event.id} className="bg-zinc-900/30 border border-zinc-800/80 p-5 space-y-4 hover:border-brand-900/60 transition-colors">
-											<div className="flex items-start justify-between gap-3">
-												<div>
-													<h3 className="text-base font-bold text-white">{event.title}</h3>
-													<p className="text-xs text-brand-400 font-medium mt-0.5">{event.organisingCollege}</p>
-												</div>
-												<span className="text-[10px] bg-brand-950/40 border border-brand-900/40 text-brand-300 px-2 py-1 font-mono uppercase tracking-wider whitespace-nowrap">
-													Event
-												</span>
+											<div className="space-y-1">
+												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target Area / Venue (Optional)</label>
+												<input
+													type="text"
+													value={crawlEventArea}
+													onChange={e => setCrawlEventArea(e.target.value)}
+													placeholder="e.g. Gachibowli"
+													className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono"
+												/>
 											</div>
-
-											<p className="text-sm text-zinc-400 leading-relaxed">{event.description}</p>
-
-											<div className="grid grid-cols-2 gap-3 text-xs">
-												<div className="space-y-0.5">
-													<p className="text-zinc-600 uppercase tracking-wider font-semibold">Start</p>
-													<p className="text-zinc-200">{fmt(startD)} · {event.startTime}</p>
-												</div>
-												<div className="space-y-0.5">
-													<p className="text-zinc-600 uppercase tracking-wider font-semibold">End</p>
-													<p className="text-zinc-200">{fmt(endD)} · {event.endTime}</p>
-												</div>
-											</div>
-
-											<div className="flex items-start gap-2 text-xs text-zinc-400">
-												<MapPinIcon className="size-3.5 mt-0.5 text-zinc-600 shrink-0" />
-												<span>{event.venueAddress}</span>
-											</div>
-
-											{reps.length > 0 && (
-												<div className="space-y-1.5">
-													<p className="text-[10px] text-zinc-600 uppercase tracking-wider font-semibold">Company Representatives</p>
-													<div className="flex flex-wrap gap-1.5">
-														{reps.map((r, i) => (
-															<span key={i} className="text-xs bg-zinc-800/60 border border-zinc-700/60 text-zinc-300 px-2 py-0.5">
-																{r.name}
-															</span>
-														))}
-													</div>
-												</div>
-											)}
-
-											<div className="flex justify-end gap-2 pt-3 border-t border-zinc-800/40">
+											<div className="flex items-end">
 												<button
-													onClick={() => {
-														setEditingItem(event);
-														setEditModalType('event');
-													}}
-													className="p-1.5 bg-zinc-900 border border-zinc-800 text-indigo-400 hover:text-indigo-300 hover:border-zinc-700 transition-all cursor-pointer"
-													title="Edit Event"
+													type="submit"
+													disabled={isCrawlingEvents}
+													className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors disabled:opacity-50"
 												>
-													<PencilIcon className="size-3.5" />
-												</button>
-												<button
-													onClick={() => handleDeleteEvent(event.id)}
-													className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
-													title="Delete Event"
-												>
-													<Trash2Icon className="size-3.5" />
+													{isCrawlingEvents ? 'Searching Platforms...' : 'Run Events Scraper'}
 												</button>
 											</div>
 										</div>
-									);
-								})}
-							</div>
-						)}
-					</div>
-				)}
+										{eventsCrawlMsg && (
+											<div className={cn("p-2 text-[11px] border font-mono", eventsCrawlMsg.type === 'success' ? "bg-emerald-950/20 border-emerald-900/40 text-emerald-400" : "bg-red-950/20 border-red-900/40 text-red-400")}>
+												{eventsCrawlMsg.text}
+											</div>
+										)}
+									</form>
+
+									{/* Stats Grid */}
+									<div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
+											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Total Scraped</p>
+											<p className="text-base font-bold text-white">{crawledEvents.length}</p>
+										</div>
+										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
+											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Student Tribe</p>
+											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Student Tribe').length}</p>
+										</div>
+										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
+											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Luma</p>
+											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Luma').length}</p>
+										</div>
+										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
+											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Devfolio</p>
+											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Devfolio').length}</p>
+										</div>
+										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
+											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Unstop</p>
+											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Unstop').length}</p>
+										</div>
+									</div>
+
+									{/* Table Control Buttons */}
+									{crawledEvents.length > 0 && (
+										<div className="flex gap-2 justify-end">
+											<button
+												onClick={handleAllowAllEvents}
+												className="text-[10px] bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-800 text-emerald-400 px-3 py-1.5 cursor-pointer font-bold uppercase font-mono"
+											>
+												Approve All Crawled
+											</button>
+											<button
+												onClick={handleDeleteAllCrawledEvents}
+												className="text-[10px] bg-red-955/40 hover:bg-red-900/40 border border-red-800/60 text-red-400 px-3 py-1.5 cursor-pointer font-bold uppercase font-mono"
+											>
+												Clear All Crawled
+											</button>
+										</div>
+									)}
+								</div>
+							)}
+
+							{/* Events List Views */}
+							{eventsSubTab === 'active' ? (
+								activeEvents.length === 0 ? (
+									<div className="text-center py-16 text-zinc-600 border border-zinc-900">
+										<CalendarIcon className="size-10 mx-auto mb-3 opacity-40" />
+										<p className="text-sm font-medium">No events created yet</p>
+										<p className="text-xs mt-1">Click "Create Event" to add the first event</p>
+									</div>
+								) : (
+									<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+										{activeEvents.map((event: any) => {
+											const reps: { id: string; name: string }[] = JSON.parse(event.representatives || '[]');
+											const startD = new Date(event.startDate);
+											const endD = new Date(event.endDate);
+											return (
+												<div key={event.id} className="bg-zinc-900/30 border border-zinc-800/80 p-5 space-y-4 hover:border-brand-900/60 transition-colors">
+													<div className="flex items-start justify-between gap-3">
+														<div>
+															<h3 className="text-base font-bold text-white">{event.title}</h3>
+															<p className="text-xs text-brand-400 font-medium mt-0.5">{event.organisingCollege}</p>
+														</div>
+														<span className="text-[10px] bg-brand-950/40 border border-brand-900/40 text-brand-300 px-2 py-1 font-mono uppercase tracking-wider whitespace-nowrap">
+															{event.source || 'Event'}
+														</span>
+													</div>
+
+													<p className="text-sm text-zinc-400 leading-relaxed">{event.description}</p>
+
+													<div className="grid grid-cols-2 gap-3 text-xs">
+														<div className="space-y-0.5">
+															<p className="text-zinc-600 uppercase tracking-wider font-semibold">Start</p>
+															<p className="text-zinc-200">{fmt(startD)} · {event.startTime}</p>
+														</div>
+														<div className="space-y-0.5">
+															<p className="text-zinc-600 uppercase tracking-wider font-semibold">End</p>
+															<p className="text-zinc-200">{fmt(endD)} · {event.endTime}</p>
+														</div>
+													</div>
+
+													<div className="flex items-start gap-2 text-xs text-zinc-400">
+														<MapPinIcon className="size-3.5 mt-0.5 text-zinc-600 shrink-0" />
+														<span>{event.venueAddress}</span>
+													</div>
+
+													{reps.length > 0 && (
+														<div className="space-y-1.5">
+															<p className="text-[10px] text-zinc-600 uppercase tracking-wider font-semibold">Company Representatives</p>
+															<div className="flex flex-wrap gap-1.5">
+																{reps.map((r, i) => (
+																	<span key={i} className="text-xs bg-zinc-800/60 border border-zinc-700/60 text-zinc-300 px-2 py-0.5">
+																		{r.name}
+																	</span>
+																))}
+															</div>
+														</div>
+													)}
+
+													<div className="flex justify-end gap-2 pt-3 border-t border-zinc-800/40">
+														<button
+															onClick={() => {
+																setEditingItem(event);
+																setEditModalType('event');
+															}}
+															className="p-1.5 bg-zinc-900 border border-zinc-800 text-indigo-400 hover:text-indigo-300 hover:border-zinc-700 transition-all cursor-pointer"
+															title="Edit Event"
+														>
+															<PencilIcon className="size-3.5" />
+														</button>
+														<button
+															onClick={() => handleDeleteEvent(event.id)}
+															className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
+															title="Delete Event"
+														>
+															<Trash2Icon className="size-3.5" />
+														</button>
+													</div>
+												</div>
+											);
+										})}
+									</div>
+								)
+							) : (
+								/* Scraped/Crawled Events Table View */
+								crawledEvents.length === 0 ? (
+									<div className="text-center py-16 text-zinc-600 border border-zinc-900/60 font-mono text-xs italic">
+										No crawled events. Specify Target City & Area above and run the events scraper.
+									</div>
+								) : (
+									<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
+										<table className="w-full min-w-[1200px] text-left text-xs text-zinc-300 font-mono">
+											<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
+												<tr>
+													<th className="p-4 font-semibold w-56">Event Title</th>
+													<th className="p-4 font-semibold w-48">Organiser</th>
+													<th className="p-4 font-semibold w-36">Source Platform</th>
+													<th className="p-4 font-semibold w-56">Date & Time</th>
+													<th className="p-4 font-semibold w-64">Venue Address</th>
+													<th className="p-4 font-semibold text-right w-24">Actions</th>
+												</tr>
+											</thead>
+											<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
+												{crawledEvents.map((event: any) => {
+													const startD = new Date(event.startDate);
+													return (
+														<tr key={event.id} className="hover:bg-zinc-900/30 transition-colors">
+															<td className="p-4 font-bold text-white font-sans">{event.title}</td>
+															<td className="p-4 text-zinc-300">{event.organisingCollege}</td>
+															<td className="p-4">
+																<span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-brand-950/50 border border-brand-900/50 text-brand-300">
+																	{event.source}
+																</span>
+															</td>
+															<td className="p-4 text-zinc-300 font-sans">
+																{fmt(startD)} · <span className="font-mono text-xs text-zinc-400">{event.startTime}</span>
+															</td>
+															<td className="p-4 text-zinc-300 font-sans truncate max-w-[200px]" title={event.venueAddress}>
+																{event.venueAddress}
+															</td>
+															<td className="p-4 text-right">
+																<div className="inline-flex items-center justify-end gap-2">
+																	<button
+																		onClick={() => handleAllowEvent(event.id)}
+																		className="p-1.5 bg-zinc-900 border border-zinc-855 hover:border-zinc-700 text-emerald-400 hover:text-emerald-300 transition-all cursor-pointer"
+																		title="Approve / Allow Event"
+																	>
+																		<CheckIcon className="size-3.5" />
+																	</button>
+																	<button
+																		onClick={() => handleDeleteEvent(event.id)}
+																		className="p-1.5 bg-zinc-900 border border-zinc-855 hover:border-zinc-700 text-red-400 hover:text-red-300 transition-all cursor-pointer"
+																		title="Delete Scraped Event"
+																	>
+																		<Trash2Icon className="size-3.5" />
+																	</button>
+																</div>
+															</td>
+														</tr>
+													);
+												})}
+											</tbody>
+										</table>
+									</div>
+								)
+							)}
+						</div>
+					);
+				})()}
 
 				{/* TAB: WORK SUBMISSIONS */}
 				{activeTab === 'work_submissions' && (

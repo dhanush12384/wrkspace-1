@@ -1620,3 +1620,103 @@ export async function deleteWorkSubmission(id: string) {
     return { success: false, error: error.message };
   }
 }
+
+export async function triggerEventsCrawl(city: string, area: string) {
+  try {
+    const projectDir = process.cwd();
+    const crawlerScript = path.join(projectDir, 'events_crawler', 'crawler.py');
+    const command = `python3 "${crawlerScript}" --city "${city}" --area "${area}" --max 10`;
+
+    return new Promise((resolve) => {
+      exec(command, { cwd: projectDir }, async (error, stdout, stderr) => {
+        if (error) {
+          console.error('Events crawler failed:', error);
+          resolve({ success: false, error: 'Events crawler execution failed.' });
+          return;
+        }
+
+        const latestJsonPath = path.join(projectDir, 'events_crawler', 'output', 'events_latest.json');
+        try {
+          if (!fs.existsSync(latestJsonPath)) {
+            resolve({ success: false, error: 'Events crawler finished but output file not found.' });
+            return;
+          }
+          const fileContent = fs.readFileSync(latestJsonPath, 'utf8');
+          const rawEvents = JSON.parse(fileContent);
+
+          if (!rawEvents.length) {
+            resolve({ success: true, count: 0 });
+            return;
+          }
+
+          // Bulk import crawled events with allowed: false
+          const imported = [];
+          for (const ev of rawEvents) {
+            const created = await db.event.create({
+              data: {
+                title: ev.title,
+                description: ev.description,
+                organisingCollege: ev.organisingCollege,
+                representatives: ev.representatives,
+                startDate: new Date(ev.startDate),
+                endDate: new Date(ev.endDate),
+                startTime: ev.startTime,
+                endTime: ev.endTime,
+                venueAddress: ev.venueAddress,
+                source: ev.source,
+                allowed: false
+              }
+            });
+            imported.push(created);
+          }
+
+          resolve({ success: true, count: imported.length, events: imported });
+        } catch (err: any) {
+          console.error('Error importing events:', err);
+          resolve({ success: false, error: err.message });
+        }
+      });
+    });
+  } catch (error: any) {
+    console.error('Error in triggerEventsCrawl action:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function allowEvent(id: string, allowed: boolean) {
+  try {
+    const updated = await db.event.update({
+      where: { id },
+      data: { allowed }
+    });
+    return { success: true, event: updated };
+  } catch (error: any) {
+    console.error('Error in allowEvent:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function allowAllEvents() {
+  try {
+    const updated = await db.event.updateMany({
+      where: { allowed: false },
+      data: { allowed: true }
+    });
+    return { success: true, count: updated.count };
+  } catch (error: any) {
+    console.error('Error in allowAllEvents:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteAllCrawledEvents() {
+  try {
+    const deleted = await db.event.deleteMany({
+      where: { allowed: false }
+    });
+    return { success: true, count: deleted.count };
+  } catch (error: any) {
+    console.error('Error in deleteAllCrawledEvents:', error);
+    return { success: false, error: error.message };
+  }
+}

@@ -107,6 +107,8 @@ model Event {
   startTime           String   // e.g. "09:00 AM"
   endTime             String   // e.g. "05:00 PM"
   venueAddress        String
+  allowed             Boolean  @default(true)
+  source              String   @default("Manual") // Manual, Student Tribe, Luma, Devfolio, Unstop
   createdAt           DateTime @default(now())
 }
 

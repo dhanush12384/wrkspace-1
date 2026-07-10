@@ -66,7 +66,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 		setEventsLoading(true);
 		try {
 			const data = await getEvents();
-			setEventsList(data);
+			setEventsList(data.filter((e: any) => e.allowed !== false));
 		} catch (e) {
 			console.error('Failed to load events:', e);
 		} finally {
