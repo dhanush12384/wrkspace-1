@@ -11,6 +11,8 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
+  --color-zinc-850: #1e1e22;
+
   /* Brand color scale anchored at #4f39f5 */
   --color-brand-50:  #f0eeff;
   --color-brand-100: #e0dcff;

@@ -770,43 +770,81 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 				{/* Tab content: Overview */}
 				{activeTab === 'overview' && (
-					<div className="space-y-8">
+					<div className="space-y-6">
 						{/* Stats Grid */}
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+						<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">Server Node</span>
-									<ServerIcon className="size-4 text-emerald-400 animate-pulse" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Employees</span>
+									<UsersIcon className="size-3.5 text-indigo-400" />
 								</div>
-								<p className="text-2xl font-bold text-white">{stats.serverStatus}</p>
-								<p className="text-xs text-emerald-400 font-medium">Uptime: {stats.uptime}</p>
+								<p className="text-xl font-bold text-white">{employeesList.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Active members</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">Node Env</span>
-									<CpuIcon className="size-4 text-indigo-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Allocated Tasks</span>
+									<FileTextIcon className="size-3.5 text-emerald-400" />
 								</div>
-								<p className="text-2xl font-bold text-white capitalize">{stats.environment}</p>
-								<p className="text-xs text-zinc-400 font-medium">Heap: {stats.heapMemory}</p>
+								<p className="text-xl font-bold text-white">{tasksList.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">{tasksList.filter(t => t.status === 'Pending').length} Pending</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">NPM Packages</span>
-									<PackageIcon className="size-4 text-sky-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Attendance Registry</span>
+									<ClockIcon className="size-3.5 text-amber-400" />
 								</div>
-								<p className="text-2xl font-bold text-white">{stats.totalDependencies}</p>
-								<p className="text-xs text-sky-400 font-medium">{stats.dependencies} prod, {stats.devDependencies} dev</p>
+								<p className="text-xl font-bold text-white">{attendanceList.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Total logged entries</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">Employees Registered</span>
-									<UsersIcon className="size-4 text-zinc-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Pending Leaves</span>
+									<CalendarIcon className="size-3.5 text-red-400" />
 								</div>
-								<p className="text-2xl font-bold text-white">{employeesList.length}</p>
-								<p className="text-xs text-zinc-400 font-medium">Active members</p>
+								<p className="text-xl font-bold text-white">
+									{leavesList.filter(l => l.status === 'Pending').length}
+								</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Out of {leavesList.length} total</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
+								<div className="flex items-center justify-between text-zinc-400">
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Work Submissions</span>
+									<CheckCircleIcon className="size-3.5 text-indigo-400" />
+								</div>
+								<p className="text-xl font-bold text-white">{submissionsList.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">{submissionsList.filter(s => s.status === 'Submitted').length} Pending Review</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
+								<div className="flex items-center justify-between text-zinc-400">
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Leads Pipeline</span>
+									<BarChart2Icon className="size-3.5 text-sky-400" />
+								</div>
+								<p className="text-xl font-bold text-white">{leadsList.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">{leadsList.filter(l => l.status === 'New').length} New Leads</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
+								<div className="flex items-center justify-between text-zinc-400">
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Events</span>
+									<MapPinIcon className="size-3.5 text-yellow-400" />
+								</div>
+								<p className="text-xl font-bold text-white">{eventsList.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Total planned events</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
+								<div className="flex items-center justify-between text-zinc-400">
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Server Status</span>
+									<ServerIcon className="size-3.5 text-emerald-400 animate-pulse" />
+								</div>
+								<p className="text-xl font-bold text-white">{stats.serverStatus}</p>
+								<p className="text-[10px] text-emerald-400 font-medium">Uptime: {stats.uptime}</p>
 							</div>
 						</div>
 					</div>

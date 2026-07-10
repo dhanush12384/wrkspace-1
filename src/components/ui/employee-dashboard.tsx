@@ -266,6 +266,9 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 			loadEmployeeLeaves(employee.id);
 			loadEmployeeAttendance(employee.id);
 			loadEmployeeAttendanceStatus(employee.id);
+			loadMySubmissions();
+			loadLeads();
+			loadEvents();
 		}
 	}, [employee?.id]);
 
@@ -592,28 +595,66 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						</div>
 
 						{/* Stats grids */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-2">
-								<BriefcaseIcon className="size-5 text-indigo-400" />
-								<p className="text-zinc-400 text-xs font-medium">My Tasks Assigned</p>
-								<p className="text-3xl font-bold text-white">{empTasks.length}</p>
+						<div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
+								<div className="flex items-center gap-1.5 text-zinc-400">
+									<BriefcaseIcon className="size-3.5 text-indigo-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">My Tasks</span>
+								</div>
+								<p className="text-xl font-bold text-white">{empTasks.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">{empTasks.filter(t => t.status === 'Pending').length} Pending</p>
 							</div>
-							<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-2">
-								<ClockIcon className="size-5 text-emerald-400" />
-								<p className="text-zinc-400 text-xs font-medium">Attendance Status</p>
+
+							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
+								<div className="flex items-center gap-1.5 text-zinc-400">
+									<ClockIcon className="size-3.5 text-emerald-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Attendance</span>
+								</div>
 								<p className={cn(
-									"text-3xl font-bold",
+									"text-xl font-bold",
 									attendanceStatus === 'checked_in' ? 'text-emerald-400' : 'text-zinc-400'
 								)}>
 									{attendanceStatus === 'checked_in' ? 'Clocked In' : 'Clocked Out'}
 								</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Today's status</p>
 							</div>
-							<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-2">
-								<CalendarIcon className="size-5 text-amber-400" />
-								<p className="text-zinc-400 text-xs font-medium">Pending Leave Requests</p>
-								<p className="text-3xl font-bold text-white">
+
+							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
+								<div className="flex items-center gap-1.5 text-zinc-400">
+									<CalendarIcon className="size-3.5 text-amber-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Leaves</span>
+								</div>
+								<p className="text-xl font-bold text-white">
 									{leaveRequests.filter(req => req.status === 'Pending').length}
 								</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Pending Requests</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
+								<div className="flex items-center gap-1.5 text-zinc-400">
+									<RefreshCwIcon className="size-3.5 text-sky-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Submissions</span>
+								</div>
+								<p className="text-xl font-bold text-white">{mySubmissions.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">{mySubmissions.filter(s => s.status === 'Submitted').length} Pending</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
+								<div className="flex items-center gap-1.5 text-zinc-400">
+									<BarChart2Icon className="size-3.5 text-brand-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">My Leads</span>
+								</div>
+								<p className="text-xl font-bold text-white">{leadsList.filter(l => l.assignedTo === employee.id).length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Active pipeline</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
+								<div className="flex items-center gap-1.5 text-zinc-400">
+									<Grid2x2PlusIcon className="size-3.5 text-indigo-400" />
+									<span className="text-[10px] font-semibold uppercase tracking-wider">Events</span>
+								</div>
+								<p className="text-xl font-bold text-white">{eventsList.length}</p>
+								<p className="text-[10px] text-zinc-550 font-mono">Total Planned</p>
 							</div>
 						</div>
 					</div>
@@ -1569,7 +1610,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 
 						{/* Main Info Card */}
 						<div className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-none space-y-8">
-							<div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-zinc-850">
+							<div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-zinc-800">
 								<div className="size-20 bg-brand-900/60 border border-brand-700/50 flex items-center justify-center text-white text-3xl font-black rounded-none tracking-wider shadow-lg shadow-brand-950/40">
 									{(employee.firstName?.[0] || '').toUpperCase()}{(employee.lastName?.[0] || '').toUpperCase()}
 								</div>
@@ -1581,7 +1622,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 										{employee.role || 'Employee'}
 									</p>
 									<p className="text-zinc-500 text-xs font-mono">
-										Member Since: {new Date(employee.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+										Member Since: {new Date(employee.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
 									</p>
 								</div>
 							</div>
@@ -1589,56 +1630,83 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 								{/* Column 1: Personal Details */}
 								<div className="space-y-6">
-									<h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">
+									<h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-2">
 										Personal Details
 									</h4>
 									
 									<div className="grid grid-cols-1 gap-4">
 										<div className="space-y-1">
-											<span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Full Name</span>
-											<div className="bg-zinc-950/50 border border-zinc-850 p-3 text-zinc-200 text-sm">
-												{employee.firstName} {employee.middleName ? `${employee.middleName} ` : ''}{employee.lastName}
-											</div>
+											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Full Name</label>
+											<input
+												type="text"
+												readOnly
+												value={`${employee.firstName} ${employee.middleName ? employee.middleName + ' ' : ''}${employee.lastName}`}
+												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-sans"
+											/>
 										</div>
 										<div className="space-y-1">
-											<span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Email Address</span>
-											<div className="bg-zinc-950/50 border border-zinc-850 p-3 text-zinc-200 text-sm font-mono select-all">
-												{employee.email}
-											</div>
+											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Email Address</label>
+											<input
+												type="text"
+												readOnly
+												value={employee.email}
+												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono select-all"
+											/>
 										</div>
 										<div className="space-y-1">
-											<span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Phone Number</span>
-											<div className="bg-zinc-950/50 border border-zinc-850 p-3 text-zinc-200 text-sm font-mono">
-												{employee.phone}
-											</div>
+											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Phone Number</label>
+											<input
+												type="text"
+												readOnly
+												value={employee.phone}
+												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono"
+											/>
 										</div>
 									</div>
 								</div>
 
 								{/* Column 2: Organization Details */}
 								<div className="space-y-6">
-									<h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800/80 pb-2">
+									<h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-2">
 										Organization Details
 									</h4>
 									
 									<div className="grid grid-cols-1 gap-4">
 										<div className="space-y-1">
-											<span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Employee ID</span>
-											<div className="bg-zinc-950/50 border border-zinc-850 p-3 text-brand-400 text-sm font-mono font-bold select-all">
-												{employee.id}
-											</div>
+											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Employee ID</label>
+											<input
+												type="text"
+												readOnly
+												value={employee.id}
+												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-brand-400 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono font-bold select-all"
+											/>
 										</div>
 										<div className="space-y-1">
-											<span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Wing Name</span>
-											<div className="bg-zinc-950/50 border border-zinc-850 p-3 text-zinc-200 text-sm font-medium">
-												{employee.wingName}
-											</div>
+											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Wing Name</label>
+											<input
+												type="text"
+												readOnly
+												value={employee.wingName}
+												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-sans"
+											/>
 										</div>
 										<div className="space-y-1">
-											<span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Reporting Lead</span>
-											<div className="bg-zinc-950/50 border border-zinc-850 p-3 text-zinc-200 text-sm font-medium">
-												{employee.wingLeadName}
-											</div>
+											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Reporting Lead</label>
+											<input
+												type="text"
+												readOnly
+												value={employee.wingLeadName}
+												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-sans"
+											/>
+										</div>
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Date Registered</label>
+											<input
+												type="text"
+												readOnly
+												value={new Date(employee.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono"
+											/>
 										</div>
 									</div>
 								</div>
