@@ -818,8 +818,27 @@ export async function clockOut(employeeId: string) {
   }
 }
 
-export async function getMessages(channel: string) {
+export async function getMessages(channel: string, requestingUserId: string, requestingUserRole: string) {
   try {
+    // RBAC validation
+    if (requestingUserRole !== 'Admin') {
+      if (channel.startsWith('dm:')) {
+        const parts = channel.split(':');
+        if (parts[1] !== requestingUserId && parts[2] !== requestingUserId) {
+          return { success: false, error: 'Unauthorized channel access' };
+        }
+      } else if (channel === 'marketing' || channel === 'technical' || channel === 'core') {
+        const access = await db.channelAccessRequest.findUnique({
+          where: {
+            employeeId_channel: { employeeId: requestingUserId, channel }
+          }
+        });
+        if (!access || access.status !== 'Approved') {
+          return { success: false, error: 'Access to this channel is restricted' };
+        }
+      }
+    }
+
     const messages = await db.message.findMany({
       where: { channel },
       orderBy: { createdAt: 'asc' }
@@ -831,11 +850,31 @@ export async function getMessages(channel: string) {
   }
 }
 
-export async function postMessage(channel: string, senderId: string, senderName: string, content: string) {
+export async function postMessage(channel: string, senderId: string, senderName: string, content: string, senderRole: string) {
   try {
     if (!content.trim()) {
       return { success: false, error: 'Message content cannot be empty' };
     }
+
+    // RBAC validation
+    if (senderRole !== 'Admin') {
+      if (channel.startsWith('dm:')) {
+        const parts = channel.split(':');
+        if (parts[1] !== senderId && parts[2] !== senderId) {
+          return { success: false, error: 'Unauthorized channel access' };
+        }
+      } else if (channel === 'marketing' || channel === 'technical' || channel === 'core') {
+        const access = await db.channelAccessRequest.findUnique({
+          where: {
+            employeeId_channel: { employeeId: senderId, channel }
+          }
+        });
+        if (!access || access.status !== 'Approved') {
+          return { success: false, error: 'Access to this channel is restricted' };
+        }
+      }
+    }
+
     const message = await db.message.create({
       data: {
         channel,
@@ -943,8 +982,12 @@ export async function getChannelAccessStatus(employeeId: string, channel: string
   }
 }
 
-export async function getPendingChannelAccessRequests(channel?: string) {
+export async function getPendingChannelAccessRequests(channel?: string, requestingUserRole?: string) {
   try {
+    if (requestingUserRole !== 'Admin') {
+      return { success: false, error: 'Access denied: Admin only' };
+    }
+
     const whereClause: any = { status: 'Pending' };
     if (channel) {
       whereClause.channel = channel;
@@ -962,8 +1005,12 @@ export async function getPendingChannelAccessRequests(channel?: string) {
   }
 }
 
-export async function approveChannelAccessRequest(requestId: string) {
+export async function approveChannelAccessRequest(requestId: string, requestingUserRole?: string) {
   try {
+    if (requestingUserRole !== 'Admin') {
+      return { success: false, error: 'Access denied: Admin only' };
+    }
+
     const updated = await db.channelAccessRequest.update({
       where: { id: requestId },
       data: { status: 'Approved' }
@@ -975,8 +1022,12 @@ export async function approveChannelAccessRequest(requestId: string) {
   }
 }
 
-export async function rejectChannelAccessRequest(requestId: string) {
+export async function rejectChannelAccessRequest(requestId: string, requestingUserRole?: string) {
   try {
+    if (requestingUserRole !== 'Admin') {
+      return { success: false, error: 'Access denied: Admin only' };
+    }
+
     const updated = await db.channelAccessRequest.update({
       where: { id: requestId },
       data: { status: 'Rejected' }

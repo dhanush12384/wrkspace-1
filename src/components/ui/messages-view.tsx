@@ -119,7 +119,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 	const loadPendingRequests = async (channelId: string) => {
 		if (currentUser.role !== 'Admin') return;
 		try {
-			const res = await getPendingChannelAccessRequests(channelId);
+			const res = await getPendingChannelAccessRequests(channelId, currentUser.role);
 			if (res.success && res.requests) {
 				setPendingRequests(res.requests);
 			}
@@ -132,7 +132,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 	const fetchMessages = async (showLoading = false) => {
 		if (showLoading) setIsLoading(true);
 		try {
-			const res = await getMessages(activeChannel);
+			const res = await getMessages(activeChannel, currentUser.id, currentUser.role);
 			if (res.success && res.messages) {
 				setMessages(res.messages as any);
 			}
@@ -165,7 +165,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 					}
 				});
 			}
-		}, 3500);
+		}, 1000);
 
 		return () => clearInterval(interval);
 	}, [activeChannel, accessStatus]);
@@ -188,7 +188,8 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 				activeChannel,
 				currentUser.id,
 				currentUser.role === 'Admin' ? 'Admin' : currentUser.name,
-				tempText
+				tempText,
+				currentUser.role
 			);
 			if (res.success) {
 				await fetchMessages(false);
@@ -218,7 +219,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 
 	const handleApproveRequest = async (requestId: string) => {
 		try {
-			const res = await approveChannelAccessRequest(requestId);
+			const res = await approveChannelAccessRequest(requestId, currentUser.role);
 			if (res.success) {
 				await loadPendingRequests(activeChannel);
 			}
@@ -229,7 +230,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 
 	const handleRejectRequest = async (requestId: string) => {
 		try {
-			const res = await rejectChannelAccessRequest(requestId);
+			const res = await rejectChannelAccessRequest(requestId, currentUser.role);
 			if (res.success) {
 				await loadPendingRequests(activeChannel);
 			}
