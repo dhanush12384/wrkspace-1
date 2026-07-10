@@ -350,10 +350,22 @@ export async function loginEmployee(email: string, passwordId: string) {
 export async function getLiveSystemStats() {
   let admin = null;
   let employeeCount = 0;
+  let taskCount = 0;
+  let leaveCount = 0;
+  let attendanceCount = 0;
+  let eventCount = 0;
+  let submissionCount = 0;
+  let leadCount = 0;
   
   try {
     admin = await getOrCreateAdmin();
     employeeCount = await db.employee.count();
+    taskCount = await db.task.count();
+    leaveCount = await db.leave.count();
+    attendanceCount = await db.attendance.count();
+    eventCount = await db.event.count();
+    submissionCount = await db.workSubmission.count();
+    leadCount = await db.lead.count();
   } catch (error) {
     console.error('Error in getLiveSystemStats DB query:', error);
   }
@@ -401,6 +413,16 @@ export async function getLiveSystemStats() {
       event: 'Dependency tree parsed',
       details: `Loaded ${dependenciesCount} prod and ${devDependenciesCount} dev packages`,
       timestamp: 'Read from package.json',
+    },
+    {
+      event: 'Prisma Client Statistics',
+      details: `Active DB Records: Tasks (${taskCount}), Events (${eventCount}), Submissions (${submissionCount}), Leads (${leadCount})`,
+      timestamp: 'Synchronized with DB schema',
+    },
+    {
+      event: 'HR Operations Registry',
+      details: `Total Registered Employees: ${employeeCount}, Logged Leaves: ${leaveCount}, Clock-ins: ${attendanceCount}`,
+      timestamp: 'Real-time telemetry verified',
     },
     {
       event: 'Reset OTP status checked',

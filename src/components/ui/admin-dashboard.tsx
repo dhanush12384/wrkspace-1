@@ -1345,8 +1345,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				{activeTab === 'system_status' && (
 					<div className="space-y-8">
 						{/* Stats Grid */}
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+						<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
 									<span className="text-xs font-semibold uppercase tracking-wider">Server Node</span>
 									<ServerIcon className="size-4 text-emerald-400 animate-pulse" />
@@ -1355,7 +1355,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<p className="text-xs text-emerald-400 font-medium">Uptime: {stats.uptime}</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
 									<span className="text-xs font-semibold uppercase tracking-wider">Node Env</span>
 									<CpuIcon className="size-4 text-indigo-400" />
@@ -1364,7 +1364,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<p className="text-xs text-zinc-400 font-medium">Heap: {stats.heapMemory}</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
 									<span className="text-xs font-semibold uppercase tracking-wider">NPM Packages</span>
 									<PackageIcon className="size-4 text-sky-400" />
@@ -1373,13 +1373,22 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<p className="text-xs text-sky-400 font-medium">{stats.dependencies} prod, {stats.devDependencies} dev</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-2 rounded-none">
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
 									<span className="text-xs font-semibold uppercase tracking-wider">Employees Registered</span>
 									<UsersIcon className="size-4 text-zinc-400" />
 								</div>
 								<p className="text-2xl font-bold text-white">{employeesList.length}</p>
 								<p className="text-xs text-zinc-400 font-medium">Active members</p>
+							</div>
+
+							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
+								<div className="flex items-center justify-between text-zinc-400">
+									<span className="text-xs font-semibold uppercase tracking-wider">System Logs</span>
+									<TerminalIcon className="size-4 text-brand-400" />
+								</div>
+								<p className="text-2xl font-bold text-white">{stats.logEntries.length}</p>
+								<p className="text-xs text-brand-400 font-medium">Active telemetry logs</p>
 							</div>
 						</div>
 
@@ -1847,17 +1856,17 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 						{/* Employee List Table */}
 						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
-							<table className="w-full min-w-[1400px] text-left text-xs text-zinc-300 font-mono">
+							<table className="w-full min-w-[1800px] text-left text-xs text-zinc-300 font-mono">
 								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
 									<tr>
-										<th className="p-4 font-semibold w-32">Employee ID</th>
-										<th className="p-4 font-semibold w-56">Full Name</th>
-										<th className="p-4 font-semibold w-64">Email ID</th>
-										<th className="p-4 font-semibold w-40">Phone</th>
-										<th className="p-4 font-semibold w-40">Wing</th>
-										<th className="p-4 font-semibold w-48">Wing Lead</th>
-										<th className="p-4 font-semibold w-48">Role</th>
-										<th className="p-4 font-semibold text-right w-28">Actions</th>
+										<th className="p-4 font-semibold w-44">Employee ID</th>
+										<th className="p-4 font-semibold w-72">Full Name</th>
+										<th className="p-4 font-semibold w-96">Email ID</th>
+										<th className="p-4 font-semibold w-56">Phone</th>
+										<th className="p-4 font-semibold w-56">Wing</th>
+										<th className="p-4 font-semibold w-64">Wing Lead</th>
+										<th className="p-4 font-semibold w-64">Role</th>
+										<th className="p-4 font-semibold text-right w-32">Actions</th>
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
