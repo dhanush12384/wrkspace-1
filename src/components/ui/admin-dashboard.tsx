@@ -186,10 +186,20 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [eventMessage, setEventMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAddingEvent, setIsAddingEvent] = useState(false);
 	const [eventsSubTab, setEventsSubTab] = useState<'active' | 'crawler'>('active');
-	const [crawlEventCity, setCrawlEventCity] = useState('');
-	const [crawlEventArea, setCrawlEventArea] = useState('');
+	const [crawlEventCity, setCrawlEventCity] = useState('Hyderabad');
+	const [crawlEventArea, setCrawlEventArea] = useState('Gachibowli');
 	const [isCrawlingEvents, setIsCrawlingEvents] = useState(false);
 	const [eventsCrawlMsg, setEventsCrawlMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+	const citiesList = ["Hyderabad", "Mumbai", "Bangalore", "Pune", "Chennai", "Delhi / Noida"];
+	const cityAreas: Record<string, string[]> = {
+		"Hyderabad": ["Gachibowli", "Madhapur", "Jubilee Hills", "Kondapur", "Begumpet", "Kukatpally"],
+		"Mumbai": ["Powai", "Bandra", "Andheri", "Colaba", "Thane", "Dadar"],
+		"Bangalore": ["Koramangala", "Indiranagar", "HSR Layout", "Whitefield", "Electronic City", "Jayanagar"],
+		"Pune": ["Hinjewadi", "Kothrud", "Koregaon Park", "Viman Nagar", "Baner", "Wakad"],
+		"Chennai": ["Adyar", "Velachery", "T. Nagar", "OMR Road", "Guindy", "Nungambakkam"],
+		"Delhi / Noida": ["Connaught Place", "Dwarka", "Saket", "Sector 62 Noida", "Greater Noida", "Gurugram"]
+	};
 
 	// CRUD Modals and Edit States
 	const [editModalType, setEditModalType] = useState<'employee' | 'task' | 'leave' | 'attendance' | 'event' | 'submission' | null>(null);
@@ -2179,29 +2189,42 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<form onSubmit={handleEventsCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
 										<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
 											<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Automated Events Crawler</h3>
-											<span className="text-[10px] text-zinc-555 font-mono">Targets: Student Tribe, Luma, Devfolio, Unstop</span>
+											<span className="text-[10px] text-zinc-500 font-mono">Targets: Student Tribe, Luma, Devfolio, Unstop</span>
 										</div>
 										<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 											<div className="space-y-1">
 												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target City *</label>
-												<input
-													type="text"
+												<select
 													value={crawlEventCity}
-													onChange={e => setCrawlEventCity(e.target.value)}
-													placeholder="e.g. Hyderabad"
+													onChange={e => {
+														const city = e.target.value;
+														setCrawlEventCity(city);
+														const areas = cityAreas[city] || [];
+														setCrawlEventArea(areas[0] || "");
+													}}
 													required
-													className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono"
-												/>
+													className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono rounded-none"
+												>
+													<option value="">Select City</option>
+													{citiesList.map(c => (
+														<option key={c} value={c}>{c}</option>
+													))}
+												</select>
 											</div>
 											<div className="space-y-1">
-												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target Area / Venue (Optional)</label>
-												<input
-													type="text"
+												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target Area / Venue</label>
+												<select
 													value={crawlEventArea}
 													onChange={e => setCrawlEventArea(e.target.value)}
-													placeholder="e.g. Gachibowli"
-													className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono"
-												/>
+													required
+													className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono rounded-none"
+													disabled={!crawlEventCity}
+												>
+													<option value="">Select Area</option>
+													{(cityAreas[crawlEventCity] || []).map(a => (
+														<option key={a} value={a}>{a}</option>
+													))}
+												</select>
 											</div>
 											<div className="flex items-end">
 												<button
@@ -2213,6 +2236,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												</button>
 											</div>
 										</div>
+
 										{eventsCrawlMsg && (
 											<div className={cn("p-2 text-[11px] border font-mono", eventsCrawlMsg.type === 'success' ? "bg-emerald-950/20 border-emerald-900/40 text-emerald-400" : "bg-red-950/20 border-red-900/40 text-red-400")}>
 												{eventsCrawlMsg.text}

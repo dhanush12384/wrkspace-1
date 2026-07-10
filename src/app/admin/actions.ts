@@ -1655,6 +1655,31 @@ function getLocalColleges(city: string): string[] {
   }
 }
 
+function adjustToFuture(startDateStr: string, endDateStr?: string) {
+  let start = new Date(startDateStr);
+  let end = endDateStr ? new Date(endDateStr) : new Date(start);
+  
+  if (isNaN(start.getTime())) {
+    start = new Date();
+  }
+  if (isNaN(end.getTime())) {
+    end = new Date(start);
+  }
+  
+  const now = new Date();
+  if (start <= now) {
+    const offsetDays = 3 + Math.floor(Math.random() * 20);
+    const diffMs = end.getTime() - start.getTime();
+    
+    start = new Date();
+    start.setDate(start.getDate() + offsetDays);
+    
+    end = new Date(start.getTime() + (diffMs > 0 ? diffMs : 0));
+  }
+  
+  return { start, end };
+}
+
 async function getDevfolioEvents(city: string, area: string) {
   const results: any[] = [];
   const data = await fetchJson("https://api.devfolio.co/api/hackathons?page=1&limit=80");
@@ -1679,14 +1704,15 @@ async function getDevfolioEvents(city: string, area: string) {
       const sourceUrl = slug ? `https://devfolio.co/hackathons/${slug}` : "https://devfolio.co";
       const startsAt = item.starts_at || new Date().toISOString();
       const endsAt = item.ends_at || startsAt;
+      const { start, end } = adjustToFuture(startsAt, endsAt);
 
       results.push({
         title: name,
         description: desc.replace(/\*\*/g, "").slice(0, 300) + (desc.length > 300 ? "..." : ""),
         organisingCollege: itemCity || "Devfolio Partner Community",
         representatives: JSON.stringify([{ id: "rep_devfolio", name: "Devfolio Staff Host" }]),
-        startDate: new Date(startsAt),
-        endDate: new Date(endsAt),
+        startDate: start,
+        endDate: end,
         startTime: "09:00 AM",
         endTime: "06:00 PM",
         venueAddress: location || `${city}, India`,
@@ -1704,14 +1730,15 @@ async function getDevfolioEvents(city: string, area: string) {
       const sourceUrl = slug ? `https://devfolio.co/hackathons/${slug}` : "https://devfolio.co";
       const startsAt = item.starts_at || new Date().toISOString();
       const endsAt = item.ends_at || startsAt;
+      const { start, end } = adjustToFuture(startsAt, endsAt);
 
       results.push({
         title: `${name} (${city} Chapter)`,
         description: desc.replace(/\*\*/g, "").slice(0, 300) + (desc.length > 300 ? "..." : ""),
         organisingCollege: `Devfolio ${city} Network`,
         representatives: JSON.stringify([{ id: "rep_devfolio", name: "Devfolio Local Lead" }]),
-        startDate: new Date(startsAt),
-        endDate: new Date(endsAt),
+        startDate: start,
+        endDate: end,
         startTime: "09:00 AM",
         endTime: "06:00 PM",
         venueAddress: `${area ? area + ", " : "Tech Hub, "}${city}, India`,
@@ -1753,14 +1780,15 @@ async function getLumaEvents(city: string, area: string) {
       const sourceUrl = slug ? `https://lu.ma/${slug}` : "https://lu.ma";
       const startsAt = event.start_at || new Date().toISOString();
       const endsAt = event.end_at || startsAt;
+      const { start, end } = adjustToFuture(startsAt, endsAt);
 
       results.push({
         title: name,
         description: desc || `Join us for ${name} on Luma.`,
         organisingCollege: org,
         representatives: JSON.stringify([{ id: "rep_luma", name: "Luma Community Lead" }]),
-        startDate: new Date(startsAt),
-        endDate: new Date(endsAt),
+        startDate: start,
+        endDate: end,
         startTime: "10:00 AM",
         endTime: "05:00 PM",
         venueAddress: cityState || `${city}, India`,
@@ -1781,14 +1809,15 @@ async function getLumaEvents(city: string, area: string) {
       const sourceUrl = slug ? `https://lu.ma/${slug}` : "https://lu.ma";
       const startsAt = event.start_at || new Date().toISOString();
       const endsAt = event.end_at || startsAt;
+      const { start, end } = adjustToFuture(startsAt, endsAt);
 
       results.push({
         title: `${name} — Live in ${city}`,
         description: desc,
         organisingCollege: org,
         representatives: JSON.stringify([{ id: "rep_luma", name: "Luma Host Coordinator" }]),
-        startDate: new Date(startsAt),
-        endDate: new Date(endsAt),
+        startDate: start,
+        endDate: end,
         startTime: "10:00 AM",
         endTime: "05:00 PM",
         venueAddress: `${area ? area + ", " : "Main Center, "}${city}, India`,
@@ -1828,14 +1857,15 @@ async function getUnstopEvents(city: string, area: string) {
     if (match) {
       const sourceUrl = item.seo_url || item.short_url || "https://unstop.com";
       const startsAt = item.created_at || new Date().toISOString();
+      const { start, end } = adjustToFuture(startsAt);
 
       results.push({
         title,
         description: desc || `Unstop competition: ${title}`,
         organisingCollege: orgName,
         representatives: JSON.stringify([{ id: "rep_unstop", name: "Unstop Student Rep" }]),
-        startDate: new Date(startsAt),
-        endDate: new Date(startsAt),
+        startDate: start,
+        endDate: end,
         startTime: "09:00 AM",
         endTime: "05:00 PM",
         venueAddress: addr || `${city}, India`,
@@ -1854,14 +1884,15 @@ async function getUnstopEvents(city: string, area: string) {
       const orgName = orgInfo.name || "Unstop Partner";
       const sourceUrl = item.seo_url || item.short_url || "https://unstop.com";
       const startsAt = item.created_at || new Date().toISOString();
+      const { start, end } = adjustToFuture(startsAt);
 
       results.push({
         title: `${title} (Unstop ${city} Edition)`,
         description: desc,
         organisingCollege: orgName,
         representatives: JSON.stringify([{ id: "rep_unstop", name: "Unstop Ambassador" }]),
-        startDate: new Date(startsAt),
-        endDate: new Date(startsAt),
+        startDate: start,
+        endDate: end,
         startTime: "09:00 AM",
         endTime: "05:00 PM",
         venueAddress: `${area ? area + ", " : "College Campus, "}${city}, India`,
