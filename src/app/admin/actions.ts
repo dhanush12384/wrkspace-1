@@ -1664,6 +1664,7 @@ export async function triggerEventsCrawl(city: string, area: string) {
                 endTime: ev.endTime,
                 venueAddress: ev.venueAddress,
                 source: ev.source,
+                sourceUrl: ev.sourceUrl || null,
                 allowed: false
               }
             });

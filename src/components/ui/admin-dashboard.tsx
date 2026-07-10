@@ -2282,7 +2282,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												<div key={event.id} className="bg-zinc-900/30 border border-zinc-800/80 p-5 space-y-4 hover:border-brand-900/60 transition-colors">
 													<div className="flex items-start justify-between gap-3">
 														<div>
-															<h3 className="text-base font-bold text-white">{event.title}</h3>
+															<h3 className="text-base font-bold text-white">
+																{event.sourceUrl ? (
+																	<a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-400 hover:underline transition-all">
+																		{event.title}
+																	</a>
+																) : (
+																	event.title
+																)}
+															</h3>
 															<p className="text-xs text-brand-400 font-medium mt-0.5">{event.organisingCollege}</p>
 														</div>
 														<span className="text-[10px] bg-brand-950/40 border border-brand-900/40 text-brand-300 px-2 py-1 font-mono uppercase tracking-wider whitespace-nowrap">
@@ -2369,7 +2377,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 													const startD = new Date(event.startDate);
 													return (
 														<tr key={event.id} className="hover:bg-zinc-900/30 transition-colors">
-															<td className="p-4 font-bold text-white font-sans">{event.title}</td>
+															<td className="p-4 font-bold text-white font-sans">
+																{event.sourceUrl ? (
+																	<a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-400 hover:underline transition-all">
+																		{event.title}
+																	</a>
+																) : (
+																	event.title
+																)}
+															</td>
 															<td className="p-4 text-zinc-300">{event.organisingCollege}</td>
 															<td className="p-4">
 																<span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-brand-950/50 border border-brand-900/50 text-brand-300">

@@ -109,6 +109,7 @@ model Event {
   venueAddress        String
   allowed             Boolean  @default(true)
   source              String   @default("Manual") // Manual, Student Tribe, Luma, Devfolio, Unstop
+  sourceUrl           String?
   createdAt           DateTime @default(now())
 }
 
