@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --zinc-950: #ffffff;
+  --zinc-900: #fafafa;
+  --zinc-850: #f4f4f5;
+  --zinc-800: #e4e4e7;
+  --zinc-700: #d4d4d8;
+  --zinc-600: #a1a1aa;
+  --zinc-500: #71717a;
+  --zinc-400: #71717a;
+  --zinc-300: #27272a;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --zinc-950: #09090b;
+  --zinc-900: #18181b;
+  --zinc-850: #1e1e22;
+  --zinc-800: #27272a;
+  --zinc-700: #3f3f46;
+  --zinc-600: #52525b;
+  --zinc-500: #71717a;
+  --zinc-400: #a1a1aa;
+  --zinc-300: #d4d4d8;
 }
 
 @theme inline {
@@ -11,7 +36,15 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-zinc-850: #1e1e22;
+  --color-zinc-950: var(--zinc-950);
+  --color-zinc-900: var(--zinc-900);
+  --color-zinc-850: var(--zinc-850);
+  --color-zinc-800: var(--zinc-800);
+  --color-zinc-700: var(--zinc-700);
+  --color-zinc-600: var(--zinc-600);
+  --color-zinc-500: var(--zinc-500);
+  --color-zinc-400: var(--zinc-400);
+  --color-zinc-300: var(--zinc-300);
 
   /* Brand color scale anchored at #4f39f5 */
   --color-brand-50:  #f0eeff;
@@ -25,13 +58,6 @@
   --color-brand-800: #21188b;
   --color-brand-900: #150f5f;
   --color-brand-950: #0c0937;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

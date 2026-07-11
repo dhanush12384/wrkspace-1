@@ -34,6 +34,7 @@ import {
 	updateHrCompany,
 } from '@/app/admin/actions';
 import { MessagesView } from './messages-view';
+import { AnimatedThemeTogglerNextThemesDemo } from './animated-theme-toggler-next-themes-demo';
 
 type EmpTabType = 'overview' | 'tasks' | 'attendance' | 'leaves' | 'messages' | 'events' | 'work_submission' | 'leads' | 'hr_companies' | 'profile';
 
@@ -498,7 +499,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 
 	return (
 		<main className={cn(
-			"bg-zinc-950 text-white relative flex flex-col font-sans",
+			"bg-zinc-950 text-foreground relative flex flex-col font-sans",
 			activeTab === 'messages' ? "h-screen overflow-hidden" : "min-h-screen overflow-y-auto"
 		)}>
 			{/* Premium background radial glow */}
@@ -513,6 +514,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						<span className="text-xs font-semibold uppercase tracking-widest text-zinc-400 font-mono">Employee</span>
 					</div>
 					<div className="flex items-center gap-3">
+						<AnimatedThemeTogglerNextThemesDemo />
 						<Button 
 							variant="outline" 
 							className="border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-700 cursor-pointer rounded-none transition-all duration-200 text-xs py-2.5 px-4 h-auto font-medium"
