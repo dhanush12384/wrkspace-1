@@ -57,6 +57,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 	const [leaveReason, setLeaveReason] = useState('');
 	const [leaveMsg, setLeaveMsg] = useState<string | null>(null);
 	const [geofenceError, setGeofenceError] = useState<string | null>(null);
+	const [bypassGeofence, setBypassGeofence] = useState(false);
 
 	// Events state
 	const [eventsList, setEventsList] = useState<any[]>([]);
@@ -315,8 +316,24 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 		if (!employee) return;
 		setGeofenceError(null);
 
+		if (bypassGeofence) {
+			try {
+				const res = await clockIn(employee.id, `${employee.firstName} ${employee.lastName}`);
+				if (res.success) {
+					setAttendanceStatus('checked_in');
+					loadEmployeeAttendance(employee.id);
+				} else {
+					setGeofenceError(res.error || 'Failed to clock in');
+				}
+			} catch (error) {
+				console.error("Failed to clock in:", error);
+				setGeofenceError("A server error occurred during Clock In.");
+			}
+			return;
+		}
+
 		if (!navigator.geolocation) {
-			setGeofenceError("Geolocation is not supported by your browser.");
+			setGeofenceError("Geolocation is not supported by your browser. You can select the 'Work Remotely' option if working offsite.");
 			return;
 		}
 
@@ -325,7 +342,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 				const { latitude, longitude } = position.coords;
 				const distance = calculateDistance(latitude, longitude, OFFICE_LAT, OFFICE_LON);
 				if (distance > ALLOWED_RADIUS_METERS) {
-					setGeofenceError(`Access Denied: You are outside the corporate geofence perimeter of STUDENT FORGE Hyderabad Office. You are currently ~${Math.round(distance)}m away.`);
+					setGeofenceError(`Access Denied: You are outside the corporate geofence perimeter of STUDENT FORGE Hyderabad Office. You are currently ~${Math.round(distance)}m away. If you are working remotely, please check the "Work Remotely / Bypass Geofence" option.`);
 					return;
 				}
 
@@ -343,7 +360,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 				}
 			},
 			(error) => {
-				setGeofenceError("Location Access Required: Please enable location permissions in your browser to check in.");
+				setGeofenceError("Location Access Required: Please enable location permissions in your browser, or select the 'Work Remotely / Bypass Geofence' option to check in.");
 			}
 		);
 	};
@@ -352,8 +369,24 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 		if (!employee) return;
 		setGeofenceError(null);
 
+		if (bypassGeofence) {
+			try {
+				const res = await clockOut(employee.id);
+				if (res.success) {
+					setAttendanceStatus('checked_out');
+					loadEmployeeAttendance(employee.id);
+				} else {
+					setGeofenceError(res.error || 'Failed to clock out');
+				}
+			} catch (error) {
+				console.error("Failed to clock out:", error);
+				setGeofenceError("A server error occurred during Clock Out.");
+			}
+			return;
+		}
+
 		if (!navigator.geolocation) {
-			setGeofenceError("Geolocation is not supported by your browser.");
+			setGeofenceError("Geolocation is not supported by your browser. You can select the 'Work Remotely' option if working offsite.");
 			return;
 		}
 
@@ -362,7 +395,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 				const { latitude, longitude } = position.coords;
 				const distance = calculateDistance(latitude, longitude, OFFICE_LAT, OFFICE_LON);
 				if (distance > ALLOWED_RADIUS_METERS) {
-					setGeofenceError(`Access Denied: You are outside the corporate geofence perimeter of STUDENT FORGE Hyderabad Office. You are currently ~${Math.round(distance)}m away.`);
+					setGeofenceError(`Access Denied: You are outside the corporate geofence perimeter of STUDENT FORGE Hyderabad Office. You are currently ~${Math.round(distance)}m away. If you are working remotely, please check the "Work Remotely / Bypass Geofence" option.`);
 					return;
 				}
 
@@ -380,7 +413,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 				}
 			},
 			(error) => {
-				setGeofenceError("Location Access Required: Please enable location permissions in your browser to check out.");
+				setGeofenceError("Location Access Required: Please enable location permissions in your browser, or select the 'Work Remotely / Bypass Geofence' option to check out.");
 			}
 		);
 	};
@@ -779,7 +812,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 								</div>
 							</div>
 							
-							<div className="w-full sm:w-auto">
+							<div className="w-full sm:w-auto flex flex-col items-stretch sm:items-end gap-2">
 								{attendanceStatus === 'checked_out' ? (
 									<Button 
 										onClick={handleCheckIn}
@@ -795,6 +828,15 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 										Clock Out Shift
 									</Button>
 								)}
+								<label className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono select-none cursor-pointer mt-1">
+									<input 
+										type="checkbox" 
+										checked={bypassGeofence}
+										onChange={e => setBypassGeofence(e.target.checked)}
+										className="accent-brand-600 size-3 bg-zinc-950 border border-zinc-800 rounded-none cursor-pointer focus:outline-none"
+									/>
+									<span>Work Remotely / Bypass Geofence</span>
+								</label>
 							</div>
 						</div>
 
