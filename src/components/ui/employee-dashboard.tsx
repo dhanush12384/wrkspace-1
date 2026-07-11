@@ -506,7 +506,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_70%)] z-0 pointer-events-none" />
 
 			{/* Full Width Top Navbar */}
-			<header className="w-full border-b border-zinc-900 bg-zinc-950 sticky top-0 z-50 shadow-md shadow-black/40">
+			<header className="w-full border-b border-zinc-200 dark:border-zinc-900 bg-zinc-950 sticky top-0 z-50 shadow-md shadow-zinc-200/50 dark:shadow-black/40">
 				<div className="w-full px-6 md:px-10 h-20 flex items-center justify-between">
 					<div className="flex items-center gap-4">
 						<img src="https://ik.imagekit.io/dypkhqxip/logogog" alt="WrkSpace Logo" className="h-8 w-auto object-contain" />
@@ -517,7 +517,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						<AnimatedThemeTogglerNextThemesDemo />
 						<Button 
 							variant="outline" 
-							className="border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-700 cursor-pointer rounded-none transition-all duration-200 text-xs py-2.5 px-4 h-auto font-medium"
+							className="border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-zinc-700 cursor-pointer rounded-none transition-all duration-200 text-xs py-2.5 px-4 h-auto font-medium"
 							onClick={onLogout}
 						>
 							<LogOutIcon className="size-3.5 me-2 text-red-400" />
@@ -528,13 +528,13 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 			</header>
 
 			{/* Subnavbar */}
-			<div className="w-full border-b-2 border-brand-700 bg-brand-950 z-40 sticky top-20 shadow-lg shadow-brand-950/60" style={{backgroundImage: 'linear-gradient(180deg, #1a1040 0%, #0f0824 100%)'}}>
+			<div className="w-full border-b-2 border-[var(--subnav-border-color)] bg-[var(--subnav-bg-fallback)] z-40 sticky top-20 shadow-lg shadow-brand-950/20 dark:shadow-brand-950/60" style={{backgroundImage: 'var(--subnav-bg)'}}>
 				<div className="w-full px-6 md:px-10 flex gap-6 text-xs md:text-sm font-medium tracking-wide overflow-x-auto">
 					<button 
 						onClick={() => setActiveTab('overview')}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'overview' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'overview' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Overview
@@ -546,7 +546,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'tasks' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'tasks' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						My Allocated Tasks ({empTasks.length})
@@ -559,7 +559,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'attendance' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'attendance' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Attendance logs
@@ -571,7 +571,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'leaves' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'leaves' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Apply Leaves
@@ -582,7 +582,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'messages' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'messages' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Messages
@@ -594,7 +594,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'events' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'events' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Events
@@ -606,7 +606,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'work_submission' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'work_submission' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 							Submissions
@@ -618,7 +618,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-							activeTab === 'leads' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'leads' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Leads
@@ -630,7 +630,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-							activeTab === 'hr_companies' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'hr_companies' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Companies
@@ -641,7 +641,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						}}
 						className={cn(
 							"py-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-							activeTab === 'profile' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/50 hover:text-white'
+							activeTab === 'profile' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
 						)}
 					>
 						Profile

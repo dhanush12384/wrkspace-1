@@ -16,6 +16,14 @@
   --zinc-500: #71717a;
   --zinc-400: #71717a;
   --zinc-300: #27272a;
+
+  --subnav-bg: linear-gradient(180deg, #f5f3ff 0%, #edd8ff 100%);
+  --subnav-bg-fallback: #f5f3ff;
+  --subnav-border-color: #e9e3ff;
+  --subnav-border-active: #4f39f5;
+  --subnav-text-active: #3022ae;
+  --subnav-text-inactive: rgba(48, 34, 174, 0.6);
+  --subnav-text-hover: #150f5f;
 }
 
 .dark {
@@ -32,6 +40,14 @@
   --zinc-500: #71717a;
   --zinc-400: #a1a1aa;
   --zinc-300: #d4d4d8;
+
+  --subnav-bg: linear-gradient(180deg, #1a1040 0%, #0f0824 100%);
+  --subnav-bg-fallback: #0f0824;
+  --subnav-border-color: #3022ae;
+  --subnav-border-active: #7c63ff;
+  --subnav-text-active: #ffffff;
+  --subnav-text-inactive: rgba(224, 220, 255, 0.5);
+  --subnav-text-hover: #ffffff;
 }
 
 @theme inline {
