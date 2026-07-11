@@ -660,7 +660,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 					<div className="space-y-6">
 						{/* Welcome banner */}
 						<div className="bg-zinc-900/30 border border-zinc-800/80 p-8 rounded-none space-y-4">
-							<h2 className="text-xl md:text-2xl font-bold text-white">Welcome back, <span className="text-brand-400 font-extrabold">{employee.firstName}</span>!</h2>
+							<h2 className="text-xl md:text-2xl font-bold text-foreground">Welcome back, <span className="text-brand-400 font-extrabold">{employee.firstName}</span>!</h2>
 							<p className="text-zinc-400 text-xs md:text-sm max-w-2xl leading-relaxed">
 								Access your personal workspace telemetry dashboard console. Below is your directory profile classification registry and active lead status assignment.
 							</p>
@@ -671,15 +671,15 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 								</div>
 								<div className="p-4 space-y-1">
 									<span className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Allocated Wing</span>
-									<p className="text-white text-sm font-semibold">{employee.wingName}</p>
+									<p className="text-foreground text-sm font-semibold">{employee.wingName}</p>
 								</div>
 								<div className="p-4 space-y-1">
 									<span className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Wing Lead</span>
-									<p className="text-white text-sm font-medium">{employee.wingLeadName}</p>
+									<p className="text-foreground text-sm font-medium">{employee.wingLeadName}</p>
 								</div>
 								<div className="p-4 space-y-1">
 									<span className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Registry Date</span>
-									<p className="text-white font-mono text-sm">{new Date(employee.createdAt).toLocaleDateString()}</p>
+									<p className="text-foreground font-mono text-sm">{new Date(employee.createdAt).toLocaleDateString()}</p>
 								</div>
 							</div>
 						</div>
@@ -691,7 +691,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 									<BriefcaseIcon className="size-3.5 text-indigo-400" />
 									<span className="text-[10px] font-semibold uppercase tracking-wider">My Tasks</span>
 								</div>
-								<p className="text-xl font-bold text-white">{empTasks.length}</p>
+								<p className="text-xl font-bold text-foreground">{empTasks.length}</p>
 								<p className="text-[10px] text-zinc-550 font-mono">{empTasks.filter(t => t.status === 'Pending').length} Pending</p>
 							</div>
 
@@ -714,7 +714,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 									<CalendarIcon className="size-3.5 text-amber-400" />
 									<span className="text-[10px] font-semibold uppercase tracking-wider">Leaves</span>
 								</div>
-								<p className="text-xl font-bold text-white">
+								<p className="text-xl font-bold text-foreground">
 									{leaveRequests.filter(req => req.status === 'Pending').length}
 								</p>
 								<p className="text-[10px] text-zinc-550 font-mono">Pending Requests</p>
@@ -725,7 +725,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 									<RefreshCwIcon className="size-3.5 text-sky-400" />
 									<span className="text-[10px] font-semibold uppercase tracking-wider">Submissions</span>
 								</div>
-								<p className="text-xl font-bold text-white">{mySubmissions.length}</p>
+								<p className="text-xl font-bold text-foreground">{mySubmissions.length}</p>
 								<p className="text-[10px] text-zinc-550 font-mono">{mySubmissions.filter(s => s.status === 'Submitted').length} Pending</p>
 							</div>
 
@@ -734,7 +734,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 									<BarChart2Icon className="size-3.5 text-brand-400" />
 									<span className="text-[10px] font-semibold uppercase tracking-wider">My Leads</span>
 								</div>
-								<p className="text-xl font-bold text-white">{leadsList.filter(l => l.assignedTo === employee.id).length}</p>
+								<p className="text-xl font-bold text-foreground">{leadsList.filter(l => l.assignedTo === employee.id).length}</p>
 								<p className="text-[10px] text-zinc-550 font-mono">Active pipeline</p>
 							</div>
 
@@ -743,7 +743,7 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 									<Grid2x2PlusIcon className="size-3.5 text-indigo-400" />
 									<span className="text-[10px] font-semibold uppercase tracking-wider">Events</span>
 								</div>
-								<p className="text-xl font-bold text-white">{eventsList.length}</p>
+								<p className="text-xl font-bold text-foreground">{eventsList.length}</p>
 								<p className="text-[10px] text-zinc-550 font-mono">Total Planned</p>
 							</div>
 						</div>

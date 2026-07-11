@@ -3,7 +3,6 @@
 import React, { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
-import { flushSync } from "react-dom";
 
 export type TransitionVariant = "circle" | "square";
 
@@ -18,7 +17,7 @@ interface AnimatedThemeTogglerProps {
 
 export const AnimatedThemeToggler: React.FC<AnimatedThemeTogglerProps> = ({
   className = "",
-  duration = 400,
+  duration = 0,
   variant = "circle",
   fromCenter = false,
   theme = "dark",
@@ -27,61 +26,9 @@ export const AnimatedThemeToggler: React.FC<AnimatedThemeTogglerProps> = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleToggle = (e: React.MouseEvent) => {
-    if (!onThemeChange) return;
-    const nextTheme = theme === "dark" ? "light" : "dark";
-
-    // Fallback if View Transitions API is not supported in the user's browser
-    if (!document.startViewTransition) {
-      onThemeChange(nextTheme);
-      return;
+    if (onThemeChange) {
+      onThemeChange(theme === "dark" ? "light" : "dark");
     }
-
-    // Determine the transition epicenter
-    let x = e.clientX;
-    let y = e.clientY;
-    if (fromCenter) {
-      x = window.innerWidth / 2;
-      y = window.innerHeight / 2;
-    } else if (buttonRef.current && x === 0 && y === 0) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      x = rect.left + rect.width / 2;
-      y = rect.top + rect.height / 2;
-    }
-
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
-
-    const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        onThemeChange(nextTheme);
-      });
-    });
-
-    transition.ready.then(() => {
-      const clipPath =
-        variant === "square"
-          ? [
-              `inset(50% 50% 50% 50%)`,
-              `inset(0% 0% 0% 0%)`,
-            ]
-          : [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`,
-            ];
-
-      document.documentElement.animate(
-        {
-          clipPath: theme === "dark" ? [...clipPath].reverse() : clipPath,
-        },
-        {
-          duration: duration,
-          easing: "ease-in-out",
-          pseudoElement: theme === "dark" ? "::view-transition-old(root)" : "::view-transition-new(root)",
-        }
-      );
-    });
   };
 
   return (
@@ -95,10 +42,10 @@ export const AnimatedThemeToggler: React.FC<AnimatedThemeTogglerProps> = ({
         {theme === "dark" ? (
           <motion.div
             key="moon"
-            initial={{ rotate: -90, scale: 0, opacity: 0 }}
+            initial={{ rotate: 0, scale: 1, opacity: 1 }}
             animate={{ rotate: 0, scale: 1, opacity: 1 }}
-            exit={{ rotate: 90, scale: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            exit={{ rotate: 0, scale: 1, opacity: 1 }}
+            transition={{ duration: 0 }}
             className="flex items-center justify-center"
           >
             <Moon className="size-4" />
@@ -106,10 +53,10 @@ export const AnimatedThemeToggler: React.FC<AnimatedThemeTogglerProps> = ({
         ) : (
           <motion.div
             key="sun"
-            initial={{ rotate: 90, scale: 0, opacity: 0 }}
+            initial={{ rotate: 0, scale: 1, opacity: 1 }}
             animate={{ rotate: 0, scale: 1, opacity: 1 }}
-            exit={{ rotate: -90, scale: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            exit={{ rotate: 0, scale: 1, opacity: 1 }}
+            transition={{ duration: 0 }}
             className="flex items-center justify-center"
           >
             <Sun className="size-4" />
