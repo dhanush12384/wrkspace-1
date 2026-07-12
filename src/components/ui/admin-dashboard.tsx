@@ -1016,15 +1016,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		};
 
 		// Create table headers and rows with starting letter capitalized (caps)
-		const headers = ['Employee ID', 'Full Name', 'Email ID', 'Phone', 'Wing Name', 'Wing Lead', 'Role'];
+		const headers = ['Employee ID', 'Full Name', 'Wing Name', 'Wing Lead', 'Role'];
 
 		const rows = employeesList.map(emp => {
 			const fullName = `${emp.firstName} ${emp.middleName ? emp.middleName + ' ' : ''}${emp.lastName}`;
 			return [
 				emp.id.toUpperCase(),
 				toTitleCase(fullName),
-				emp.email.toLowerCase(),
-				emp.phone,
 				toTitleCase(emp.wingName || 'General'),
 				toTitleCase(emp.wingLeadName || 'Admin'),
 				toTitleCase(emp.role || 'Employee')
