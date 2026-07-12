@@ -17,7 +17,7 @@ import {
 	UserPlusIcon,
 	PlusIcon,
 } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead } from '@/app/admin/actions';
 import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessagesView } from './messages-view';
@@ -27,7 +27,7 @@ interface AdminDashboardProps {
 	onLogout: () => void;
 }
 
-type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin';
+type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads';
 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -80,6 +80,103 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			}
 		} catch (e) {
 			console.error(e);
+		}
+	};
+
+	const fetchTeamLeads = async () => {
+		try {
+			const res = await getTeamLeads();
+			if (res.success && res.teamLeads) {
+				setTeamLeadsList(res.teamLeads);
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const handleAllocateTeamLead = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!selectedEmpId) {
+			setLeadMsg({ type: 'error', text: 'Please select an employee.' });
+			return;
+		}
+		setIsAllocatingLead(true);
+		setLeadMsg(null);
+
+		try {
+			const res = await allocateTeamLead({
+				employeeId: selectedEmpId,
+				password: leadPassword,
+				allowedPages: leadAllowedPages.join(',')
+			});
+
+			if (res.success) {
+				setLeadMsg({ type: 'success', text: 'Team Lead allocated successfully!' });
+				setSelectedEmpId('');
+				setLeadPassword('lead123');
+				setLeadAllowedPages(['task_allocation', 'attendance', 'leaves']);
+				setShowLeadForm(false);
+				await fetchTeamLeads();
+				await fetchEmployees();
+				await fetchStats();
+			} else {
+				setLeadMsg({ type: 'error', text: res.error || 'Failed to allocate Team Lead.' });
+			}
+		} catch (err: any) {
+			setLeadMsg({ type: 'error', text: err.message || 'Error occurred.' });
+		} finally {
+			setIsAllocatingLead(false);
+		}
+	};
+
+	const handleDeleteTeamLead = async (adminId: string) => {
+		if (confirm('Are you sure you want to remove this Team Lead allocation? Their admin login will be revoked, and their employee role will reset to Employee.')) {
+			const res = await deleteTeamLead(adminId);
+			if (res.success) {
+				await fetchTeamLeads();
+				await fetchEmployees();
+				await fetchStats();
+			} else {
+				alert(res.error || 'Failed to delete Team Lead.');
+			}
+		}
+	};
+
+	const handleSaveTeamLeadEdit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!editingLead) return;
+		try {
+			const res = await updateTeamLead(editingLead.id, {
+				password: editLeadPassword || undefined,
+				allowedPages: editLeadAllowedPages.join(',')
+			});
+			if (res.success) {
+				setShowEditLeadModal(false);
+				setEditingLead(null);
+				setEditLeadPassword('');
+				setEditLeadAllowedPages([]);
+				await fetchTeamLeads();
+			} else {
+				alert(res.error || 'Failed to update Team Lead.');
+			}
+		} catch (error: any) {
+			alert(error.message || 'Error updating Team Lead.');
+		}
+	};
+
+	const toggleLeadPagePermission = (page: string) => {
+		if (leadAllowedPages.includes(page)) {
+			setLeadAllowedPages(leadAllowedPages.filter(p => p !== page));
+		} else {
+			setLeadAllowedPages([...leadAllowedPages, page]);
+		}
+	};
+
+	const toggleEditLeadPagePermission = (page: string) => {
+		if (editLeadAllowedPages.includes(page)) {
+			setEditLeadAllowedPages(editLeadAllowedPages.filter(p => p !== page));
+		} else {
+			setEditLeadAllowedPages([...editLeadAllowedPages, page]);
 		}
 	};
 
@@ -151,6 +248,19 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 	const [addMessage, setAddMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
+
+	// Team Lead Allocation States
+	const [teamLeadsList, setTeamLeadsList] = useState<any[]>([]);
+	const [showLeadForm, setShowLeadForm] = useState(false);
+	const [selectedEmpId, setSelectedEmpId] = useState('');
+	const [leadPassword, setLeadPassword] = useState('lead123');
+	const [leadAllowedPages, setLeadAllowedPages] = useState<string[]>(['task_allocation', 'attendance', 'leaves']);
+	const [isAllocatingLead, setIsAllocatingLead] = useState(false);
+	const [leadMsg, setLeadMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+	const [editingLead, setEditingLead] = useState<any>(null);
+	const [showEditLeadModal, setShowEditLeadModal] = useState(false);
+	const [editLeadPassword, setEditLeadPassword] = useState('');
+	const [editLeadAllowedPages, setEditLeadAllowedPages] = useState<string[]>([]);
 
 	// Task Allocation States
 	const [tasksList, setTasksList] = useState<any[]>([]);
@@ -837,6 +947,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		fetchHrCompaniesList();
 		if (email.toLowerCase() === 'webstrixx@gmail.com') {
 			fetchAdmins();
+			fetchTeamLeads();
 		}
 		const interval = setInterval(fetchStats, 5000);
 		return () => clearInterval(interval);
@@ -1390,6 +1501,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'super_admin' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
 						>
 							Admins
+						</button>
+					)}
+					{(isSuperAdmin || allowedTabs.includes('team_leads')) && (
+						<button
+							onClick={() => { setActiveTab('team_leads'); fetchTeamLeads(); }}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'team_leads' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Team Leads
 						</button>
 					)}
 				</div>
@@ -4316,6 +4435,202 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
+				{/* Tab content: Team Leads */}
+				{activeTab === 'team_leads' && (isSuperAdmin || allowedTabs.includes('team_leads')) && (
+					<div className="space-y-6">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+							<div>
+								<h2 className="text-xl font-bold text-white flex items-center gap-2">
+									<UserCheckIcon className="size-5 text-brand-400" />
+									Team Leads Allocation
+								</h2>
+								<p className="text-zinc-400 text-sm mt-0.5">
+									Allocate login credentials and dedicated dashboard tabs to specific employees.
+								</p>
+							</div>
+							<Button
+								onClick={() => {
+									setShowLeadForm(!showLeadForm);
+									setLeadMsg(null);
+								}}
+								className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
+							>
+								{showLeadForm ? 'Cancel Allocation' : (
+									<>
+										<UserPlusIcon className="size-4 me-2 inline" />
+										Allocate Team Lead
+									</>
+								)}
+							</Button>
+						</div>
+
+						{/* Notification message */}
+						{leadMsg && (
+							<div className={cn(
+								"p-3 rounded-none text-xs border font-mono",
+								leadMsg.type === 'success'
+									? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
+									: "bg-red-950/30 border-red-800 text-red-400"
+							)}>
+								{leadMsg.text}
+							</div>
+						)}
+
+						{/* Allocate Team Lead Form Card */}
+						{showLeadForm && (
+							<form onSubmit={handleAllocateTeamLead} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
+								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
+									Create Login & Pages Allocation
+								</h3>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Select Employee *</label>
+										<select
+											required
+											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none h-10"
+											value={selectedEmpId}
+											onChange={e => setSelectedEmpId(e.target.value)}
+										>
+											<option value="">-- Choose Employee --</option>
+											{employeesList
+												.filter(emp => !teamLeadsList.some(tl => tl.employeeId === emp.id))
+												.map(emp => (
+													<option key={emp.id} value={emp.id}>
+														{emp.firstName} {emp.lastName} ({emp.id} - {emp.wingName})
+													</option>
+												))
+											}
+										</select>
+									</div>
+
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Assign Login Password *</label>
+										<Input
+											type="password"
+											placeholder="leadpassword123"
+											required
+											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 rounded-none h-10 transition-colors"
+											value={leadPassword}
+											onChange={e => setLeadPassword(e.target.value)}
+										/>
+									</div>
+								</div>
+
+								{/* Checkbox select for Dedicated allowed pages */}
+								<div className="space-y-2">
+									<label className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold block font-mono">DEDICATE ALLOWED PAGES *</label>
+									<div className="grid grid-cols-2 md:grid-cols-4 gap-3 border border-zinc-850 p-4 bg-zinc-950/40">
+										{[
+											{ id: 'overview', name: 'Overview' },
+											{ id: 'employees', name: 'Employees' },
+											{ id: 'task_allocation', name: 'Tasks' },
+											{ id: 'attendance', name: 'Attendance' },
+											{ id: 'leaves', name: 'Leaves' },
+											{ id: 'clients', name: 'Clients' },
+											{ id: 'messages', name: 'Messages' },
+											{ id: 'system_status', name: 'System Resource' },
+											{ id: 'events', name: 'Events Calendar' },
+											{ id: 'work_submissions', name: 'Submissions' },
+											{ id: 'leads', name: 'Leads CRM' },
+											{ id: 'hr_companies', name: 'HR & Companies' }
+										].map(item => (
+											<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+												<input
+													type="checkbox"
+													checked={leadAllowedPages.includes(item.id)}
+													onChange={() => toggleLeadPagePermission(item.id)}
+													className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600"
+												/>
+												<span>{item.name}</span>
+											</label>
+										))}
+									</div>
+								</div>
+
+								<Button
+									type="submit"
+									disabled={isAllocatingLead}
+									className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+								>
+									{isAllocatingLead ? 'Allocating...' : 'Allocate Login & Pages'}
+								</Button>
+							</form>
+						)}
+
+						{/* Team Leads Table list */}
+						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
+							<table className="w-full min-w-[1200px] text-left text-xs text-zinc-300 font-mono">
+								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
+									<tr>
+										<th className="p-4 font-semibold w-40">Employee ID</th>
+										<th className="p-4 font-semibold w-60">Full Name</th>
+										<th className="p-4 font-semibold w-72">Email (Login)</th>
+										<th className="p-4 font-semibold w-48">Wing</th>
+										<th className="p-4 font-semibold">Dedicated Pages</th>
+										<th className="p-4 font-semibold text-right w-36">Actions</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
+									{teamLeadsList.length === 0 ? (
+										<tr>
+											<td colSpan={6} className="p-8 text-center text-zinc-550 text-xs italic font-sans">
+												No Team Leads allocated yet. Click "Allocate Team Lead" to create a team lead login.
+											</td>
+										</tr>
+									) : (
+										teamLeadsList.map((tl) => (
+											<tr key={tl.id} className="hover:bg-zinc-900/30 transition-colors">
+												<td className="p-4 font-semibold text-indigo-400">{tl.employeeId || '—'}</td>
+												<td className="p-4 text-white font-sans font-medium">
+													{tl.employee ? `${tl.employee.firstName} ${tl.employee.lastName}` : 'Unknown Employee'}
+												</td>
+												<td className="p-4 font-bold text-white">{tl.email}</td>
+												<td className="p-4">{tl.employee?.wingName || '—'}</td>
+												<td className="p-4">
+													<div className="flex flex-wrap gap-1">
+														{tl.allowedPages ? (
+															tl.allowedPages.split(',').map((p: string) => (
+																<span key={p} className="text-[9px] px-1.5 py-0.5 bg-zinc-850 border border-zinc-800 text-zinc-400 capitalize">
+																	{p.replace('_', ' ')}
+																</span>
+															))
+														) : (
+															<span className="text-zinc-600 font-sans italic">None</span>
+														)}
+													</div>
+												</td>
+												<td className="p-4 text-right">
+													<div className="inline-flex items-center justify-end gap-2">
+														<button
+															onClick={() => {
+																setEditingLead(tl);
+																setEditLeadPassword('');
+																setEditLeadAllowedPages(tl.allowedPages ? tl.allowedPages.split(',') : []);
+																setShowEditLeadModal(true);
+															}}
+															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-indigo-400 hover:text-indigo-300 transition-all cursor-pointer"
+															title="Edit Team Lead"
+														>
+															<PencilIcon className="size-3.5" />
+														</button>
+														<button
+															onClick={() => handleDeleteTeamLead(tl.id)}
+															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
+															title="Revoke Lead Access"
+														>
+															<Trash2Icon className="size-3.5" />
+														</button>
+													</div>
+												</td>
+											</tr>
+										))
+									)}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				)}
+
 			</div>
 
 			{/* CRUD Edit Modals */}
@@ -4707,6 +5022,94 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							</form>
 						)}
+					</div>
+				</div>
+			)}
+
+			{/* Edit Team Lead Modal */}
+			{showEditLeadModal && editingLead && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
+					<div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 p-6 space-y-4 shadow-2xl relative">
+						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+							<h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+								Edit Team Lead Permission
+							</h3>
+							<button 
+								onClick={() => { setShowEditLeadModal(false); setEditingLead(null); }}
+								className="text-zinc-400 hover:text-white font-semibold text-sm cursor-pointer"
+							>
+								✕
+							</button>
+						</div>
+
+						<form onSubmit={handleSaveTeamLeadEdit} className="space-y-4">
+							<div className="space-y-1">
+								<label className="text-[10px] text-zinc-400 uppercase font-medium">Login Email</label>
+								<Input
+									type="text"
+									disabled
+									className="bg-zinc-950 border-zinc-800 text-zinc-550 text-xs rounded-none h-10 opacity-70"
+									value={editingLead.email}
+								/>
+							</div>
+
+							<div className="space-y-1">
+								<label className="text-[10px] text-zinc-400 uppercase font-medium">Update Login Password (optional)</label>
+								<Input
+									type="password"
+									placeholder="Leave blank to keep current password"
+									className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 rounded-none h-10 transition-colors"
+									value={editLeadPassword}
+									onChange={e => setEditLeadPassword(e.target.value)}
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<label className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold block font-mono">DEDICATE ALLOWED PAGES *</label>
+								<div className="grid grid-cols-2 gap-3 border border-zinc-850 p-4 bg-zinc-950/40">
+									{[
+										{ id: 'overview', name: 'Overview' },
+										{ id: 'employees', name: 'Employees' },
+										{ id: 'task_allocation', name: 'Tasks' },
+										{ id: 'attendance', name: 'Attendance' },
+										{ id: 'leaves', name: 'Leaves' },
+										{ id: 'clients', name: 'Clients' },
+										{ id: 'messages', name: 'Messages' },
+										{ id: 'system_status', name: 'System Resource' },
+										{ id: 'events', name: 'Events Calendar' },
+										{ id: 'work_submissions', name: 'Submissions' },
+										{ id: 'leads', name: 'Leads CRM' },
+										{ id: 'hr_companies', name: 'HR & Companies' }
+									].map(item => (
+										<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+											<input
+												type="checkbox"
+												checked={editLeadAllowedPages.includes(item.id)}
+												onChange={() => toggleEditLeadPagePermission(item.id)}
+												className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600"
+											/>
+											<span>{item.name}</span>
+										</label>
+									))}
+								</div>
+							</div>
+
+							<div className="flex gap-3 pt-2">
+								<button
+									type="button"
+									onClick={() => { setShowEditLeadModal(false); setEditingLead(null); }}
+									className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors"
+								>
+									Cancel
+								</button>
+								<button
+									type="submit"
+									className="flex-1 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors"
+								>
+									Save Changes
+								</button>
+							</div>
+						</form>
 					</div>
 				</div>
 			)}

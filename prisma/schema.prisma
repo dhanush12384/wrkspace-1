@@ -23,6 +23,8 @@ model Admin {
   activeOtp        String?
   otpExpiresAt     DateTime?
   createdAt        DateTime  @default(now())
+  isTeamLead       Boolean   @default(false)
+  employeeId       String?   @unique
 }
 
 model Employee {

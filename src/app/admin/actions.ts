@@ -2210,3 +2210,135 @@ export async function bulkImportEmployees(employees: {
   }
 }
 
+export async function getTeamLeads() {
+  try {
+    const leads = await db.admin.findMany({
+      where: { isTeamLead: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    // For each lead, retrieve the employee info
+    const populated = await Promise.all(leads.map(async (lead) => {
+      const emp = lead.employeeId ? await db.employee.findUnique({
+        where: { id: lead.employeeId }
+      }) : null;
+      return {
+        id: lead.id,
+        email: lead.email,
+        password: lead.password,
+        organizationName: lead.organizationName,
+        allowedPages: lead.allowedPages,
+        isTeamLead: lead.isTeamLead,
+        employeeId: lead.employeeId,
+        createdAt: lead.createdAt,
+        employee: emp
+      };
+    }));
+    return { success: true, teamLeads: populated };
+  } catch (error: any) {
+    console.error('Error fetching team leads:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function allocateTeamLead(data: {
+  employeeId: string;
+  password?: string;
+  allowedPages: string;
+}) {
+  try {
+    const employee = await db.employee.findUnique({
+      where: { id: data.employeeId }
+    });
+    if (!employee) {
+      return { success: false, error: 'Employee not found.' };
+    }
+
+    // Check if employee already has an admin/lead account
+    const existing = await db.admin.findFirst({
+      where: {
+        OR: [
+          { email: employee.email.toLowerCase() },
+          { employeeId: employee.id }
+        ]
+      }
+    });
+
+    if (existing) {
+      return { success: false, error: 'A login account already exists for this employee.' };
+    }
+
+    // Create Admin user linked as Team Lead
+    const newLead = await db.admin.create({
+      data: {
+        email: employee.email.toLowerCase(),
+        password: data.password || 'lead123',
+        organizationName: employee.wingName || 'WrkSpace Wing',
+        allowedPages: data.allowedPages,
+        isTeamLead: true,
+        employeeId: employee.id
+      }
+    });
+
+    // Update the employee's role in the employee table to 'Team Lead'
+    await db.employee.update({
+      where: { id: employee.id },
+      data: { role: 'Team Lead' }
+    });
+
+    return { success: true, teamLead: newLead };
+  } catch (error: any) {
+    console.error('Error in allocateTeamLead:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteTeamLead(adminId: string) {
+  try {
+    const lead = await db.admin.findUnique({
+      where: { id: adminId }
+    });
+
+    if (lead) {
+      // Revert employee role to 'Employee'
+      if (lead.employeeId) {
+        await db.employee.update({
+          where: { id: lead.employeeId },
+          data: { role: 'Employee' }
+        });
+      }
+      // Delete the Admin record
+      await db.admin.delete({
+        where: { id: adminId }
+      });
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error in deleteTeamLead:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateTeamLead(adminId: string, data: {
+  password?: string;
+  allowedPages: string;
+}) {
+  try {
+    const updateData: any = { allowedPages: data.allowedPages };
+    if (data.password) {
+      updateData.password = data.password;
+    }
+    
+    const updated = await db.admin.update({
+      where: { id: adminId },
+      data: updateData
+    });
+    
+    return { success: true, teamLead: updated };
+  } catch (error: any) {
+    console.error('Error in updateTeamLead:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+
