@@ -4943,7 +4943,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											startTime: formData.get('startTime') as string,
 											endTime: formData.get('endTime') as string,
 											venueAddress: formData.get('venueAddress') as string,
-											imageUrl: editEventImageUrl || null,
+											imageUrl: (formData.get('imageUrl') as string) || null,
 										});
 									}}
 									className="space-y-4 max-h-[75vh] overflow-y-auto pr-1"
@@ -4991,8 +4991,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											<label className="text-[10px] text-zinc-400 uppercase font-medium">Image Banner Link (URL)</label>
 											<Input
 												name="imageUrl"
-												value={editEventImageUrl}
-												onChange={e => setEditEventImageUrl(e.target.value)}
+												defaultValue={editingItem.imageUrl || ''}
 												placeholder="https://example.com/banner.jpg"
 												className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0"
 											/>
