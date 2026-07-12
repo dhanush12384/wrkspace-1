@@ -192,11 +192,28 @@ export async function getAdminProfile(email: string) {
         email: admin.email,
         organizationName: admin.organizationName,
         allowedPages: admin.allowedPages,
-        createdAt: admin.createdAt
+        createdAt: admin.createdAt,
+        isTeamLead: admin.isTeamLead,
+        employeeId: admin.employeeId
       }
     };
   } catch (error: any) {
     console.error('Database error in getAdminProfile:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getEmployeeByEmail(email: string) {
+  try {
+    const employee = await db.employee.findUnique({
+      where: { email: email.toLowerCase() }
+    });
+    if (!employee) {
+      return { success: false, error: 'Employee not found.' };
+    }
+    return { success: true, employee };
+  } catch (error: any) {
+    console.error('Database error in getEmployeeByEmail:', error);
     return { success: false, error: error.message };
   }
 }

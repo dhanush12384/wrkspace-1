@@ -11,7 +11,8 @@ import {
 	Grid2x2PlusIcon,
 	RefreshCwIcon,
 	BarChart2Icon,
-	UploadIcon
+	UploadIcon,
+	UserCheckIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
@@ -514,6 +515,19 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 						<span className="text-xs font-semibold uppercase tracking-widest text-zinc-400 font-mono">Employee</span>
 					</div>
 					<div className="flex items-center gap-3">
+						{employee.role === 'Team Lead' && (
+							<Button
+								variant="outline"
+								className="border-indigo-800 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 cursor-pointer rounded-none transition-all duration-200 text-xs py-2 px-3 h-9 font-mono font-medium flex items-center gap-2"
+								onClick={() => {
+									localStorage.setItem('wrkspace_admin_session', JSON.stringify({ email: employee.email }));
+									window.location.href = '/admin';
+								}}
+							>
+								<UserCheckIcon className="size-3.5" />
+								switch to lead portal
+							</Button>
+						)}
 						<AnimatedThemeTogglerNextThemesDemo />
 						<Button 
 							variant="outline" 

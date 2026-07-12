@@ -17,7 +17,7 @@ import {
 	UserPlusIcon,
 	PlusIcon,
 } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail } from '@/app/admin/actions';
 import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessagesView } from './messages-view';
@@ -48,6 +48,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [allowedTabs, setAllowedTabs] = useState<string[]>([]);
 	const [organizationName, setOrganizationName] = useState('WrkSpace Headquarters');
 	const [loadingProfile, setLoadingProfile] = useState(true);
+	const [isAdminTeamLead, setIsAdminTeamLead] = useState(false);
 
 	useEffect(() => {
 		async function loadAdminProfile() {
@@ -58,6 +59,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					const pages = res.profile.allowedPages || '';
 					const tabs = pages.split(',').map(t => t.trim()).filter(Boolean);
 					setAllowedTabs(tabs);
+					setIsAdminTeamLead(res.profile.isTeamLead || false);
 					
 					if (tabs.length > 0 && !tabs.includes(activeTab)) {
 						setActiveTab(tabs[0] as TabType);
@@ -1370,6 +1372,24 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						<span className="text-sm font-semibold tracking-wider text-zinc-400 uppercase font-mono">Admin</span>
 					</div>
 					<div className="flex items-center gap-3">
+						{isAdminTeamLead && (
+							<Button
+								variant="outline"
+								className="border-indigo-800 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 cursor-pointer rounded-none transition-all duration-200 text-xs py-2 px-3 h-9 font-mono font-medium flex items-center gap-2"
+								onClick={async () => {
+									const empRes = await getEmployeeByEmail(email);
+									if (empRes.success && empRes.employee) {
+										localStorage.setItem('wrkspace_employee_session', JSON.stringify(empRes.employee));
+										window.location.href = '/';
+									} else {
+										alert(empRes.error || 'Failed to switch to employee portal.');
+									}
+								}}
+							>
+								<UserCheckIcon className="size-3.5" />
+								switch to employee portal
+							</Button>
+						)}
 						<button 
 							onClick={fetchStats}
 							disabled={isRefreshing}
