@@ -1006,50 +1006,104 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			return;
 		}
 
-		// Create table headers and rows in lowercase/normal case (no caps)
-		const headers = ['employee id', 'full name', 'email id', 'phone', 'wing', 'wing lead', 'role'];
+		// Capitalize starting letters helper
+		const toTitleCase = (str: string) => {
+			if (!str) return '';
+			return str.split(' ').map(word => {
+				if (!word) return '';
+				return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+			}).join(' ');
+		};
+
+		// Create table headers and rows with starting letter capitalized (caps)
+		const headers = ['Employee ID', 'Full Name', 'Email ID', 'Phone', 'Wing Name', 'Wing Lead', 'Role'];
 
 		const rows = employeesList.map(emp => {
 			const fullName = `${emp.firstName} ${emp.middleName ? emp.middleName + ' ' : ''}${emp.lastName}`;
 			return [
-				emp.id.toLowerCase(),
-				fullName.toLowerCase(),
+				emp.id.toUpperCase(),
+				toTitleCase(fullName),
 				emp.email.toLowerCase(),
-				emp.phone.toLowerCase(),
-				emp.wingName.toLowerCase(),
-				emp.wingLeadName.toLowerCase(),
-				(emp.role || 'employee').toLowerCase()
+				emp.phone,
+				toTitleCase(emp.wingName || 'General'),
+				toTitleCase(emp.wingLeadName || 'Admin'),
+				toTitleCase(emp.role || 'Employee')
 			];
 		});
 
-		const headersHtml = headers.map(h => `<th style="padding: 10px; border-bottom: 2px solid #ddd; text-align: left; font-size: 11px; color: #555; text-transform: lowercase;">${h}</th>`).join('');
+		const formattedDate = new Date().toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
 
-		const rowsHtml = rows.map(row => {
-			return `<tr>
-				${row.map(val => `<td style="padding: 10px; border-bottom: 1px solid #eee; font-size: 11px; color: #333; text-transform: lowercase;">${val}</td>`).join('')}
-			</tr>`;
-		}).join('');
+		const headersHtml = headers.map(h => `
+			<th style="padding: 12px 10px; text-align: left; font-size: 11px; font-weight: 600; color: #ffffff; background-color: #4f46e5; border-bottom: 2px solid #3730a3;">
+				${h}
+			</th>
+		`).join('');
+
+		const rowsHtml = rows.map(row => `
+			<tr style="page-break-inside: avoid;">
+				${row.map(val => `
+					<td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; color: #334155; font-family: system-ui, sans-serif;">
+						${val}
+					</td>
+				`).join('')}
+			</tr>
+		`).join('');
 
 		const htmlContent = `
+			<!DOCTYPE html>
 			<html>
 				<head>
-					<title>employee directory</title>
+					<title>Employee Directory - Official</title>
 					<style>
-						body {
-							font-family: sans-serif;
-							margin: 40px;
-							color: #333;
-							background: #fff;
-							text-transform: lowercase;
+						@page {
+							size: A4 landscape;
+							margin: 15mm;
 						}
-						h1 {
-							font-size: 20px;
-							margin-bottom: 20px;
-							color: #111;
-							font-weight: 600;
-							border-bottom: 1px solid #eee;
-							padding-bottom: 10px;
-							text-transform: lowercase;
+						body {
+							font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+							margin: 0;
+							color: #1e293b;
+							background: #ffffff;
+							-webkit-print-color-adjust: exact;
+							print-color-adjust: exact;
+						}
+						.letterhead {
+							display: flex;
+							justify-content: space-between;
+							align-items: flex-end;
+							border-bottom: 2px solid #4f46e5;
+							padding-bottom: 15px;
+							margin-bottom: 30px;
+						}
+						.logo-area h1 {
+							font-size: 24px;
+							font-weight: 800;
+							color: #4f46e5;
+							margin: 0;
+							letter-spacing: -0.5px;
+						}
+						.logo-area p {
+							font-size: 10px;
+							color: #64748b;
+							margin: 2px 0 0 0;
+							text-transform: uppercase;
+							letter-spacing: 1px;
+						}
+						.meta-area {
+							text-align: right;
+							font-size: 10px;
+							color: #64748b;
+							line-height: 1.5;
+						}
+						.doc-title {
+							font-size: 18px;
+							font-weight: 700;
+							color: #0f172a;
+							margin: 0 0 15px 0;
 						}
 						table {
 							width: 100%;
@@ -1057,20 +1111,41 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							margin-top: 10px;
 						}
 						tr:nth-child(even) {
-							background-color: #fafafa;
+							background-color: #f8fafc;
+						}
+						.footer {
+							margin-top: 50px;
+							border-top: 1px solid #e2e8f0;
+							padding-top: 15px;
+							display: flex;
+							justify-content: space-between;
+							font-size: 9px;
+							color: #94a3b8;
+							text-transform: uppercase;
+							letter-spacing: 0.5px;
 						}
 						@media print {
 							body {
-								margin: 20px;
-							}
-							button {
-								display: none;
+								margin: 0;
 							}
 						}
 					</style>
 				</head>
 				<body>
-					<h1>employee directory</h1>
+					<div class="letterhead">
+						<div class="logo-area">
+							<h1>WrkSpace HQ</h1>
+							<p>official personnel registry</p>
+						</div>
+						<div class="meta-area">
+							<div><strong>Date Generated:</strong> ${formattedDate}</div>
+							<div><strong>Document ID:</strong> WS-EMP-DIR-2026</div>
+							<div><strong>Classification:</strong> Confidential</div>
+						</div>
+					</div>
+
+					<h2 class="doc-title">Employee Directory</h2>
+
 					<table>
 						<thead>
 							<tr>
@@ -1081,6 +1156,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							${rowsHtml}
 						</tbody>
 					</table>
+
+					<div class="footer">
+						<div>security status: internal use only</div>
+						<div>wrkspace corporate administration</div>
+						<div>page 1 of 1</div>
+					</div>
+
 					<script>
 						window.onload = function() {
 							setTimeout(function() {
