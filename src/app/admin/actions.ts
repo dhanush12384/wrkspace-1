@@ -143,6 +143,8 @@ export async function verifyOtpAndResetPassword(email: string, otp: string, newP
 
 // Super Admin allocation & management actions
 import { randomUUID } from 'crypto';
+import { ifError } from 'assert';
+import { PassThrough } from 'stream';
 
 export async function allocateAdmin(data: {
   email: string;
@@ -295,17 +297,17 @@ export async function addEmployee(employeeData: {
     let generatedId = '';
     let isUnique = false;
     let attempts = 0;
-    
+
     while (!isUnique && attempts < 100) {
       generatedId = '';
       for (let i = 0; i < 6; i++) {
         generatedId += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-      
+
       const existing = await db.employee.findUnique({
         where: { id: generatedId }
       });
-      
+
       if (!existing) {
         isUnique = true;
       }
@@ -383,7 +385,7 @@ export async function getLiveSystemStats() {
   let eventCount = 0;
   let submissionCount = 0;
   let leadCount = 0;
-  
+
   try {
     admin = await getOrCreateAdmin();
     employeeCount = await db.employee.count();
@@ -420,8 +422,8 @@ export async function getLiveSystemStats() {
   const uptimeSeconds = Math.floor(process.uptime());
   const uptimeMin = Math.floor(uptimeSeconds / 60);
   const uptimeHr = Math.floor(uptimeMin / 60);
-  const uptimeString = uptimeHr > 0 
-    ? `${uptimeHr}h ${uptimeMin % 60}m` 
+  const uptimeString = uptimeHr > 0
+    ? `${uptimeHr}h ${uptimeMin % 60}m`
     : `${uptimeMin}m ${uptimeSeconds % 60}s`;
 
   // Real log entries based on actual files and DB state
@@ -916,7 +918,7 @@ export async function getCurrentAttendanceStatus(employeeId: string) {
 export async function clockIn(employeeId: string, employeeName: string) {
   try {
     const { todayStr, timeStr } = getISTDateAndTime();
-    
+
     const existing = await db.attendance.findFirst({
       where: {
         employeeId,
@@ -924,11 +926,11 @@ export async function clockIn(employeeId: string, employeeName: string) {
         checkOut: null
       }
     });
- 
+
     if (existing) {
       return { success: false, error: 'Already clocked in for this shift.' };
     }
- 
+
     const log = await db.attendance.create({
       data: {
         employeeId,
@@ -948,7 +950,7 @@ export async function clockIn(employeeId: string, employeeName: string) {
 export async function clockOut(employeeId: string) {
   try {
     const { todayStr, timeStr } = getISTDateAndTime();
-    
+
     const activeLog = await db.attendance.findFirst({
       where: {
         employeeId,
@@ -956,11 +958,11 @@ export async function clockOut(employeeId: string) {
         checkOut: null
       }
     });
- 
+
     if (!activeLog) {
       return { success: false, error: 'No active shift found to clock out.' };
     }
- 
+
     const updated = await db.attendance.update({
       where: { id: activeLog.id },
       data: {
@@ -1206,6 +1208,7 @@ export async function createEvent(data: {
   startTime: string;
   endTime: string;
   venueAddress: string;
+  imageUrl?: string;
 }) {
   try {
     const event = await db.event.create({
@@ -1219,6 +1222,7 @@ export async function createEvent(data: {
         startTime: data.startTime,
         endTime: data.endTime,
         venueAddress: data.venueAddress,
+        imageUrl: data.imageUrl || null,
       }
     });
     return { success: true, event };
@@ -1344,21 +1348,21 @@ export async function bulkImportLeads(leads: {
     const created = await db.lead.createMany({
       data: leads.map(l => ({
         businessName: l.businessName,
-        contactName:  l.contactName  || null,
-        email:        l.email        || null,
-        phone:        l.phone        || null,
-        website:      l.website      || null,
-        location:     l.location     || null,
-        category:     l.category     || null,
-        source:       l.source,
-        sourceUrl:    l.sourceUrl    || null,
-        description:  l.description  || null,
-        rating:       l.rating       || null,
-        reviewCount:  l.reviewCount  || null,
-        priority:     l.priority     || 'Medium',
-        notes:        l.notes        || null,
-        status:       'New',
-        allowed:      false,
+        contactName: l.contactName || null,
+        email: l.email || null,
+        phone: l.phone || null,
+        website: l.website || null,
+        location: l.location || null,
+        category: l.category || null,
+        source: l.source,
+        sourceUrl: l.sourceUrl || null,
+        description: l.description || null,
+        rating: l.rating || null,
+        reviewCount: l.reviewCount || null,
+        priority: l.priority || 'Medium',
+        notes: l.notes || null,
+        status: 'New',
+        allowed: false,
       })),
       skipDuplicates: false,
     });
@@ -1724,6 +1728,7 @@ export async function updateEvent(id: string, data: {
   startTime: string;
   endTime: string;
   venueAddress: string;
+  imageUrl?: string;
 }) {
   try {
     const updated = await db.event.update({
@@ -1738,6 +1743,7 @@ export async function updateEvent(id: string, data: {
         startTime: data.startTime,
         endTime: data.endTime,
         venueAddress: data.venueAddress,
+        imageUrl: data.imageUrl || null,
       }
     });
     return { success: true, event: updated };
@@ -1794,25 +1800,25 @@ function getLocalColleges(city: string): string[] {
 function adjustToFuture(startDateStr: string, endDateStr?: string) {
   let start = new Date(startDateStr);
   let end = endDateStr ? new Date(endDateStr) : new Date(start);
-  
+
   if (isNaN(start.getTime())) {
     start = new Date();
   }
   if (isNaN(end.getTime())) {
     end = new Date(start);
   }
-  
+
   const now = new Date();
   if (start <= now) {
     const offsetDays = 3 + Math.floor(Math.random() * 20);
     const diffMs = end.getTime() - start.getTime();
-    
+
     start = new Date();
     start.setDate(start.getDate() + offsetDays);
-    
+
     end = new Date(start.getTime() + (diffMs > 0 ? diffMs : 0));
   }
-  
+
   return { start, end };
 }
 
@@ -2277,7 +2283,7 @@ export async function bulkImportEmployees(employees: {
       select: { id: true }
     });
     const existingIds = new Set(existingEmployees.map(e => e.id));
-    
+
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const generateUniqueId = () => {
       let attempts = 0;
@@ -2303,7 +2309,7 @@ export async function bulkImportEmployees(employees: {
         errors.push(`Skipped row: missing required fields`);
         continue;
       }
-      
+
       try {
         const id = generateUniqueId();
         await db.employee.create({
@@ -2458,17 +2464,15 @@ export async function updateTeamLead(adminId: string, data: {
     if (data.password) {
       updateData.password = data.password;
     }
-    
+
     const updated = await db.admin.update({
       where: { id: adminId },
       data: updateData
     });
-    
+
     return { success: true, teamLead: updated };
   } catch (error: any) {
     console.error('Error in updateTeamLead:', error);
     return { success: false, error: error.message };
   }
 }
-
-

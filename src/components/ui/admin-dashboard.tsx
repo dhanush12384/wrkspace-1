@@ -308,7 +308,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [eventStartTime, setEventStartTime] = useState('');
 	const [eventEndTime, setEventEndTime] = useState('');
 	const [eventVenue, setEventVenue] = useState('');
-	const [eventReps, setEventReps] = useState<string[]>(['', '', '', '', '']);
+	const [eventImageUrl, setEventImageUrl] = useState('');
+	const [selectedEventRepIds, setSelectedEventRepIds] = useState<string[]>([]);
+	const [editEventImageUrl, setEditEventImageUrl] = useState('');
+	const [editEventRepIds, setEditEventRepIds] = useState<string[]>([]);
 	const [eventMessage, setEventMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAddingEvent, setIsAddingEvent] = useState(false);
 	const [eventsSubTab, setEventsSubTab] = useState<'active' | 'crawler'>('active');
@@ -854,15 +857,18 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		e.preventDefault();
 		setIsAddingEvent(true);
 		setEventMessage(null);
-		const filledReps = eventReps
-			.map(r => r.trim())
-			.filter(Boolean)
-			.map(name => ({ id: name, name }));
+		
+		const filledReps = selectedEventRepIds.map(empId => {
+			const emp = employeesList.find(e => e.id === empId);
+			return { id: empId, name: emp ? `${emp.firstName} ${emp.lastName}` : empId };
+		});
+
 		if (filledReps.length === 0) {
-			setEventMessage({ type: 'error', text: 'Please add at least one company representative.' });
+			setEventMessage({ type: 'error', text: 'Please select at least one company representative.' });
 			setIsAddingEvent(false);
 			return;
 		}
+
 		const result = await createEvent({
 			title: eventTitle,
 			description: eventDescription,
@@ -873,12 +879,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			startTime: eventStartTime,
 			endTime: eventEndTime,
 			venueAddress: eventVenue,
+			imageUrl: eventImageUrl || undefined,
 		});
 		if (result.success) {
 			setEventMessage({ type: 'success', text: 'Event created successfully.' });
 			setEventTitle(''); setEventDescription(''); setEventCollege('');
 			setEventStartDate(''); setEventEndDate(''); setEventStartTime(''); setEventEndTime('');
-			setEventVenue(''); setEventReps(['', '', '', '', '']);
+			setEventVenue(''); setEventImageUrl(''); setSelectedEventRepIds([]);
 			setShowEventForm(false);
 			fetchEvents();
 		} else {
@@ -2757,35 +2764,53 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Venue / Address *</label>
-										<Input
-											value={eventVenue}
-											onChange={e => setEventVenue(e.target.value)}
-											required
-											placeholder="e.g. Main Auditorium, IIT Bombay, Powai, Mumbai 400076"
-											className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
-										/>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Venue / Address *</label>
+											<Input
+												value={eventVenue}
+												onChange={e => setEventVenue(e.target.value)}
+												required
+												placeholder="e.g. Main Auditorium, IIT Bombay, Powai, Mumbai 400076"
+												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+											/>
+										</div>
+										<div className="space-y-1.5">
+											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Image Banner Link (URL)</label>
+											<Input
+												value={eventImageUrl}
+												onChange={e => setEventImageUrl(e.target.value)}
+												placeholder="e.g. https://example.com/banner.jpg"
+												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+											/>
+										</div>
 									</div>
 
-									<div className="space-y-3">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Company Representatives (up to 5)</label>
-										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-											{eventReps.map((rep, idx) => (
-												<div key={idx} className="flex items-center gap-2">
-													<span className="text-xs text-zinc-600 font-mono w-4">{idx + 1}.</span>
-													<Input
-														value={rep}
-														onChange={e => {
-															const updated = [...eventReps];
-															updated[idx] = e.target.value;
-															setEventReps(updated);
-														}}
-														placeholder={`Representative ${idx + 1} name`}
-														className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
-													/>
-												</div>
-											))}
+									<div className="space-y-2">
+										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider block">Company Representatives *</label>
+										<span className="text-[10px] text-zinc-500 block -mt-1 font-mono">Select representatives from the existing list of employees:</span>
+										<div className="grid grid-cols-2 md:grid-cols-3 gap-2 border border-zinc-800 p-4 bg-zinc-950/40 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 rounded-none">
+											{employeesList.map(emp => {
+												const fullName = `${emp.firstName} ${emp.lastName}`;
+												const isChecked = selectedEventRepIds.includes(emp.id);
+												return (
+													<label key={emp.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+														<input
+															type="checkbox"
+															checked={isChecked}
+															onChange={() => {
+																if (isChecked) {
+																	setSelectedEventRepIds(selectedEventRepIds.filter(id => id !== emp.id));
+																} else {
+																	setSelectedEventRepIds([...selectedEventRepIds, emp.id]);
+																}
+															}}
+															className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600 size-3.5"
+														/>
+														<span className="truncate">{fullName} ({emp.id})</span>
+													</label>
+												);
+											})}
 										</div>
 									</div>
 
@@ -4872,23 +4897,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 						{/* Event Edit Form */}
 						{editModalType === 'event' && (() => {
-							const repsParsed = JSON.parse(editingItem.representatives || '[]');
-							const initialReps = ['', '', '', '', ''];
-							repsParsed.forEach((r: any, idx: number) => {
-								if (idx < 5) initialReps[idx] = r.name;
-							});
 							return (
 								<form 
 									onSubmit={async (e) => {
 										e.preventDefault();
 										const formData = new FormData(e.currentTarget);
-										const repsList: { id: string; name: string }[] = [];
-										for (let i = 1; i <= 5; i++) {
-											const val = formData.get(`rep${i}`) as string;
-											if (val && val.trim()) {
-												repsList.push({ id: `rep_${i}_${Date.now()}`, name: val.trim() });
-											}
-										}
+										const repsList = editEventRepIds.map(empId => {
+											const emp = employeesList.find(e => e.id === empId);
+											return { id: empId, name: emp ? `${emp.firstName} ${emp.lastName}` : empId };
+										});
 										await handleSaveEventEdit(editingItem.id, {
 											title: formData.get('title') as string,
 											description: formData.get('description') as string,
@@ -4899,6 +4916,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											startTime: formData.get('startTime') as string,
 											endTime: formData.get('endTime') as string,
 											venueAddress: formData.get('venueAddress') as string,
+											imageUrl: editEventImageUrl || null,
 										});
 									}}
 									className="space-y-4 max-h-[75vh] overflow-y-auto pr-1"
@@ -4937,17 +4955,51 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											<Input type="time" name="endTime" defaultValue={editingItem.endTime} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
 										</div>
 									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Venue Address</label>
-										<Input name="venueAddress" defaultValue={editingItem.venueAddress} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+									<div className="grid grid-cols-2 gap-2">
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-400 uppercase font-medium">Venue Address</label>
+											<Input name="venueAddress" defaultValue={editingItem.venueAddress} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										</div>
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-400 uppercase font-medium">Image Banner Link (URL)</label>
+											<Input
+												name="imageUrl"
+												value={editEventImageUrl}
+												onChange={e => setEditEventImageUrl(e.target.value)}
+												placeholder="https://example.com/banner.jpg"
+												className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0"
+											/>
+										</div>
 									</div>
 									<div className="space-y-1.5">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Company Representatives (up to 5)</label>
-										<div className="grid grid-cols-2 gap-2">
-											{initialReps.map((r, idx) => (
-												<Input key={idx} name={`rep${idx+1}`} defaultValue={r} placeholder={`Rep ${idx+1} name`} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
-											))}
+										<label className="text-[10px] text-zinc-400 uppercase font-medium block font-mono">Company Representatives *</label>
+										<div className="grid grid-cols-2 gap-2 border border-zinc-800 p-3 bg-zinc-950/40 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800">
+											{employeesList.map(emp => {
+												const fullName = `${emp.firstName} ${emp.lastName}`;
+												const isChecked = editEventRepIds.includes(emp.id);
+												return (
+													<label key={emp.id} className="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+														<input
+															type="checkbox"
+															checked={isChecked}
+															onChange={() => {
+																if (isChecked) {
+																	setEditEventRepIds(editEventRepIds.filter(id => id !== emp.id));
+																} else {
+																	setEditEventRepIds([...editEventRepIds, emp.id]);
+																}
+															}}
+															className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600 size-3.5"
+														/>
+														<span className="truncate">{fullName} ({emp.id})</span>
+													</label>
+												);
+											})}
 										</div>
+									</div>
+									<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+										<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
+										<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 									</div>
 								</form>
 							);

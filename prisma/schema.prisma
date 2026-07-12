@@ -114,6 +114,7 @@ model Event {
   allowed             Boolean  @default(true)
   source              String   @default("Manual") // Manual, Student Tribe, Luma, Devfolio, Unstop
   sourceUrl           String?
+  imageUrl            String?
   createdAt           DateTime @default(now())
 }
 
