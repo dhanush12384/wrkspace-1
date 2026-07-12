@@ -53,6 +53,8 @@ model Task {
   deadline     DateTime
   status       String   @default("Pending") // e.g. Pending, In Progress, Completed
   mode         String   @default("Onsite")  // e.g. Remote, Onsite, Hybrid
+  allocatorName String?
+  allocatorRole String?
   createdAt    DateTime @default(now())
 }
 

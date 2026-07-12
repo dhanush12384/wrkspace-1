@@ -186,6 +186,15 @@ export async function getAdminProfile(email: string) {
     if (!admin) {
       return { success: false, error: 'Admin profile not found.' };
     }
+    let employeeName: string | null = null;
+    if (admin.employeeId) {
+      const emp = await db.employee.findUnique({
+        where: { id: admin.employeeId }
+      });
+      if (emp) {
+        employeeName = `${emp.firstName} ${emp.lastName}`;
+      }
+    }
     return {
       success: true,
       profile: {
@@ -194,7 +203,8 @@ export async function getAdminProfile(email: string) {
         allowedPages: admin.allowedPages,
         createdAt: admin.createdAt,
         isTeamLead: admin.isTeamLead,
-        employeeId: admin.employeeId
+        employeeId: admin.employeeId,
+        employeeName
       }
     };
   } catch (error: any) {
@@ -522,6 +532,8 @@ export async function createTask(data: {
   deadline: string;
   status: string;
   mode: string;
+  allocatorName?: string;
+  allocatorRole?: string;
 }) {
   try {
     const task = await db.task.create({
@@ -534,6 +546,8 @@ export async function createTask(data: {
         deadline: new Date(data.deadline),
         status: data.status,
         mode: data.mode,
+        allocatorName: data.allocatorName,
+        allocatorRole: data.allocatorRole,
       }
     });
 

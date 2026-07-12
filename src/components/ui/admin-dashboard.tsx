@@ -49,6 +49,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [organizationName, setOrganizationName] = useState('WrkSpace Headquarters');
 	const [loadingProfile, setLoadingProfile] = useState(true);
 	const [isAdminTeamLead, setIsAdminTeamLead] = useState(false);
+	const [allocatorName, setAllocatorName] = useState('Admin');
+	const [allocatorRole, setAllocatorRole] = useState('Admin');
 
 	useEffect(() => {
 		async function loadAdminProfile() {
@@ -60,6 +62,17 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					const tabs = pages.split(',').map(t => t.trim()).filter(Boolean);
 					setAllowedTabs(tabs);
 					setIsAdminTeamLead(res.profile.isTeamLead || false);
+
+					if (res.profile.isTeamLead) {
+						setAllocatorName(res.profile.employeeName || 'Team Lead');
+						setAllocatorRole('Team Lead');
+					} else if (email.toLowerCase() === 'webstrixx@gmail.com') {
+						setAllocatorName('CTO');
+						setAllocatorRole('CTO');
+					} else {
+						setAllocatorName('Admin');
+						setAllocatorRole('Admin');
+					}
 					
 					if (tabs.length > 0 && !tabs.includes(activeTab)) {
 						setActiveTab(tabs[0] as TabType);
@@ -1320,6 +1333,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				deadline: taskDeadline,
 				status: taskStatus,
 				mode: taskMode,
+				allocatorName,
+				allocatorRole,
 			});
 
 			if (result.success && result.task) {

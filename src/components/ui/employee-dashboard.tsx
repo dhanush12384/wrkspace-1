@@ -798,19 +798,46 @@ export function EmployeeDashboard({ employee, onLogout }: EmployeeDashboardProps
 											<tr 
 												key={task.id} 
 												className={cn(
-													"transition-colors duration-150",
-													task.status === 'Completed' 
-														? "bg-emerald-600/15 hover:bg-emerald-600/25" 
-														: task.status === 'In Progress'
-															? "bg-blue-600/15 hover:bg-blue-600/25"
-															: "hover:bg-zinc-900/20"
+													"transition-colors duration-150 border-l-2",
+													task.allocatorRole === 'CTO'
+														? "bg-rose-950/15 border-l-rose-500 hover:bg-rose-950/25"
+														: task.status === 'Completed' 
+															? "bg-emerald-600/15 border-l-transparent hover:bg-emerald-600/25" 
+															: task.status === 'In Progress'
+																? "bg-blue-600/15 border-l-transparent hover:bg-blue-600/25"
+																: "border-l-transparent hover:bg-zinc-900/20"
 												)}
 											>
 												<td className="p-3">
 													<div className="font-bold text-white">{task.title}</div>
 													<div className="text-[10px] text-zinc-550 mt-1 max-w-lg leading-relaxed">{task.description}</div>
+													
+													{(task.allocatorName || task.allocatorRole) ? (
+														<div className="mt-2.5 flex items-center gap-1.5">
+															<span className="text-[9px] text-zinc-500 font-mono">Assigned by:</span>
+															<span className={cn(
+																"text-[9px] font-semibold font-mono px-1.5 py-0.5 rounded-none",
+																task.allocatorRole === 'CTO' 
+																	? "bg-rose-950/50 text-rose-450 border border-rose-900/50 font-bold" 
+																	: task.allocatorRole === 'Team Lead'
+																		? "bg-indigo-950/30 text-indigo-405 border border-indigo-900/30"
+																		: "bg-zinc-900 text-zinc-400 border border-zinc-800"
+															)}>
+																{task.allocatorName} ({task.allocatorRole})
+															</span>
+														</div>
+													) : (
+														task.reportTo && (
+															<div className="mt-2.5 flex items-center gap-1.5">
+																<span className="text-[9px] text-zinc-500 font-mono">Assigned by:</span>
+																<span className="text-[9px] font-semibold font-mono px-1.5 py-0.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-none">
+																	{task.reportTo}
+																</span>
+															</div>
+														)
+													)}
 												</td>
-												<td className="p-3 whitespace-nowrap text-zinc-300 font-medium">{task.reportingTo}</td>
+												<td className="p-3 whitespace-nowrap text-zinc-300 font-medium">{task.reportTo || '—'}</td>
 												<td className="p-3 whitespace-nowrap font-mono text-zinc-450">{new Date(task.deadline).toLocaleDateString()}</td>
 												<td className="p-3 whitespace-nowrap">
 													<span className={cn(
