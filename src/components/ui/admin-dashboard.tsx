@@ -339,6 +339,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [editingItem, setEditingItem] = useState<any>(null);
 	const [showAddManualLeave, setShowAddManualLeave] = useState(false);
 	const [showAddManualAttendance, setShowAddManualAttendance] = useState(false);
+	const [showTodayAttendanceSummary, setShowTodayAttendanceSummary] = useState(false);
 	const [showAddManualHr, setShowAddManualHr] = useState(false);
 
 	// HR & Companies State variables
@@ -1375,6 +1376,47 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
+	const getTodayAttendanceSummary = () => {
+		const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+		const todayLogs = attendanceList.filter(log => log.date === todayStr);
+
+		const presentMap = new Map<string, any>();
+		todayLogs.forEach(log => {
+			presentMap.set(log.employeeId, log);
+		});
+
+		const leaveMap = new Map<string, any>();
+		leavesList.forEach(leave => {
+			if (leave.status === 'Approved') {
+				const start = new Date(leave.startDate).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+				const end = new Date(leave.endDate).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+				if (todayStr >= start && todayStr <= end) {
+					leaveMap.set(leave.employeeId, leave);
+				}
+			}
+		});
+
+		const presentList: any[] = [];
+		const absentList: any[] = [];
+		const onLeaveList: any[] = [];
+
+		employeesList.forEach(emp => {
+			const log = presentMap.get(emp.id);
+			if (log) {
+				presentList.push({ employee: emp, log });
+			} else {
+				const leave = leaveMap.get(emp.id);
+				if (leave) {
+					onLeaveList.push({ employee: emp, leave });
+				} else {
+					absentList.push(emp);
+				}
+			}
+		});
+
+		return { presentList, absentList, onLeaveList };
+	};
+
 	if (!stats) {
 		return (
 			<main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center space-y-4">
@@ -1852,152 +1894,271 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				)}
 
 				{/* Tab content: Attendance Logs */}
-				{activeTab === 'attendance' && (
-					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none">
-						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-							<h3 className="text-sm font-semibold text-white uppercase tracking-wider">
-								Employee Attendance Logs
-							</h3>
-							<div className="flex items-center gap-2">
-								<button 
-									onClick={() => setShowAddManualAttendance(!showAddManualAttendance)}
-									className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors"
-								>
-									{showAddManualAttendance ? 'Cancel Log' : '+ Log Attendance'}
-								</button>
-								<button 
-									onClick={fetchAttendance}
-									className="p-1.5 border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all rounded-none cursor-pointer"
-								>
-									<RefreshCwIcon className="size-3.5" />
-								</button>
+				{activeTab === 'attendance' && (() => {
+					const { presentList, absentList, onLeaveList } = getTodayAttendanceSummary();
+					return (
+						<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none">
+							<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+								<h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+									Employee Attendance Logs
+								</h3>
+								<div className="flex items-center gap-2">
+									<button 
+										onClick={() => {
+											setShowTodayAttendanceSummary(!showTodayAttendanceSummary);
+											if (showAddManualAttendance) setShowAddManualAttendance(false);
+										}}
+										className={cn(
+											"text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors",
+											showTodayAttendanceSummary ? "bg-amber-600 hover:bg-amber-500" : "bg-indigo-600 hover:bg-indigo-500"
+										)}
+									>
+										{showTodayAttendanceSummary ? "Show All Logs" : "Today's Attendance"}
+									</button>
+									<button 
+										onClick={() => {
+											setShowAddManualAttendance(!showAddManualAttendance);
+											if (showTodayAttendanceSummary) setShowTodayAttendanceSummary(false);
+										}}
+										className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors"
+									>
+										{showAddManualAttendance ? 'Cancel Log' : '+ Log Attendance'}
+									</button>
+									<button 
+										onClick={fetchAttendance}
+										className="p-1.5 border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all rounded-none cursor-pointer"
+									>
+										<RefreshCwIcon className="size-3.5" />
+									</button>
+								</div>
 							</div>
+
+							{/* Manual Attendance Form */}
+							{showAddManualAttendance && (
+								<form 
+									onSubmit={async (e) => {
+										e.preventDefault();
+										const target = e.currentTarget;
+										const empId = target.employeeId.value;
+										const emp = employeesList.find(x => x.id === empId);
+										if (!emp) return alert('Please select a valid employee.');
+										await handleAddManualAttendance({
+											employeeId: emp.id,
+											employeeName: `${emp.firstName} ${emp.lastName}`,
+											date: target.date.value,
+											checkIn: target.checkIn.value,
+											checkOut: target.checkOut.value || undefined,
+											status: target.status.value,
+										});
+									}} 
+									className="bg-zinc-900/40 border border-zinc-800 p-5 space-y-4 rounded-none"
+								>
+									<h4 className="text-xs font-bold text-white uppercase tracking-wider">Log Attendance Manually</h4>
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-400 uppercase font-medium">Select Employee</label>
+											<select name="employeeId" required className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none">
+												<option value="">-- Choose Employee --</option>
+												{employeesList.map(e => (
+													<option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.id})</option>
+												))}
+											</select>
+										</div>
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-400 uppercase font-medium">Date</label>
+											<Input type="text" name="date" required placeholder="YYYY-MM-DD" className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
+										</div>
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
+											<select name="status" required className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none">
+												<option value="Present">Present</option>
+												<option value="Checked In">Checked In</option>
+											</select>
+										</div>
+									</div>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-400 uppercase font-medium">Check-In Time</label>
+											<Input type="text" name="checkIn" placeholder="e.g. 09:30 AM" required className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
+										</div>
+										<div className="space-y-1">
+											<label className="text-[10px] text-zinc-400 uppercase font-medium">Check-Out Time (Optional)</label>
+											<Input type="text" name="checkOut" placeholder="e.g. 06:30 PM" className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
+										</div>
+									</div>
+									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
+										Save Attendance Log
+									</Button>
+								</form>
+							)}
+
+							{showTodayAttendanceSummary ? (
+								<div className="space-y-6">
+									{/* Top Stat Cards */}
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+										<div className="border border-emerald-800 bg-emerald-950/20 p-4 space-y-1 rounded-none">
+											<h4 className="text-[10px] uppercase tracking-wider text-emerald-400 font-mono font-semibold">Present Today</h4>
+											<p className="text-3xl font-extrabold text-white font-mono">{presentList.length}</p>
+										</div>
+										<div className="border border-red-800 bg-red-950/20 p-4 space-y-1 rounded-none">
+											<h4 className="text-[10px] uppercase tracking-wider text-red-400 font-mono font-semibold">Absent Today</h4>
+											<p className="text-3xl font-extrabold text-white font-mono">{absentList.length}</p>
+										</div>
+										<div className="border border-amber-800 bg-amber-950/20 p-4 space-y-1 rounded-none">
+											<h4 className="text-[10px] uppercase tracking-wider text-amber-400 font-mono font-semibold">On Leave Today</h4>
+											<p className="text-3xl font-extrabold text-white font-mono">{onLeaveList.length}</p>
+										</div>
+									</div>
+
+									{/* Detailed Columns */}
+									<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+										{/* Present Column */}
+										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
+											<h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
+												<span>Present Employees</span>
+												<span className="bg-emerald-950 text-emerald-400 border border-emerald-900/50 px-2 py-0.5 text-[10px] rounded-none font-mono font-bold">{presentList.length}</span>
+											</h4>
+											{presentList.length === 0 ? (
+												<p className="text-zinc-550 text-xs italic">No one has clocked in today.</p>
+											) : (
+												<div className="space-y-3 max-h-[450px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+													{presentList.map(({ employee, log }) => (
+														<div key={employee.id} className="p-3 border border-zinc-800/80 bg-zinc-900/10 space-y-1 rounded-none">
+															<div className="flex justify-between items-start">
+																<strong className="text-white text-xs font-semibold">{employee.firstName} {employee.lastName}</strong>
+																<span className="text-[9px] text-zinc-555 font-mono">{employee.id}</span>
+															</div>
+															<p className="text-[10px] text-zinc-450">{employee.wingName} · {employee.role}</p>
+															<div className="flex gap-4 pt-1.5 text-[9px] font-mono text-zinc-500 border-t border-zinc-800/40 mt-1">
+																<div>In: <span className="text-emerald-400 font-semibold">{log.checkIn}</span></div>
+																<div>Out: <span className="text-zinc-450 font-semibold">{log.checkOut || '--'}</span></div>
+															</div>
+														</div>
+													))}
+												</div>
+											)}
+										</div>
+
+										{/* Absent Column */}
+										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
+											<h4 className="text-xs font-bold text-red-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
+												<span>Absent Employees</span>
+												<span className="bg-red-950 text-red-400 border border-red-900/50 px-2 py-0.5 text-[10px] rounded-none font-mono font-bold">{absentList.length}</span>
+											</h4>
+											{absentList.length === 0 ? (
+												<p className="text-zinc-550 text-xs italic">Everyone is accounted for today!</p>
+											) : (
+												<div className="space-y-3 max-h-[450px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+													{absentList.map(employee => (
+														<div key={employee.id} className="p-3 border border-zinc-800/80 bg-zinc-900/10 space-y-1 rounded-none">
+															<div className="flex justify-between items-start">
+																<strong className="text-white text-xs font-semibold">{employee.firstName} {employee.lastName}</strong>
+																<span className="text-[9px] text-zinc-555 font-mono">{employee.id}</span>
+															</div>
+															<p className="text-[10px] text-zinc-450">{employee.wingName} · {employee.role}</p>
+															<p className="text-[9px] text-zinc-500 font-mono pt-1 border-t border-zinc-800/40 mt-1">Phone: {employee.phone}</p>
+														</div>
+													))}
+												</div>
+											)}
+										</div>
+
+										{/* On Leave Column */}
+										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
+											<h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
+												<span>On Approved Leave</span>
+												<span className="bg-amber-950 text-amber-400 border border-amber-900/50 px-2 py-0.5 text-[10px] rounded-none font-mono font-bold">{onLeaveList.length}</span>
+											</h4>
+											{onLeaveList.length === 0 ? (
+												<p className="text-zinc-555 text-xs italic">No approved leaves for today.</p>
+											) : (
+												<div className="space-y-3 max-h-[450px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+													{onLeaveList.map(({ employee, leave }) => (
+														<div key={employee.id} className="p-3 border border-zinc-800/80 bg-zinc-900/10 space-y-1 rounded-none">
+															<div className="flex justify-between items-start">
+																<strong className="text-white text-xs font-semibold">{employee.firstName} {employee.lastName}</strong>
+																<span className="text-[9px] text-zinc-555 font-mono">{employee.id}</span>
+															</div>
+															<p className="text-[10px] text-zinc-450">{employee.wingName} · {employee.role}</p>
+															<div className="text-[9px] text-amber-400/80 pt-1.5 border-t border-zinc-800/40 mt-1">
+																Type: <span className="font-semibold text-white">{leave.type}</span>
+																<span className="block text-zinc-550 italic mt-0.5">Reason: "{leave.reason}"</span>
+															</div>
+														</div>
+													))}
+												</div>
+											)}
+										</div>
+									</div>
+								</div>
+							) : (
+								attendanceList.length === 0 ? (
+									<div className="min-h-[200px] flex items-center justify-center text-zinc-500 italic text-sm">
+										No attendance logs have been recorded in the database.
+									</div>
+								) : (
+									<div className="overflow-x-auto border border-zinc-800 bg-zinc-950/20">
+										<table className="w-full text-left text-xs border-collapse">
+											<thead>
+												<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px] tracking-wider bg-zinc-950/40">
+													<th className="p-3">Employee</th>
+													<th className="p-3">Date</th>
+													<th className="p-3">Check-In Time</th>
+													<th className="p-3">Check-Out Time</th>
+													<th className="p-3">Status</th>
+													<th className="p-3 text-right">Actions</th>
+												</tr>
+											</thead>
+											<tbody className="divide-y divide-zinc-800/50 text-zinc-300 font-mono">
+												{attendanceList.map((log: any) => (
+													<tr key={log.id} className="hover:bg-zinc-900/10 transition-colors">
+														<td className="p-3 font-semibold text-white font-sans">
+															{log.employeeName}
+															<span className="block text-[10px] text-zinc-550 font-mono mt-0.5">{log.employeeId}</span>
+														</td>
+														<td className="p-3 text-zinc-300">{log.date}</td>
+														<td className="p-3 text-zinc-400">{log.checkIn}</td>
+														<td className="p-3 text-zinc-400">{log.checkOut || '--'}</td>
+														<td className="p-3">
+															<span className={cn(
+																"px-2 py-0.5 text-[10px] font-bold border uppercase font-mono whitespace-nowrap",
+																log.status === 'Checked In' && "bg-emerald-950/30 text-emerald-400 border-emerald-900/30",
+																log.status === 'Present' && "bg-indigo-950/30 text-indigo-400 border-indigo-900/30"
+															)}>
+																{log.status}
+															</span>
+														</td>
+														<td className="p-3 text-right whitespace-nowrap">
+															<div className="inline-flex items-center justify-end gap-2">
+																<button
+																	onClick={() => {
+																		setEditingItem(log);
+																		setEditModalType('attendance');
+																	}}
+																	className="p-1.5 bg-zinc-900 border border-zinc-800 text-indigo-400 hover:text-indigo-300 hover:border-zinc-700 transition-all cursor-pointer"
+																	title="Edit Attendance Log"
+																>
+																	<PencilIcon className="size-3.5" />
+																</button>
+																<button
+																	onClick={() => handleDeleteAttendance(log.id)}
+																	className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
+																	title="Delete Attendance Log"
+																>
+																	<Trash2Icon className="size-3.5" />
+																</button>
+															</div>
+														</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
+								)
+							)}
 						</div>
-
-						{/* Manual Attendance Form */}
-						{showAddManualAttendance && (
-							<form 
-								onSubmit={async (e) => {
-									e.preventDefault();
-									const target = e.currentTarget;
-									const empId = target.employeeId.value;
-									const emp = employeesList.find(x => x.id === empId);
-									if (!emp) return alert('Please select a valid employee.');
-									await handleAddManualAttendance({
-										employeeId: emp.id,
-										employeeName: `${emp.firstName} ${emp.lastName}`,
-										date: target.date.value,
-										checkIn: target.checkIn.value,
-										checkOut: target.checkOut.value || undefined,
-										status: target.status.value,
-									});
-								}} 
-								className="bg-zinc-900/40 border border-zinc-800 p-5 space-y-4 rounded-none"
-							>
-								<h4 className="text-xs font-bold text-white uppercase tracking-wider">Log Attendance Manually</h4>
-								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Select Employee</label>
-										<select name="employeeId" required className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none">
-											<option value="">-- Choose Employee --</option>
-											{employeesList.map(e => (
-												<option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.id})</option>
-											))}
-										</select>
-									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Date</label>
-										<Input type="text" name="date" required placeholder="YYYY-MM-DD" className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
-									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
-										<select name="status" required className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none">
-											<option value="Present">Present</option>
-											<option value="Checked In">Checked In</option>
-										</select>
-									</div>
-								</div>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Check-In Time</label>
-										<Input type="text" name="checkIn" placeholder="e.g. 09:30 AM" required className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
-									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Check-Out Time (Optional)</label>
-										<Input type="text" name="checkOut" placeholder="e.g. 06:30 PM" className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
-									</div>
-								</div>
-								<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
-									Save Attendance Log
-								</Button>
-							</form>
-						)}
-
-						{attendanceList.length === 0 ? (
-							<div className="min-h-[200px] flex items-center justify-center text-zinc-500 italic text-sm">
-								No attendance logs have been recorded in the database.
-							</div>
-						) : (
-							<div className="overflow-x-auto border border-zinc-800 bg-zinc-950/20">
-								<table className="w-full text-left text-xs border-collapse">
-									<thead>
-										<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px] tracking-wider bg-zinc-950/40">
-											<th className="p-3">Employee</th>
-											<th className="p-3">Date</th>
-											<th className="p-3">Check-In Time</th>
-											<th className="p-3">Check-Out Time</th>
-											<th className="p-3">Status</th>
-											<th className="p-3 text-right">Actions</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y divide-zinc-800/50 text-zinc-300 font-mono">
-										{attendanceList.map((log: any) => (
-											<tr key={log.id} className="hover:bg-zinc-900/10 transition-colors">
-												<td className="p-3 font-semibold text-white font-sans">
-													{log.employeeName}
-													<span className="block text-[10px] text-zinc-550 font-mono mt-0.5">{log.employeeId}</span>
-												</td>
-												<td className="p-3 text-zinc-300">{log.date}</td>
-												<td className="p-3 text-zinc-400">{log.checkIn}</td>
-												<td className="p-3 text-zinc-400">{log.checkOut || '--'}</td>
-												<td className="p-3">
-													<span className={cn(
-														"px-2 py-0.5 text-[10px] font-bold border uppercase font-mono whitespace-nowrap",
-														log.status === 'Checked In' && "bg-emerald-950/30 text-emerald-400 border-emerald-900/30",
-														log.status === 'Present' && "bg-indigo-950/30 text-indigo-400 border-indigo-900/30"
-													)}>
-														{log.status}
-													</span>
-												</td>
-												<td className="p-3 text-right whitespace-nowrap">
-													<div className="inline-flex items-center justify-end gap-2">
-														<button
-															onClick={() => {
-																setEditingItem(log);
-																setEditModalType('attendance');
-															}}
-															className="p-1.5 bg-zinc-900 border border-zinc-800 text-indigo-400 hover:text-indigo-300 hover:border-zinc-700 transition-all cursor-pointer"
-															title="Edit Attendance Log"
-														>
-															<PencilIcon className="size-3.5" />
-														</button>
-														<button
-															onClick={() => handleDeleteAttendance(log.id)}
-															className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
-															title="Delete Attendance Log"
-														>
-															<Trash2Icon className="size-3.5" />
-														</button>
-													</div>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-						)}
-					</div>
-				)}
+					);
+				})()}
 
 				{/* Tab content: Clients */}
 				{activeTab === 'clients' && (
