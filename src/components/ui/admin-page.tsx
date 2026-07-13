@@ -26,6 +26,20 @@ export function AdminPage() {
 
 	// Restore admin session from localStorage on mount & listen to invite token
 	useEffect(() => {
+		// Check if logged in as normal employee (non-lead) and redirect
+		try {
+			const empSaved = localStorage.getItem('wrkspace_employee_session');
+			if (empSaved) {
+				const emp = JSON.parse(empSaved);
+				if (emp && emp.role !== 'Team Lead') {
+					window.location.href = '/';
+					return;
+				}
+			}
+		} catch (e) {
+			console.error('Failed to parse employee session', e);
+		}
+
 		try {
 			const saved = localStorage.getItem('wrkspace_admin_session');
 			if (saved) {

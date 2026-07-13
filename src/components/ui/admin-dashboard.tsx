@@ -77,9 +77,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					if (tabs.length > 0 && !tabs.includes(activeTab)) {
 						setActiveTab(tabs[0] as TabType);
 					}
+				} else {
+					console.error('Failed to load admin profile:', res.error);
+					onLogout();
 				}
 			} catch (e) {
 				console.error(e);
+				onLogout();
 			} finally {
 				setLoadingProfile(false);
 			}
