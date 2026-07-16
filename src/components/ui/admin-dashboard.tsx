@@ -18,6 +18,7 @@ import {
 	PlusIcon,
 } from 'lucide-react';
 import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail } from '@/app/admin/actions';
+import OfficesPanel from '@/components/ui/offices-panel';
 import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessagesView } from './messages-view';
@@ -27,7 +28,7 @@ interface AdminDashboardProps {
 	onLogout: () => void;
 }
 
-type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads';
+type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads';
 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -39,7 +40,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [newAdminOrgName, setNewAdminOrgName] = useState('');
 	const [newAdminPassword, setNewAdminPassword] = useState('admin123');
 	const [newAdminPages, setNewAdminPages] = useState<string[]>([
-		'overview', 'employees', 'task_allocation', 'attendance', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies'
+		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies'
 	]);
 	const [allocatedLink, setAllocatedLink] = useState<string | null>(null);
 	const [isAllocating, setIsAllocating] = useState(false);
@@ -1516,6 +1517,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							Attendance
 						</button>
 					)}
+					{(isSuperAdmin || allowedTabs.includes('offices')) && (
+						<button
+							onClick={() => setActiveTab('offices')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'offices' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Offices & QR
+						</button>
+					)}
 					{(isSuperAdmin || allowedTabs.includes('leaves')) && (
 						<button
 							onClick={() => {
@@ -1890,6 +1899,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</table>
 							</div>
 						)}
+					</div>
+				)}
+
+				{activeTab === 'offices' && (
+					<div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-none">
+						<OfficesPanel />
 					</div>
 				)}
 

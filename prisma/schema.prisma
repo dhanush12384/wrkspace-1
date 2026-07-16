@@ -172,3 +172,30 @@ model HrCompany {
   assignedEmployeeId  String?  // Relates to Employee.id
   createdAt           DateTime @default(now())
 }
+
+/// Offices & QR for mobile geofence check-in (Neon — not Firebase)
+model Office {
+  id           String     @id @default(uuid())
+  name         String
+  address      String?
+  lat          Float
+  lng          Float
+  plusCode     String?
+  radiusMeters Int        @default(75)
+  geofenceM    Int        @default(150)
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  qrs          OfficeQr[]
+}
+
+model OfficeQr {
+  id        String   @id @default(uuid())
+  officeId  String
+  label     String
+  token     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  office    Office   @relation(fields: [officeId], references: [id], onDelete: Cascade)
+
+  @@index([officeId])
+}
