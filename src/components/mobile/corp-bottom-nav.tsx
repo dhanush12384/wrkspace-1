@@ -16,8 +16,8 @@ type Props = {
 };
 
 /**
- * Flutter CorpBottomNav geometry — taller dock for readable labels.
- * FAB 64 · bar 76 · dock = bar+18 · FAB bottom = bar-24
+ * Flutter CorpBottomNav — slightly shorter dock; scanner FAB stays 64.
+ * FAB 64 · bar 68 · dock = bar+18 · FAB bottom = bar-22
  */
 export function CorpBottomNav({
 	section,
@@ -31,10 +31,10 @@ export function CorpBottomNav({
 	if (hidden) return null;
 
 	const FAB = 64;
-	const BAR = 76;
-	const DOCK = BAR + 18; // 94
-	const SHELL = BAR + 40; // 116
-	const FAB_BOTTOM = BAR - 24; // 52
+	const BAR = 68;
+	const DOCK = BAR + 18; // 86
+	const SHELL = BAR + 36; // 104
+	const FAB_BOTTOM = BAR - 22; // 46
 
 	return (
 		<div
@@ -74,22 +74,22 @@ export function CorpBottomNav({
 				className="pointer-events-auto absolute inset-x-0 bottom-0 flex w-full items-center px-1"
 				style={{
 					height: `calc(${BAR}px + env(safe-area-inset-bottom, 0px))`,
-					paddingTop: 16,
-					paddingBottom: 'max(8px, calc(env(safe-area-inset-bottom, 0px) * 0.3 + 4px))',
+					paddingTop: 14,
+					paddingBottom: 'max(6px, calc(env(safe-area-inset-bottom, 0px) * 0.3 + 4px))',
 				}}
 			>
 				<NavBtn active={section === 'home'} onClick={onHome} label="Home">
-					<Home className="size-[22px]" strokeWidth={2} />
+					<Home className="size-[21px]" strokeWidth={2} />
 				</NavBtn>
 				<NavBtn active={section === 'tasks'} onClick={onTasks} label="Tasks">
-					<ListTodo className="size-[22px]" strokeWidth={2} />
+					<ListTodo className="size-[21px]" strokeWidth={2} />
 				</NavBtn>
 				<div style={{ width: FAB + 8 }} className="shrink-0" aria-hidden />
 				<NavBtn active={section === 'messages'} onClick={onMessages} label="Messages">
-					<MessagesSquare className="size-[24px]" strokeWidth={2} />
+					<MessagesSquare className="size-[22px]" strokeWidth={2} />
 				</NavBtn>
 				<NavBtn active={section === 'more'} onClick={onMore} label="More">
-					<LayoutGrid className="size-[22px]" strokeWidth={2} />
+					<LayoutGrid className="size-[21px]" strokeWidth={2} />
 				</NavBtn>
 			</div>
 
@@ -138,7 +138,7 @@ function NavBtn({
 			aria-label={label}
 			onClick={onClick}
 			className={cn(
-				'flex min-h-[52px] flex-1 flex-col items-center justify-center gap-[3px]',
+				'flex min-h-[46px] flex-1 flex-col items-center justify-center gap-0.5',
 				active ? 'text-white' : 'text-[#B8C4FF]',
 			)}
 		>
@@ -146,7 +146,7 @@ function NavBtn({
 			<span
 				className={cn(
 					'whitespace-nowrap leading-none',
-					isMessages ? 'text-[12.5px]' : 'text-[11.5px]',
+					isMessages ? 'text-[11.5px]' : 'text-[10.5px]',
 					active ? 'font-bold' : 'font-semibold',
 				)}
 				style={isMessages ? { letterSpacing: '0' } : { letterSpacing: '0.15px' }}
