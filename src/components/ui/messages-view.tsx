@@ -101,9 +101,12 @@ interface MessagesViewProps {
 		role: 'Admin' | 'Employee';
 		photoUrl?: string | null;
 	};
+	/** When opened from admin panel — used for avatar API auth */
+	adminEmail?: string;
 }
 
-export function MessagesView({ currentUser }: MessagesViewProps) {
+export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
+	const avatarAdminEmail = adminEmail || (currentUser.role === 'Admin' ? currentUser.email : undefined);
 	const [members, setMembers] = useState<ChatMember[]>([]);
 	const [activeChannel, setActiveChannel] = useState<string>('public');
 	const [channelTitle, setChannelTitle] = useState<string>('Public Chat');
@@ -498,6 +501,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 												id={member.id}
 												name={member.name}
 												hasPhoto={member.hasPhoto !== false}
+												adminEmail={avatarAdminEmail}
 												size={28}
 											/>
 											<span className="truncate">{member.name}</span>
@@ -532,6 +536,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 											id={currentUser.id}
 											name={currentUser.name}
 											photoUrl={currentUser.photoUrl}
+											adminEmail={avatarAdminEmail}
 											size={32}
 										/>
 									)}
@@ -714,6 +719,7 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 															: msg.senderPhotoUrl
 													}
 													hasPhoto
+													adminEmail={avatarAdminEmail}
 													size={32}
 												/>
 											</div>

@@ -2288,6 +2288,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							email: email,
 							role: 'Admin'
 						}}
+						adminEmail={email}
 					/>
 				)}
 
@@ -2797,6 +2798,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															id={emp.id}
 															name={`${emp.firstName} ${emp.lastName}`}
 															hasPhoto={Boolean(emp.hasPhoto)}
+															adminEmail={email}
 															size={36}
 														/>
 														<span
