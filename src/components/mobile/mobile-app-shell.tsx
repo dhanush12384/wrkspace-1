@@ -184,22 +184,78 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 		// FCM after first paint — never block shell mount (Android Chrome stability).
 		const tPush = window.setTimeout(() => {
 			void registerWebPush(employee?.id).then(() => {
-				subscribeOfficeExitPush(openLeaveDialog);
+				// FCM office_exit: only open dialog after a quick GPS check (avoid false alerts indoors).
+				subscribeOfficeExitPush(() => {
+					void (async () => {
+						try {
+							const pos = await getPosition(12000);
+							const offices = await (await import('@/lib/mobile-api')).apiGet<{ offices?: any[] }>(
+								'/api/attendance/offices',
+							);
+							const list = offices.offices || [];
+							const lat = pos.coords.latitude;
+							const lng = pos.coords.longitude;
+							const inside = list.some((o) => {
+								const r = Math.max(Number(o.geofenceM) || 500, 500);
+								const dLat = ((Number(o.lat) - lat) * Math.PI) / 180;
+								const dLng = ((Number(o.lng) - lng) * Math.PI) / 180;
+								const a =
+									Math.sin(dLat / 2) ** 2 +
+									Math.cos((lat * Math.PI) / 180) *
+										Math.cos((Number(o.lat) * Math.PI) / 180) *
+										Math.sin(dLng / 2) ** 2;
+								const d = 2 * 6371000 * Math.asin(Math.sqrt(a));
+								return d <= r + 180;
+							});
+							if (inside) {
+								clearOfficeExitPending();
+								return;
+							}
+						} catch {
+							/* if GPS fails, still show — user can pick Office work */
+						}
+						openLeaveDialog();
+					})();
+				});
 			});
 		}, 3500);
 
-		// Restore pending leave choice after a beat (don't block first paint)
+		// Do NOT restore stale leave prompts from sessionStorage — those caused false alerts
+		// while still in office. Only honor explicit ?office_exit=1 after a GPS check.
 		const tLeave = window.setTimeout(() => {
 			try {
+				clearOfficeExitPending();
 				const params = new URLSearchParams(window.location.search);
-				if (params.get('office_exit') === '1' || readOfficeExitPending()) {
-					openLeaveDialog();
-					if (params.get('office_exit') === '1') {
-						params.delete('office_exit');
-						const next = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
-						window.history.replaceState(null, '', next);
+				if (params.get('office_exit') !== '1') return;
+				params.delete('office_exit');
+				const next = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
+				window.history.replaceState(null, '', next);
+				void (async () => {
+					try {
+						const { apiGet, getPosition: gp } = await import('@/lib/mobile-api');
+						const pos = await gp(12000);
+						const data = await apiGet<{ offices?: any[] }>('/api/attendance/offices');
+						const list = data.offices || [];
+						const lat = pos.coords.latitude;
+						const lng = pos.coords.longitude;
+						const inside = list.some((o) => {
+							const r = Math.max(Number(o.geofenceM) || 500, 500);
+							const dLat = ((Number(o.lat) - lat) * Math.PI) / 180;
+							const dLng = ((Number(o.lng) - lng) * Math.PI) / 180;
+							const a =
+								Math.sin(dLat / 2) ** 2 +
+								Math.cos((lat * Math.PI) / 180) *
+									Math.cos((Number(o.lat) * Math.PI) / 180) *
+									Math.sin(dLng / 2) ** 2;
+							const d = 2 * 6371000 * Math.asin(Math.sqrt(a));
+							return d <= r + 180;
+						});
+						if (inside) return;
+						openLeaveDialog();
+					} catch {
+						/* ignore stale link */
 					}
-				}
+				})();
 			} catch {
 				/* ignore */
 			}

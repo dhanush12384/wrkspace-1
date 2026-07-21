@@ -26,6 +26,7 @@ function distM(aLat: number, aLng: number, bLat: number, bLng: number) {
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);
+		const body = await req.json().catch(() => ({}));
 		const date = todayKeyIST();
 		const existing = await db.attendance.findFirst({
 			where: { employeeId: user.sub, date },
@@ -35,24 +36,34 @@ export async function POST(req: NextRequest) {
 			return jsonError('No open shift', 400);
 		}
 
-		// Server-side guard: do not push if last known GPS is still inside an office fence.
 		const emp = await db.employee.findUnique({
 			where: { id: user.sub },
 			select: { lastLat: true, lastLng: true, lastLocationAt: true },
 		});
-		const lat = emp?.lastLat != null ? Number(emp.lastLat) : NaN;
-		const lng = emp?.lastLng != null ? Number(emp.lastLng) : NaN;
-		const locAgeMs = emp?.lastLocationAt ? Date.now() - new Date(emp.lastLocationAt).getTime() : Infinity;
 
-		if (Number.isFinite(lat) && Number.isFinite(lng) && locAgeMs < 5 * 60_000) {
-			const offices = await db.office.findMany({
-				where: { active: true },
-				select: { lat: true, lng: true, geofenceM: true },
-			});
+		const bodyLat = Number(body?.lat);
+		const bodyLng = Number(body?.lng);
+		const lat = Number.isFinite(bodyLat)
+			? bodyLat
+			: emp?.lastLat != null
+				? Number(emp.lastLat)
+				: NaN;
+		const lng = Number.isFinite(bodyLng)
+			? bodyLng
+			: emp?.lastLng != null
+				? Number(emp.lastLng)
+				: NaN;
+
+		const offices = await db.office.findMany({
+			where: { active: true },
+			select: { lat: true, lng: true, geofenceM: true },
+		});
+
+		if (Number.isFinite(lat) && Number.isFinite(lng) && offices.length) {
 			const stillInside = offices.some((o) => {
-				const r = Number(o.geofenceM) > 0 ? Number(o.geofenceM) : 300;
-				// Keep a soft buffer so noisy indoor GPS does not pass the server check.
-				return distM(lat, lng, Number(o.lat), Number(o.lng)) <= r + 80;
+				const r = Math.max(Number(o.geofenceM) > 0 ? Number(o.geofenceM) : 500, 500);
+				// Large soft buffer — indoor GPS noise must not send leave FCM.
+				return distM(lat, lng, Number(o.lat), Number(o.lng)) <= r + 180;
 			});
 			if (stillInside) {
 				return Response.json({
@@ -61,7 +72,20 @@ export async function POST(req: NextRequest) {
 					attendance: existing,
 				});
 			}
+		} else {
+			// No GPS to verify — do not fan out a leave alert.
+			return Response.json({
+				ok: false,
+				skipped: 'no_gps',
+				attendance: existing,
+			});
 		}
+
+		// Persist the coords used for the decision.
+		await db.employee.update({
+			where: { id: user.sub },
+			data: { lastLat: lat, lastLng: lng, lastLocationAt: new Date() },
+		});
 
 		void emitAttendanceUpdate(user.sub, existing, 'left-office');
 

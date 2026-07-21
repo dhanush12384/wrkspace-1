@@ -3,15 +3,15 @@
 import { useEffect, useRef } from 'react';
 import { apiGet, apiPost, getPosition, isFemaleEmployee } from '@/lib/mobile-api';
 
-const OFFICE_WATCH_MS = 45_000;
+const OFFICE_WATCH_MS = 60_000;
 const HOME_WATCH_MS = 25_000;
-/** Exit fence — must match Office.geofenceM default; indoors GPS often drifts 50–150m. */
-const EXIT_GEOFENCE_M = 300;
-const MAX_ACCURACY_M = 65;
-/** Require several bad readings in a row before prompting (stops office Wi‑Fi GPS jumps). */
-const OUTSIDE_CONFIRM_TICKS = 3;
-/** Extra meters beyond fence + accuracy before counting as outside. */
-const EXIT_HYSTERESIS_M = 50;
+/** Exit fence fallback — indoor GPS often drifts 100–250m. */
+const EXIT_GEOFENCE_M = 500;
+const MAX_ACCURACY_M = 55;
+/** Need several consecutive clear outs before prompting. */
+const OUTSIDE_CONFIRM_TICKS = 4;
+/** Extra meters beyond fence + accuracy. */
+const EXIT_HYSTERESIS_M = 120;
 
 export const OFFICE_EXIT_KEY = 'wrkspace_office_exit_pending';
 export const OFFICE_WORK_ACK_KEY = 'wrkspace_office_work_ack';
@@ -84,14 +84,13 @@ function distM(aLat: number, aLng: number, bLat: number, bLng: number) {
 
 function exitRadiusM(o: { geofenceM?: number }) {
 	const g = Number(o.geofenceM);
-	return Number.isFinite(g) && g > 0 ? g : EXIT_GEOFENCE_M;
+	return Number.isFinite(g) && g > 0 ? Math.max(g, EXIT_GEOFENCE_M) : EXIT_GEOFENCE_M;
 }
 
 type Opts = {
 	employee: any;
 	enabled: boolean;
 	onLeaveOffice?: () => void;
-	/** GPS says back inside while a leave prompt was pending — dismiss UI. */
 	onBackInsideOffice?: () => void;
 	onLocationError?: () => void;
 };
@@ -149,12 +148,33 @@ export function useMobileTracking({
 			}
 		};
 
-		const fireLeavePrompt = async (dateKey: string) => {
+		const dismissLeave = () => {
+			clearOfficeExitPending();
+			if (leavePrompted.current) {
+				leavePrompted.current = false;
+				onBackInsideOffice?.();
+			}
+		};
+
+		const fireLeavePrompt = async (dateKey: string, lat: number, lng: number) => {
 			if (hasOfficeWorkAck(dateKey)) return;
+			if (leavePrompted.current) return;
+
+			// Ask server first — only show UI / FCM when server agrees we are outside.
+			const res = await apiPost<{ ok?: boolean; skipped?: string }>('/api/attendance/left-office', {
+				lat,
+				lng,
+			}).catch(() => null);
+
+			if (!res || res.ok === false || res.skipped) {
+				outsideStreak.current = 0;
+				dismissLeave();
+				return;
+			}
+
 			leavePrompted.current = true;
 			wasInsideExit.current = false;
 			markOfficeExitPending();
-			await apiPost('/api/attendance/left-office', {}).catch(() => {});
 			onLeaveOffice?.();
 		};
 
@@ -176,18 +196,14 @@ export function useMobileTracking({
 					return;
 				}
 
-				const pending = readOfficeExitPending();
-				if (pending && !leavePrompted.current) {
-					leavePrompted.current = true;
-					onLeaveOffice?.();
-				}
-
 				const pos = await getPosition(15000);
 				errorNotified.current = false;
 				const { latitude: lat, longitude: lng, accuracy } = pos.coords;
 				await apiPost('/api/attendance/location', { lat, lng }).catch(() => {});
 
+				// Coarse indoor / Wi‑Fi fixes — never count as leaving.
 				if (typeof accuracy === 'number' && accuracy > MAX_ACCURACY_M) {
+					outsideStreak.current = 0;
 					return;
 				}
 
@@ -204,17 +220,14 @@ export function useMobileTracking({
 
 				if (!nearest) return;
 
-				const acc = typeof accuracy === 'number' && accuracy > 0 ? accuracy : 35;
-				const outside = nearest.d > nearest.r + Math.min(acc, 70) + EXIT_HYSTERESIS_M;
+				const acc = typeof accuracy === 'number' && accuracy > 0 ? accuracy : 40;
+				const outside = nearest.d > nearest.r + Math.min(acc, 80) + EXIT_HYSTERESIS_M;
 
 				if (!outside) {
 					wasInsideExit.current = true;
 					outsideStreak.current = 0;
-					if (readOfficeExitPending() || leavePrompted.current) {
-						clearOfficeExitPending();
-						leavePrompted.current = false;
-						onBackInsideOffice?.();
-					}
+					// Always clear stale leave UI when GPS says inside.
+					dismissLeave();
 					return;
 				}
 
@@ -223,7 +236,7 @@ export function useMobileTracking({
 					wasInsideExit.current && outsideStreak.current >= OUTSIDE_CONFIRM_TICKS;
 
 				if (confirmed && !leavePrompted.current) {
-					await fireLeavePrompt(dateKey);
+					await fireLeavePrompt(dateKey, lat, lng);
 				}
 			} catch {
 				failLoc();
@@ -248,6 +261,10 @@ export function useMobileTracking({
 				failLoc();
 			}
 		};
+
+		// Clear any stale leave prompt from a previous false positive on mount.
+		clearOfficeExitPending();
+		leavePrompted.current = false;
 
 		void loadOffices(true).then(() => {
 			void tickOffice();
