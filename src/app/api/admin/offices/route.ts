@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
         lat,
         lng,
         plusCode: body.plusCode ? String(body.plusCode) : null,
-        radiusMeters: Number(body.radiusMeters) || 75,
-        geofenceM: Number(body.geofenceM) || 150,
+        radiusMeters: Number(body.radiusMeters) || 300,
+        geofenceM: Number(body.geofenceM) || 300,
         active: true,
       },
     });

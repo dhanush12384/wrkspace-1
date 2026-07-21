@@ -31,8 +31,8 @@ export async function createOfficeAction(data: {
         lat: data.lat,
         lng: data.lng,
         plusCode: data.plusCode || null,
-        radiusMeters: data.radiusMeters || 75,
-        geofenceM: data.geofenceM || 150,
+        radiusMeters: data.radiusMeters || 300,
+        geofenceM: data.geofenceM || 300,
         active: true,
       },
     });
@@ -81,5 +81,25 @@ export async function toggleOfficeQrAction(id: string, active: boolean) {
     return { success: true, qr };
   } catch (e: any) {
     return { success: false, error: e.message };
+  }
+}
+
+export async function deleteOfficeQrAction(id: string) {
+  try {
+    await db.officeQr.delete({ where: { id } });
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Failed to delete QR' };
+  }
+}
+
+export async function deleteOfficeAction(id: string) {
+  try {
+    // QRs cascade if schema has onDelete; otherwise delete QRs first
+    await db.officeQr.deleteMany({ where: { officeId: id } });
+    await db.office.delete({ where: { id } });
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Failed to delete office' };
   }
 }

@@ -47,7 +47,7 @@ export async function findOfficeByToken(rawToken: string) {
       name: qr.office.name,
       lat: qr.office.lat,
       lng: qr.office.lng,
-      radiusMeters: qr.office.radiusMeters || 75,
+      radiusMeters: qr.office.radiusMeters || 300,
     },
     token: qr.token,
   };

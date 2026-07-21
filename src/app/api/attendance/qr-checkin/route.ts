@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { office, token } = match;
-    const radius = office.radiusMeters || 75;
+    const radius = office.radiusMeters || 300;
     const { within, distance } = isInsideRadius(lat, lng, office.lat, office.lng, radius);
     if (!within) {
       return Response.json(
