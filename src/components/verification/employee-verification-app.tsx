@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { firebaseAuth, googleProvider } from '@/lib/firebase-client';
 import { signInWithPopup } from 'firebase/auth';
+import './verification.css';
 
 const SESSION_KEY = 'wrkspace_verification_session';
 
@@ -26,8 +27,11 @@ type EmpRow = {
 	wingName: string;
 	wingLeadName: string;
 	role: string;
+	photoUrl?: string | null;
 	joinedAt?: string;
 };
+
+type DossierTab = 'overview' | 'attendance' | 'tasks' | 'submissions' | 'leaves' | 'events';
 
 function loadSession(): Session | null {
 	try {
@@ -50,19 +54,24 @@ function saveSession(s: Session | null) {
 	}
 }
 
-function ScoreBar({ label, value }: { label: string; value: number }) {
-	const color = value >= 75 ? 'bg-emerald-500' : value >= 50 ? 'bg-amber-500' : 'bg-rose-500';
-	return (
-		<div>
-			<div className="mb-1 flex justify-between text-[11px] text-zinc-400">
-				<span>{label}</span>
-				<span className="font-mono text-zinc-200">{value}</span>
-			</div>
-			<div className="h-1.5 overflow-hidden rounded-full bg-zinc-800">
-				<div className={`h-full ${color}`} style={{ width: `${Math.max(4, value)}%` }} />
-			</div>
-		</div>
-	);
+function initials(name: string) {
+	const p = name.trim().split(/\s+/).filter(Boolean);
+	if (!p.length) return '?';
+	if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+	return `${p[0][0]}${p[p.length - 1][0]}`.toUpperCase();
+}
+
+function scoreTone(v: number) {
+	if (v >= 75) return 'good';
+	if (v >= 50) return 'mid';
+	return 'low';
+}
+
+function verdictFromScore(v: number) {
+	if (v >= 80) return { label: 'Strong profile', hint: 'Reliable history signals for company review.' };
+	if (v >= 65) return { label: 'Solid with notes', hint: 'Good baseline — check open flags below.' };
+	if (v >= 45) return { label: 'Needs review', hint: 'Mixed signals — dig into attendance & tasks.' };
+	return { label: 'High caution', hint: 'Limited or weak history — verify manually.' };
 }
 
 export function EmployeeVerificationApp() {
@@ -70,16 +79,19 @@ export function EmployeeVerificationApp() {
 	const [ready, setReady] = useState(false);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [showPass, setShowPass] = useState(false);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState('');
 	const [q, setQ] = useState('');
+	const [wingFilter, setWingFilter] = useState('all');
 	const [employees, setEmployees] = useState<EmpRow[]>([]);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [dossier, setDossier] = useState<any | null>(null);
 	const [dossierLoading, setDossierLoading] = useState(false);
 	const [tab, setTab] = useState<'directory' | 'access'>('directory');
+	const [dossierTab, setDossierTab] = useState<DossierTab>('overview');
+	const [copied, setCopied] = useState('');
 
-	// Access management (SUPER)
 	const [companies, setCompanies] = useState<any[]>([]);
 	const [portalUsers, setPortalUsers] = useState<any[]>([]);
 	const [companyName, setCompanyName] = useState('');
@@ -99,6 +111,15 @@ export function EmployeeVerificationApp() {
 		return { Authorization: `Bearer ${session.token}` };
 	}, [session?.token]);
 
+	const wings = useMemo(() => {
+		const set = new Set(employees.map((e) => e.wingName).filter(Boolean));
+		return Array.from(set).sort();
+	}, [employees]);
+
+	const filteredEmployees = useMemo(() => {
+		return employees.filter((e) => (wingFilter === 'all' ? true : e.wingName === wingFilter));
+	}, [employees, wingFilter]);
+
 	const logout = () => {
 		saveSession(null);
 		setSession(null);
@@ -112,6 +133,20 @@ export function EmployeeVerificationApp() {
 		saveSession(next);
 		setSession(next);
 		setError('');
+	};
+
+	const flashCopy = (label: string) => {
+		setCopied(label);
+		window.setTimeout(() => setCopied(''), 1600);
+	};
+
+	const copyText = async (text: string, label: string) => {
+		try {
+			await navigator.clipboard.writeText(text);
+			flashCopy(label);
+		} catch {
+			/* ignore */
+		}
 	};
 
 	const loginEmail = async (e: React.FormEvent) => {
@@ -173,6 +208,7 @@ export function EmployeeVerificationApp() {
 			const data = await res.json().catch(() => ({}));
 			if (!res.ok) throw new Error(data?.error || 'Failed to load employees');
 			setEmployees(Array.isArray(data.employees) ? data.employees : []);
+			setError('');
 		} catch (err: any) {
 			setError(String(err?.message || err));
 		}
@@ -183,6 +219,7 @@ export function EmployeeVerificationApp() {
 			if (!session?.token) return;
 			setDossierLoading(true);
 			setSelectedId(id);
+			setDossierTab('overview');
 			try {
 				const res = await fetch(`/api/verification/employees/${encodeURIComponent(id)}`, {
 					headers: { ...authHeaders },
@@ -191,6 +228,7 @@ export function EmployeeVerificationApp() {
 				const data = await res.json().catch(() => ({}));
 				if (!res.ok) throw new Error(data?.error || 'Failed to load dossier');
 				setDossier(data);
+				setError('');
 			} catch (err: any) {
 				setError(String(err?.message || err));
 				setDossier(null);
@@ -226,99 +264,147 @@ export function EmployeeVerificationApp() {
 		if (session?.user.role === 'SUPER' && tab === 'access') void loadAccess();
 	}, [session, tab, loadAccess]);
 
+	const printReport = () => {
+		window.print();
+	};
+
+	const copySummary = async () => {
+		if (!dossier?.employee) return;
+		const e = dossier.employee;
+		const i = dossier.insights;
+		const s = dossier.summary;
+		const text = [
+			`EMPLOYEE VERIFICATION — wrkspace`,
+			`Name: ${e.name}`,
+			`ID: ${e.id}`,
+			`Role: ${e.role} · Wing: ${e.wingName}`,
+			`Email: ${e.email} · Phone: ${e.phone}`,
+			`Tenure: ${e.tenureDays} days`,
+			`Overall score: ${i?.scores?.overall ?? '—'}`,
+			`Attendance days: ${s?.attendanceDays} · Tasks ${s?.tasksCompleted}/${s?.tasksTotal} · Submissions ${s?.submissionsTotal} · Leaves ${s?.leavesTotal}`,
+			`Strengths: ${(i?.strengths || []).join('; ')}`,
+			`Weaknesses: ${(i?.weaknesses || []).join('; ')}`,
+			`Flags: ${(i?.flags || []).join('; ') || 'none'}`,
+			`Generated: ${new Date().toLocaleString()}`,
+		].join('\n');
+		await copyText(text, 'Summary copied');
+	};
+
 	if (!ready) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-[#070B14] text-zinc-400">
-				Loading…
+			<div className="ev-root ev-loading">
+				<div className="ev-spinner" />
+				<p>Loading verification portal…</p>
 			</div>
 		);
 	}
 
 	if (!session) {
 		return (
-			<main className="min-h-screen bg-[#070B14] text-white">
-				<div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-6 py-12">
-					<p className="text-xs font-bold uppercase tracking-[0.2em] text-[#6B8CFF]">wrkspace</p>
-					<h1 className="mt-3 text-3xl font-semibold tracking-tight">Employee verification</h1>
-					<p className="mt-2 text-sm leading-relaxed text-zinc-400">
-						Review full employee history (attendance, tasks, submissions, strengths / risks). Not the
-						employee app.
-					</p>
+			<main className="ev-root ev-login">
+				<div className="ev-login-grid">
+					<aside className="ev-login-brand">
+						<div className="ev-login-brand-inner">
+							<img
+								src="/branding/wrkspace-logo-on-dark.png"
+								alt="wrkspace"
+								className="ev-brand-logo"
+								onError={(e) => {
+									(e.target as HTMLImageElement).style.display = 'none';
+								}}
+							/>
+							<p className="ev-kicker">Employee verification</p>
+							<h1>Company-grade employee history</h1>
+							<p className="ev-lead">
+								Review attendance, tasks, submissions, leaves, and risk signals before you decide.
+								This is not the employee app.
+							</p>
+							<ul className="ev-brand-points">
+								<li>Full workplace dossier per employee</li>
+								<li>Strengths, weaknesses &amp; priority notes</li>
+								<li>Share read access with partner companies</li>
+							</ul>
+						</div>
+					</aside>
 
-					<LoginHintsBox onPickEmail={setEmail} />
+					<section className="ev-login-panel">
+						<div className="ev-login-card">
+							<p className="ev-kicker">Sign in</p>
+							<h2>Verification access</h2>
+							<p className="ev-sub">
+								Use your <strong>Admin panel</strong> email &amp; password — or a company login
+								shared by wrkspace.
+							</p>
 
-					{error ? (
-						<p className="mt-4 rounded-md border border-rose-800 bg-rose-950/40 px-3 py-2 text-xs text-rose-300">
-							{error}
-							{error.toLowerCase().includes('invalid') ? (
-								<span className="mt-1 block text-rose-200/80">
-									Use an <strong>Admin panel</strong> email/password (or a company login from
-									Company access) — not an employee login.
-								</span>
+							<LoginHintsBox
+								onPickEmail={(em) => {
+									setEmail(em);
+									setError('');
+								}}
+							/>
+
+							{error ? (
+								<div className="ev-alert ev-alert-error" role="alert">
+									<strong>{error}</strong>
+									{error.toLowerCase().includes('invalid') ? (
+										<span>
+											Employee portal logins do not work here. Use an admin account from the list
+											above.
+										</span>
+									) : null}
+								</div>
 							) : null}
-						</p>
-					) : null}
 
-					<form onSubmit={loginEmail} className="mt-6 space-y-3">
-						<label className="block space-y-1">
-							<span className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
-								Admin / company email
-							</span>
-							<input
-								type="email"
-								required
-								autoComplete="username"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								placeholder="e.g. your admin Gmail"
-								className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm outline-none focus:border-[#0047FF]"
+							<form onSubmit={loginEmail} className="ev-form">
+								<label className="ev-field">
+									<span>Admin / company email</span>
+									<input
+										type="email"
+										required
+										autoComplete="username"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										placeholder="Tap an email above, or type it"
+									/>
+								</label>
+								<label className="ev-field">
+									<span>Password (same as Admin panel)</span>
+									<div className="ev-pass-row">
+										<input
+											type={showPass ? 'text' : 'password'}
+											required
+											autoComplete="current-password"
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+											placeholder="Your /admin password"
+										/>
+										<button type="button" className="ev-ghost-btn" onClick={() => setShowPass((v) => !v)}>
+											{showPass ? 'Hide' : 'Show'}
+										</button>
+									</div>
+								</label>
+								<button type="submit" disabled={busy} className="ev-btn ev-btn-primary">
+									{busy ? 'Signing in…' : 'Sign in with email'}
+								</button>
+							</form>
+
+							<div className="ev-or">
+								<span>or</span>
+							</div>
+
+							<GoogleSignInButton
+								onClick={loginGoogle}
+								disabled={busy}
+								loading={busy}
+								label="Continue with Google (admin Gmail)"
 							/>
-						</label>
-						<label className="block space-y-1">
-							<span className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
-								Password (same as Admin panel)
-							</span>
-							<input
-								type="password"
-								required
-								autoComplete="current-password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								placeholder="Admin panel password"
-								className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm outline-none focus:border-[#0047FF]"
-							/>
-						</label>
-						<button
-							type="submit"
-							disabled={busy}
-							className="w-full rounded-md bg-[#0047FF] py-2.5 text-sm font-semibold hover:bg-[#0036C7] disabled:opacity-50"
-						>
-							{busy ? 'Signing in…' : 'Sign in with email'}
-						</button>
-					</form>
 
-					<div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-widest text-zinc-600">
-						<div className="h-px flex-1 bg-zinc-800" />
-						or
-						<div className="h-px flex-1 bg-zinc-800" />
-					</div>
-
-					<GoogleSignInButton
-						onClick={loginGoogle}
-						disabled={busy}
-						loading={busy}
-						label="Continue with Google (admin Gmail)"
-					/>
-
-					<p className="mt-8 text-center text-[11px] text-zinc-600">
-						<a href="/admin" className="font-semibold text-[#6B8CFF] underline hover:text-white">
-							Open Admin panel
-						</a>
-						{' · '}
-						<a href="/" className="underline hover:text-zinc-400">
-							Employee portal
-						</a>
-					</p>
+							<nav className="ev-login-links">
+								<a href="/admin">Admin panel</a>
+								<a href="/">Employee portal</a>
+							</nav>
+						</div>
+					</section>
 				</div>
 			</main>
 		);
@@ -326,53 +412,45 @@ export function EmployeeVerificationApp() {
 
 	const insights = dossier?.insights;
 	const emp = dossier?.employee;
+	const overall = Number(insights?.scores?.overall ?? 0);
+	const verdict = verdictFromScore(overall);
 
 	return (
-		<main className="min-h-screen bg-[#070B14] text-white">
-			<header className="border-b border-zinc-900 bg-[#0B1220]">
-				<div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-					<div>
-						<p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6B8CFF]">
-							Employee verification
-						</p>
-						<p className="text-sm text-zinc-300">
-							{session.user.email}
-							{session.user.companyName ? ` · ${session.user.companyName}` : ''}
-							<span className="ml-2 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-bold text-zinc-300">
-								{session.user.role}
-							</span>
-						</p>
+		<main className="ev-root ev-app">
+			<header className="ev-topbar print:hidden">
+				<div className="ev-topbar-inner">
+					<div className="ev-topbar-brand">
+						<img src="/branding/wrkspace-logo-on-dark.png" alt="" className="ev-top-logo" />
+						<div>
+							<p className="ev-kicker">Employee verification</p>
+							<p className="ev-top-user">
+								{session.user.email}
+								{session.user.companyName ? ` · ${session.user.companyName}` : ''}
+								<span className="ev-pill">{session.user.role}</span>
+							</p>
+						</div>
 					</div>
-					<div className="flex flex-wrap gap-2">
+					<div className="ev-topbar-actions">
+						{copied ? <span className="ev-toast">{copied}</span> : null}
 						<button
 							type="button"
+							className={`ev-nav-btn ${tab === 'directory' ? 'is-active' : ''}`}
 							onClick={() => {
 								setTab('directory');
-								setSelectedId(null);
-								setDossier(null);
 							}}
-							className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
-								tab === 'directory' ? 'bg-[#0047FF]' : 'bg-zinc-900 text-zinc-300'
-							}`}
 						>
 							Directory
 						</button>
 						{session.user.role === 'SUPER' ? (
 							<button
 								type="button"
+								className={`ev-nav-btn ${tab === 'access' ? 'is-active' : ''}`}
 								onClick={() => setTab('access')}
-								className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
-									tab === 'access' ? 'bg-[#0047FF]' : 'bg-zinc-900 text-zinc-300'
-								}`}
 							>
 								Company access
 							</button>
 						) : null}
-						<button
-							type="button"
-							onClick={logout}
-							className="rounded-md border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300"
-						>
+						<button type="button" className="ev-nav-btn ev-nav-muted" onClick={logout}>
 							Sign out
 						</button>
 					</div>
@@ -380,271 +458,439 @@ export function EmployeeVerificationApp() {
 			</header>
 
 			{error ? (
-				<div className="mx-auto max-w-7xl px-4 pt-3">
-					<p className="rounded-md border border-rose-800 bg-rose-950/40 px-3 py-2 text-xs text-rose-300">
-						{error}
-					</p>
+				<div className="ev-shell">
+					<div className="ev-alert ev-alert-error print:hidden">{error}</div>
 				</div>
 			) : null}
 
 			{tab === 'access' && session.user.role === 'SUPER' ? (
-				<div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-2">
-					<section className="space-y-4 rounded-xl border border-zinc-800 bg-[#0B1220] p-5">
-						<h2 className="text-lg font-semibold">Add verification company</h2>
-						<p className="text-xs text-zinc-400">
-							Create a company, then create an email/password login to share with their HR for this
-							portal only.
+				<div className="ev-shell ev-access-grid print:hidden">
+					<section className="ev-card">
+						<h2>Add verification company</h2>
+						<p className="ev-muted">
+							Create a company, then create an email/password to share with their HR for this portal
+							only.
 						</p>
-						<input
-							value={companyName}
-							onChange={(e) => setCompanyName(e.target.value)}
-							placeholder="Company name"
-							className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm"
-						/>
-						<input
-							value={companyEmail}
-							onChange={(e) => setCompanyEmail(e.target.value)}
-							placeholder="Contact email (optional)"
-							className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm"
-						/>
-						<button
-							type="button"
-							onClick={async () => {
-								setAccessMsg('');
-								const res = await fetch('/api/verification/companies', {
-									method: 'POST',
-									headers: { 'Content-Type': 'application/json', ...authHeaders },
-									body: JSON.stringify({
-										action: 'create_company',
-										name: companyName,
-										contactEmail: companyEmail,
-									}),
-								});
-								const data = await res.json().catch(() => ({}));
-								if (!res.ok) setAccessMsg(data?.error || 'Failed');
-								else {
-									setAccessMsg(`Company created: ${data.company?.name}`);
-									setCompanyName('');
-									setCompanyEmail('');
-									void loadAccess();
-								}
-							}}
-							className="rounded-md bg-[#0047FF] px-4 py-2 text-sm font-semibold"
-						>
-							Create company
-						</button>
+						<div className="ev-form">
+							<label className="ev-field">
+								<span>Company name</span>
+								<input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Pvt Ltd" />
+							</label>
+							<label className="ev-field">
+								<span>Contact email (optional)</span>
+								<input value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} placeholder="hr@company.com" />
+							</label>
+							<button
+								type="button"
+								className="ev-btn ev-btn-primary"
+								onClick={async () => {
+									setAccessMsg('');
+									const res = await fetch('/api/verification/companies', {
+										method: 'POST',
+										headers: { 'Content-Type': 'application/json', ...authHeaders },
+										body: JSON.stringify({
+											action: 'create_company',
+											name: companyName,
+											contactEmail: companyEmail,
+										}),
+									});
+									const data = await res.json().catch(() => ({}));
+									if (!res.ok) setAccessMsg(data?.error || 'Failed');
+									else {
+										setAccessMsg(`Company created: ${data.company?.name}`);
+										setCompanyName('');
+										setCompanyEmail('');
+										void loadAccess();
+									}
+								}}
+							>
+								Create company
+							</button>
+						</div>
 
-						<hr className="border-zinc-800" />
+						<hr className="ev-hr" />
 
-						<h3 className="font-semibold">Create login to share</h3>
-						<input
-							value={newUserEmail}
-							onChange={(e) => setNewUserEmail(e.target.value)}
-							placeholder="Login email"
-							className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm"
-						/>
-						<input
-							value={newUserPassword}
-							onChange={(e) => setNewUserPassword(e.target.value)}
-							placeholder="Temporary password"
-							className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm"
-						/>
-						<select
-							value={newUserCompanyId}
-							onChange={(e) => setNewUserCompanyId(e.target.value)}
-							className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm"
-						>
-							<option value="">Select company…</option>
-							{companies.map((c) => (
-								<option key={c.id} value={c.id}>
-									{c.name}
-								</option>
-							))}
-						</select>
-						<button
-							type="button"
-							onClick={async () => {
-								setAccessMsg('');
-								const res = await fetch('/api/verification/companies', {
-									method: 'POST',
-									headers: { 'Content-Type': 'application/json', ...authHeaders },
-									body: JSON.stringify({
-										action: 'create_user',
-										email: newUserEmail,
-										password: newUserPassword,
-										companyId: newUserCompanyId,
-										role: 'COMPANY',
-									}),
-								});
-								const data = await res.json().catch(() => ({}));
-								if (!res.ok) setAccessMsg(data?.error || 'Failed');
-								else {
-									setAccessMsg(data.shareHint || 'User created');
-									setNewUserEmail('');
-									setNewUserPassword('');
-									void loadAccess();
-								}
-							}}
-							className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold"
-						>
-							Create &amp; show share credentials
-						</button>
-						{accessMsg ? <p className="text-xs text-amber-200">{accessMsg}</p> : null}
+						<h3>Create login to share</h3>
+						<div className="ev-form">
+							<label className="ev-field">
+								<span>Login email</span>
+								<input value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} placeholder="partner@company.com" />
+							</label>
+							<label className="ev-field">
+								<span>Temporary password</span>
+								<input value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} placeholder="Set a strong temporary password" />
+							</label>
+							<label className="ev-field">
+								<span>Company</span>
+								<select value={newUserCompanyId} onChange={(e) => setNewUserCompanyId(e.target.value)}>
+									<option value="">Select company…</option>
+									{companies.map((c) => (
+										<option key={c.id} value={c.id}>
+											{c.name}
+										</option>
+									))}
+								</select>
+							</label>
+							<button
+								type="button"
+								className="ev-btn ev-btn-success"
+								onClick={async () => {
+									setAccessMsg('');
+									const res = await fetch('/api/verification/companies', {
+										method: 'POST',
+										headers: { 'Content-Type': 'application/json', ...authHeaders },
+										body: JSON.stringify({
+											action: 'create_user',
+											email: newUserEmail,
+											password: newUserPassword,
+											companyId: newUserCompanyId,
+											role: 'COMPANY',
+										}),
+									});
+									const data = await res.json().catch(() => ({}));
+									if (!res.ok) setAccessMsg(data?.error || 'Failed');
+									else {
+										setAccessMsg(data.shareHint || 'User created');
+										setNewUserEmail('');
+										setNewUserPassword('');
+										void loadAccess();
+									}
+								}}
+							>
+								Create &amp; show share credentials
+							</button>
+						</div>
+						{accessMsg ? <p className="ev-access-msg">{accessMsg}</p> : null}
 					</section>
 
-					<section className="rounded-xl border border-zinc-800 bg-[#0B1220] p-5">
-						<h2 className="text-lg font-semibold">Existing access</h2>
-						<ul className="mt-4 max-h-[520px] space-y-2 overflow-y-auto text-sm">
+					<section className="ev-card">
+						<div className="ev-card-head">
+							<h2>Existing access</h2>
+							<span className="ev-count">{portalUsers.length}</span>
+						</div>
+						<ul className="ev-access-list">
 							{portalUsers.map((u) => (
-								<li key={u.id} className="rounded-lg border border-zinc-800 px-3 py-2">
-									<p className="font-semibold">{u.email}</p>
-									<p className="text-[11px] text-zinc-400">
-										{u.role} · {u.companyName || '—'} · {u.active ? 'active' : 'disabled'}
-									</p>
-									<p className="mt-1 font-mono text-[10px] text-zinc-500">pass: {u.password}</p>
+								<li key={u.id} className="ev-access-item">
+									<div>
+										<p className="ev-access-email">{u.email}</p>
+										<p className="ev-muted">
+											{u.role} · {u.companyName || '—'} · {u.active ? 'active' : 'disabled'}
+										</p>
+										<p className="ev-mono">pass: {u.password}</p>
+									</div>
+									<button
+										type="button"
+										className="ev-ghost-btn"
+										onClick={() =>
+											void copyText(`${u.email} / ${u.password}`, 'Credentials copied')
+										}
+									>
+										Copy
+									</button>
 								</li>
 							))}
 							{portalUsers.length === 0 ? (
-								<li className="text-xs text-zinc-500">No portal users yet.</li>
+								<li className="ev-muted">No portal users yet — create one on the left.</li>
 							) : null}
 						</ul>
 					</section>
 				</div>
 			) : (
-				<div className="mx-auto grid max-w-7xl gap-4 px-4 py-6 lg:grid-cols-[340px_1fr]">
-					<aside className="rounded-xl border border-zinc-800 bg-[#0B1220]">
-						<div className="border-b border-zinc-800 p-3">
+				<div className="ev-shell ev-workspace">
+					<aside className="ev-sidebar print:hidden">
+						<div className="ev-sidebar-tools">
+							<div className="ev-stats-row">
+								<div className="ev-stat">
+									<span>People</span>
+									<strong>{filteredEmployees.length}</strong>
+								</div>
+								<div className="ev-stat">
+									<span>Wings</span>
+									<strong>{wings.length}</strong>
+								</div>
+							</div>
 							<input
 								value={q}
 								onChange={(e) => setQ(e.target.value)}
 								onKeyDown={(e) => {
 									if (e.key === 'Enter') void loadEmployees();
 								}}
-								placeholder="Search name, phone, wing…"
-								className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm"
+								placeholder="Search name, phone, wing, ID…"
+								className="ev-input"
 							/>
-							<button
-								type="button"
-								onClick={() => void loadEmployees()}
-								className="mt-2 w-full rounded-md border border-zinc-700 py-1.5 text-xs text-zinc-300"
+							<select
+								value={wingFilter}
+								onChange={(e) => setWingFilter(e.target.value)}
+								className="ev-input"
 							>
-								Search / refresh ({employees.length})
+								<option value="all">All wings</option>
+								{wings.map((w) => (
+									<option key={w} value={w}>
+										{w}
+									</option>
+								))}
+							</select>
+							<button type="button" className="ev-btn ev-btn-ghost" onClick={() => void loadEmployees()}>
+								Refresh directory
 							</button>
 						</div>
-						<ul className="max-h-[70vh] overflow-y-auto divide-y divide-zinc-900">
-							{employees.map((e) => (
+						<ul className="ev-emp-list">
+							{filteredEmployees.map((e) => (
 								<li key={e.id}>
 									<button
 										type="button"
 										onClick={() => void loadDossier(e.id)}
-										className={`w-full px-3 py-3 text-left hover:bg-zinc-900/80 ${
-											selectedId === e.id ? 'bg-zinc-900' : ''
-										}`}
+										className={`ev-emp-row ${selectedId === e.id ? 'is-active' : ''}`}
 									>
-										<p className="truncate text-sm font-semibold">{e.name}</p>
-										<p className="truncate text-[11px] text-zinc-400">
-											{e.role} · {e.wingName}
-										</p>
-										<p className="truncate text-[11px] text-zinc-500">{e.phone}</p>
+										{e.photoUrl ? (
+											// eslint-disable-next-line @next/next/no-img-element
+											<img src={e.photoUrl} alt="" className="ev-avatar" />
+										) : (
+											<span className="ev-avatar ev-avatar-fallback">{initials(e.name)}</span>
+										)}
+										<span className="ev-emp-meta">
+											<span className="ev-emp-name">{e.name}</span>
+											<span className="ev-emp-sub">
+												{e.role} · {e.wingName}
+											</span>
+											<span className="ev-emp-sub">{e.phone}</span>
+										</span>
 									</button>
 								</li>
 							))}
+							{filteredEmployees.length === 0 ? (
+								<li className="ev-empty-side">No employees match.</li>
+							) : null}
 						</ul>
 					</aside>
 
-					<section className="min-h-[70vh] rounded-xl border border-zinc-800 bg-[#0B1220] p-5">
+					<section className="ev-main">
 						{dossierLoading ? (
-							<p className="text-sm text-zinc-400">Loading complete history…</p>
+							<div className="ev-empty-main">
+								<div className="ev-spinner" />
+								<p>Loading complete history…</p>
+							</div>
 						) : !dossier ? (
-							<div className="flex h-full min-h-[40vh] flex-col items-center justify-center text-center">
-								<p className="text-lg font-semibold">Select an employee</p>
-								<p className="mt-2 max-w-md text-sm text-zinc-400">
+							<div className="ev-empty-main">
+								<div className="ev-empty-art" aria-hidden />
+								<h2>Select an employee</h2>
+								<p>
 									Open a profile to review attendance, tasks, submissions, leaves, events, and
 									company-facing strengths / risks.
 								</p>
 							</div>
 						) : (
-							<div className="space-y-6">
-								<div className="flex flex-wrap items-start justify-between gap-4">
-									<div>
-										<h2 className="text-2xl font-semibold tracking-tight">{emp?.name}</h2>
-										<p className="mt-1 text-sm text-zinc-400">
-											{emp?.role} · {emp?.wingName} · Lead: {emp?.wingLeadName}
-										</p>
-										<p className="mt-1 text-xs text-zinc-500">
-											{emp?.email} · {emp?.phone} · ID {emp?.id} · tenure {emp?.tenureDays}d
-										</p>
-									</div>
-									<div className="rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-center">
-										<p className="text-[10px] uppercase tracking-wider text-zinc-500">Overall</p>
-										<p className="text-3xl font-bold text-white">{insights?.scores?.overall ?? '—'}</p>
-									</div>
-								</div>
-
-								<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-									{[
-										['Attendance days', dossier.summary?.attendanceDays],
-										['Tasks done / total', `${dossier.summary?.tasksCompleted}/${dossier.summary?.tasksTotal}`],
-										['Submissions', dossier.summary?.submissionsTotal],
-										['Leaves', dossier.summary?.leavesTotal],
-									].map(([label, val]) => (
-										<div key={String(label)} className="rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-3">
-											<p className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</p>
-											<p className="mt-1 text-lg font-semibold">{val}</p>
+							<div className="ev-dossier" id="ev-print-area">
+								<div className="ev-dossier-hero">
+									<div className="ev-dossier-identity">
+										{emp?.photoUrl ? (
+											// eslint-disable-next-line @next/next/no-img-element
+											<img src={emp.photoUrl} alt="" className="ev-avatar-lg" />
+										) : (
+											<span className="ev-avatar-lg ev-avatar-fallback">
+												{initials(emp?.name || '?')}
+											</span>
+										)}
+										<div>
+											<p className="ev-kicker print:hidden">Employee dossier</p>
+											<h1>{emp?.name}</h1>
+											<p className="ev-dossier-line">
+												{emp?.role} · {emp?.wingName} · Lead: {emp?.wingLeadName}
+											</p>
+											<p className="ev-dossier-line ev-mono">
+												{emp?.email} · {emp?.phone} · ID {emp?.id} · {emp?.tenureDays}d tenure
+											</p>
+											<div className="ev-inline-actions print:hidden">
+												<a className="ev-chip" href={`mailto:${emp?.email}`}>
+													Email
+												</a>
+												<a className="ev-chip" href={`tel:${emp?.phone}`}>
+													Call
+												</a>
+												<button
+													type="button"
+													className="ev-chip"
+													onClick={() => void copyText(emp?.email || '', 'Email copied')}
+												>
+													Copy email
+												</button>
+												<button
+													type="button"
+													className="ev-chip"
+													onClick={() => void copyText(emp?.phone || '', 'Phone copied')}
+												>
+													Copy phone
+												</button>
+											</div>
 										</div>
-									))}
+									</div>
+									<div className={`ev-score-card tone-${scoreTone(overall)}`}>
+										<p>Overall</p>
+										<strong>{insights?.scores?.overall ?? '—'}</strong>
+										<span>{verdict.label}</span>
+										<em>{verdict.hint}</em>
+									</div>
 								</div>
 
-								<div className="grid gap-4 lg:grid-cols-3">
-									<div className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-950 p-4 lg:col-span-1">
-										<p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Scores</p>
-										<ScoreBar label="Attendance reliability" value={insights?.scores?.attendanceReliability ?? 0} />
-										<ScoreBar label="Task delivery" value={insights?.scores?.taskDelivery ?? 0} />
-										<ScoreBar label="Submission discipline" value={insights?.scores?.submissionDiscipline ?? 0} />
+								<div className="ev-toolbar print:hidden">
+									<div className="ev-tabs">
+										{(
+											[
+												['overview', 'Overview'],
+												['attendance', 'Attendance'],
+												['tasks', 'Tasks'],
+												['submissions', 'Submissions'],
+												['leaves', 'Leaves'],
+												['events', 'Events'],
+											] as const
+										).map(([id, label]) => (
+											<button
+												key={id}
+												type="button"
+												className={`ev-tab ${dossierTab === id ? 'is-active' : ''}`}
+												onClick={() => setDossierTab(id)}
+											>
+												{label}
+											</button>
+										))}
 									</div>
-									<div className="space-y-3 rounded-lg border border-emerald-900/50 bg-emerald-950/20 p-4">
-										<p className="text-xs font-bold uppercase tracking-wider text-emerald-300">Strengths</p>
-										<ul className="list-disc space-y-1 pl-4 text-sm text-emerald-100/90">
-											{(insights?.strengths || []).map((s: string) => (
-												<li key={s}>{s}</li>
-											))}
-										</ul>
+									<div className="ev-toolbar-right">
+										<button type="button" className="ev-btn ev-btn-ghost" onClick={() => void copySummary()}>
+											Copy summary
+										</button>
+										<button type="button" className="ev-btn ev-btn-primary" onClick={printReport}>
+											Print / PDF
+										</button>
 									</div>
-									<div className="space-y-3 rounded-lg border border-amber-900/50 bg-amber-950/20 p-4">
-										<p className="text-xs font-bold uppercase tracking-wider text-amber-300">Weaknesses / watch</p>
-										<ul className="list-disc space-y-1 pl-4 text-sm text-amber-100/90">
-											{(insights?.weaknesses || []).map((s: string) => (
-												<li key={s}>{s}</li>
+								</div>
+
+								{dossierTab === 'overview' ? (
+									<div className="ev-overview">
+										<div className="ev-kpi-grid">
+											{[
+												['Attendance days', dossier.summary?.attendanceDays],
+												['Tasks done', `${dossier.summary?.tasksCompleted}/${dossier.summary?.tasksTotal}`],
+												['Submissions', dossier.summary?.submissionsTotal],
+												['Leaves', dossier.summary?.leavesTotal],
+												['Events', dossier.summary?.eventsAsRep],
+												['SOS count', dossier.summary?.sosCount],
+											].map(([label, val]) => (
+												<div key={String(label)} className="ev-kpi">
+													<span>{label}</span>
+													<strong>{val}</strong>
+												</div>
 											))}
-										</ul>
-										{(insights?.flags || []).length ? (
-											<ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-rose-200">
-												{insights.flags.map((s: string) => (
-													<li key={s}>{s}</li>
-												))}
-											</ul>
+										</div>
+
+										<div className="ev-insight-grid">
+											<div className="ev-card ev-card-tight">
+												<h3>Performance scores</h3>
+												<ScoreBar label="Attendance reliability" value={insights?.scores?.attendanceReliability ?? 0} />
+												<ScoreBar label="Task delivery" value={insights?.scores?.taskDelivery ?? 0} />
+												<ScoreBar label="Submission discipline" value={insights?.scores?.submissionDiscipline ?? 0} />
+											</div>
+											<div className="ev-card ev-card-tight ev-card-good">
+												<h3>Strengths</h3>
+												<ul>
+													{(insights?.strengths || []).map((s: string) => (
+														<li key={s}>{s}</li>
+													))}
+												</ul>
+											</div>
+											<div className="ev-card ev-card-tight ev-card-warn">
+												<h3>Weaknesses / watch</h3>
+												<ul>
+													{(insights?.weaknesses || []).map((s: string) => (
+														<li key={s}>{s}</li>
+													))}
+												</ul>
+												{(insights?.flags || []).length ? (
+													<ul className="ev-flags">
+														{insights.flags.map((s: string) => (
+															<li key={s}>{s}</li>
+														))}
+													</ul>
+												) : null}
+											</div>
+										</div>
+
+										{(insights?.priorityNotes || []).length ? (
+											<div className="ev-card">
+												<h3>Priority notes (company view)</h3>
+												<ul className="ev-notes">
+													{insights.priorityNotes.map((s: string) => (
+														<li key={s}>{s}</li>
+													))}
+												</ul>
+											</div>
 										) : null}
-									</div>
-								</div>
 
-								{(insights?.priorityNotes || []).length ? (
-									<div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
-										<p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-											Priority notes (company view)
-										</p>
-										<ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-zinc-300">
-											{insights.priorityNotes.map((s: string) => (
-												<li key={s}>{s}</li>
-											))}
-										</ul>
+										<div className="ev-card print:hidden">
+											<h3>Quick history peek</h3>
+											<p className="ev-muted">Open tabs above for full tables.</p>
+											<ul className="ev-peek">
+												<li>Latest attendance: {peek(dossier.attendance, (a) => `${a.date} · ${a.checkIn || '—'} → ${a.checkOut || '—'}`)}</li>
+												<li>Latest task: {peek(dossier.tasks, (t) => `${t.title} (${t.status})`)}</li>
+												<li>Latest submission: {peek(dossier.submissions, (s) => `${s.title} (${s.status})`)}</li>
+											</ul>
+										</div>
 									</div>
 								) : null}
 
-								<HistoryBlock title="Attendance (recent)" rows={dossier.attendance} render={(a: any) => `${a.date} · in ${a.checkIn || '—'} · out ${a.checkOut || '—'} · ${a.status || ''}`} />
-								<HistoryBlock title="Tasks" rows={dossier.tasks} render={(t: any) => `${t.title} · ${t.status} · due ${String(t.deadline || '').slice(0, 10)}`} />
-								<HistoryBlock title="Work submissions" rows={dossier.submissions} render={(s: any) => `${s.title} · ${s.status} · ${s.hoursSpent ?? 0}h`} />
-								<HistoryBlock title="Leaves" rows={dossier.leaves} render={(l: any) => `${l.type} · ${l.status} · ${String(l.startDate || '').slice(0, 10)} → ${String(l.endDate || '').slice(0, 10)}`} />
-								<HistoryBlock title="Events (as representative)" rows={dossier.events} render={(ev: any) => `${ev.title} · ${String(ev.startDate || '').slice(0, 10)} · ${ev.venueAddress || ''}`} />
+								{dossierTab === 'attendance' ? (
+									<HistoryTable
+										title="Attendance"
+										rows={dossier.attendance}
+										columns={['Date', 'Check-in', 'Check-out', 'Status']}
+										cell={(a: any) => [a.date, a.checkIn || '—', a.checkOut || '—', a.status || '—']}
+									/>
+								) : null}
+								{dossierTab === 'tasks' ? (
+									<HistoryTable
+										title="Tasks"
+										rows={dossier.tasks}
+										columns={['Title', 'Status', 'Mode', 'Deadline']}
+										cell={(t: any) => [t.title, t.status, t.mode || '—', String(t.deadline || '').slice(0, 10) || '—']}
+									/>
+								) : null}
+								{dossierTab === 'submissions' ? (
+									<HistoryTable
+										title="Work submissions"
+										rows={dossier.submissions}
+										columns={['Title', 'Status', 'Hours', 'Submitted']}
+										cell={(s: any) => [
+											s.title,
+											s.status,
+											String(s.hoursSpent ?? 0),
+											String(s.submittedAt || '').slice(0, 10) || '—',
+										]}
+									/>
+								) : null}
+								{dossierTab === 'leaves' ? (
+									<HistoryTable
+										title="Leaves"
+										rows={dossier.leaves}
+										columns={['Type', 'Status', 'From', 'To']}
+										cell={(l: any) => [
+											l.type,
+											l.status,
+											String(l.startDate || '').slice(0, 10),
+											String(l.endDate || '').slice(0, 10),
+										]}
+									/>
+								) : null}
+								{dossierTab === 'events' ? (
+									<HistoryTable
+										title="Events (as representative)"
+										rows={dossier.events}
+										columns={['Title', 'Start', 'Venue']}
+										cell={(ev: any) => [
+											ev.title,
+											String(ev.startDate || '').slice(0, 10),
+											ev.venueAddress || '—',
+										]}
+									/>
+								) : null}
 							</div>
 						)}
 					</section>
@@ -654,31 +900,67 @@ export function EmployeeVerificationApp() {
 	);
 }
 
-function HistoryBlock({
+function peek(rows: any[], render: (r: any) => string) {
+	if (!Array.isArray(rows) || !rows.length) return '—';
+	return render(rows[0]);
+}
+
+function ScoreBar({ label, value }: { label: string; value: number }) {
+	const tone = scoreTone(value);
+	return (
+		<div className="ev-scorebar">
+			<div className="ev-scorebar-label">
+				<span>{label}</span>
+				<span>{value}</span>
+			</div>
+			<div className="ev-scorebar-track">
+				<div className={`ev-scorebar-fill tone-${tone}`} style={{ width: `${Math.max(4, value)}%` }} />
+			</div>
+		</div>
+	);
+}
+
+function HistoryTable({
 	title,
 	rows,
-	render,
+	columns,
+	cell,
 }: {
 	title: string;
 	rows: any[];
-	render: (row: any) => string;
+	columns: string[];
+	cell: (row: any) => (string | number)[];
 }) {
 	const list = Array.isArray(rows) ? rows : [];
 	return (
-		<div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4">
-			<p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-				{title} ({list.length})
-			</p>
+		<div className="ev-card ev-table-card">
+			<div className="ev-card-head">
+				<h3>{title}</h3>
+				<span className="ev-count">{list.length}</span>
+			</div>
 			{list.length === 0 ? (
-				<p className="mt-2 text-sm text-zinc-500">No records.</p>
+				<p className="ev-muted">No records.</p>
 			) : (
-				<ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-[12px] text-zinc-300">
-					{list.slice(0, 40).map((row, i) => (
-						<li key={row.id || i} className="border-b border-zinc-900/80 py-1.5 font-mono">
-							{render(row)}
-						</li>
-					))}
-				</ul>
+				<div className="ev-table-wrap">
+					<table className="ev-table">
+						<thead>
+							<tr>
+								{columns.map((c) => (
+									<th key={c}>{c}</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							{list.slice(0, 80).map((row, i) => (
+								<tr key={row.id || i}>
+									{cell(row).map((v, j) => (
+										<td key={j}>{v}</td>
+									))}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			)}
 		</div>
 	);
@@ -688,7 +970,6 @@ function LoginHintsBox({ onPickEmail }: { onPickEmail: (email: string) => void }
 	const [hints, setHints] = useState<{
 		workspaceAdmins: { email: string; org: string }[];
 		companyLogins: { email: string; role: string; company: string | null }[];
-		howTo: string[];
 	} | null>(null);
 
 	useEffect(() => {
@@ -701,81 +982,38 @@ function LoginHintsBox({ onPickEmail }: { onPickEmail: (email: string) => void }
 	}, []);
 
 	return (
-		<div className="mt-6 rounded-xl border border-[#0047FF]/40 bg-[#0B1220] p-4 text-sm">
-			<p className="text-xs font-bold uppercase tracking-wider text-[#6B8CFF]">
-				Who can log in here (credentials)
-			</p>
-			<ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-zinc-300">
-				<li>
-					<strong className="text-white">Same email + password as Admin panel</strong> (
-					<a href="/admin" className="text-[#6B8CFF] underline">
-						/admin
-					</a>
-					) — not employee portal logins.
-				</li>
-				<li>
-					<strong className="text-white">Google:</strong> only admin Gmails registered in Admin.
-				</li>
-				<li>
-					<strong className="text-white">Company logins:</strong> created later under Company access
-					(after a workspace admin signs in).
-				</li>
-			</ul>
-
+		<div className="ev-hints">
+			<p className="ev-hints-title">Allowed accounts (tap email to fill)</p>
 			{hints ? (
-				<div className="mt-3 space-y-3">
-					<div>
-						<p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-							Workspace admin emails — tap to fill
-						</p>
-						<ul className="mt-1 space-y-1">
-							{hints.workspaceAdmins.length === 0 ? (
-								<li className="font-mono text-[11px] text-zinc-500">None found</li>
-							) : (
-								hints.workspaceAdmins.map((a) => (
-									<li key={a.email}>
-										<button
-											type="button"
-											className="w-full rounded border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-left font-mono text-[12px] text-emerald-300 hover:border-[#0047FF]"
-											onClick={() => onPickEmail(a.email)}
-										>
-											{a.email}
-											<span className="ml-2 text-[10px] text-zinc-500">{a.org}</span>
-										</button>
-									</li>
-								))
-							)}
-						</ul>
-						<p className="mt-1 text-[10px] text-zinc-500">
-							Then type the same password you use on the Admin panel.
-						</p>
+				<>
+					<div className="ev-hints-group">
+						<span>Workspace admins</span>
+						{hints.workspaceAdmins.length === 0 ? (
+							<p className="ev-muted">None found</p>
+						) : (
+							hints.workspaceAdmins.map((a) => (
+								<button key={a.email} type="button" className="ev-hint-email" onClick={() => onPickEmail(a.email)}>
+									{a.email}
+									<em>{a.org}</em>
+								</button>
+							))
+						)}
 					</div>
 					{hints.companyLogins.length > 0 ? (
-						<div>
-							<p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-								Company verification logins — tap to fill
-							</p>
-							<ul className="mt-1 space-y-1">
-								{hints.companyLogins.map((u) => (
-									<li key={u.email}>
-										<button
-											type="button"
-											className="w-full rounded border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-left font-mono text-[12px] text-amber-200 hover:border-[#0047FF]"
-											onClick={() => onPickEmail(u.email)}
-										>
-											{u.email}
-											<span className="ml-2 text-[10px] text-zinc-500">
-												{u.company || u.role}
-											</span>
-										</button>
-									</li>
-								))}
-							</ul>
+						<div className="ev-hints-group">
+							<span>Company logins</span>
+							{hints.companyLogins.map((u) => (
+								<button key={u.email} type="button" className="ev-hint-email is-company" onClick={() => onPickEmail(u.email)}>
+									{u.email}
+									<em>{u.company || u.role}</em>
+								</button>
+							))}
 						</div>
 					) : null}
-				</div>
+					<p className="ev-hints-foot">Password = the one used on Admin panel (/admin).</p>
+				</>
 			) : (
-				<p className="mt-3 text-[11px] text-zinc-500">Loading allowed emails…</p>
+				<p className="ev-muted">Loading allowed emails…</p>
 			)}
 		</div>
 	);
