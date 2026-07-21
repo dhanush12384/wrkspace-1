@@ -1465,10 +1465,34 @@ export async function getMessages(channel: string, requestingUserId: string, req
       orderBy: { createdAt: 'asc' },
       include: { reactions: true },
     });
-    return { success: true, messages };
+    // Do not embed base64 photos here (payload too large). Client loads via loadEmployeeAvatar.
+    const senderIds = [...new Set(messages.map((m) => m.senderId))];
+    const withPhoto = senderIds.length
+      ? await db.employee.findMany({
+          where: { id: { in: senderIds }, photoUrl: { not: null } },
+          select: { id: true },
+        })
+      : [];
+    const hasPhotoIds = withPhoto.map((e) => e.id);
+    return { success: true, messages, hasPhotoIds };
   } catch (error: any) {
     console.error('Error fetching messages:', error);
     return { success: false, error: 'Failed to fetch messages' };
+  }
+}
+
+/** Load one employee profile photo (data URL) for chat avatars. */
+export async function loadEmployeeAvatar(employeeId: string) {
+  try {
+    const id = String(employeeId || '').trim();
+    if (!id) return { success: false, photoUrl: null as string | null };
+    const emp = await db.employee.findUnique({
+      where: { id },
+      select: { photoUrl: true },
+    });
+    return { success: true, photoUrl: emp?.photoUrl || null };
+  } catch {
+    return { success: false, photoUrl: null as string | null };
   }
 }
 
@@ -1594,9 +1618,11 @@ export async function getChatMembers() {
       select: {
         id: true,
         firstName: true,
+        middleName: true,
         lastName: true,
         email: true,
-        wingName: true
+        wingName: true,
+        photoUrl: true,
       }
     });
 
@@ -1612,13 +1638,15 @@ export async function getChatMembers() {
         id: a.id,
         name: `Admin (${a.email.split('@')[0]})`,
         email: a.email,
-        role: 'Admin'
+        role: 'Admin',
+        hasPhoto: false,
       })),
       ...employees.map(e => ({
         id: e.id,
-        name: `${e.firstName} ${e.lastName}`,
+        name: [e.firstName, e.middleName, e.lastName].filter(Boolean).join(' '),
         email: e.email,
-        role: e.wingName || 'Employee'
+        role: e.wingName || 'Employee',
+        hasPhoto: Boolean(e.photoUrl && String(e.photoUrl).trim()),
       }))
     ];
 

@@ -1218,7 +1218,8 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate }: Empl
 							id: employee.id,
 							name: `${employee.firstName} ${employee.lastName}`,
 							email: employee.email,
-							role: 'Employee'
+							role: 'Employee',
+							photoUrl: (employee as { photoUrl?: string | null }).photoUrl ?? null,
 						}}
 					/>
 				)}
