@@ -237,37 +237,57 @@ export function EmployeeVerificationApp() {
 	if (!session) {
 		return (
 			<main className="min-h-screen bg-[#070B14] text-white">
-				<div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12">
+				<div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-6 py-12">
 					<p className="text-xs font-bold uppercase tracking-[0.2em] text-[#6B8CFF]">wrkspace</p>
 					<h1 className="mt-3 text-3xl font-semibold tracking-tight">Employee verification</h1>
 					<p className="mt-2 text-sm leading-relaxed text-zinc-400">
-						Company &amp; workspace reviewers only. Sign in with a wrkspace admin account, or a
-						verification login shared by wrkspace.
+						Review full employee history (attendance, tasks, submissions, strengths / risks). Not the
+						employee app.
 					</p>
+
+					<LoginHintsBox onPickEmail={setEmail} />
 
 					{error ? (
 						<p className="mt-4 rounded-md border border-rose-800 bg-rose-950/40 px-3 py-2 text-xs text-rose-300">
 							{error}
+							{error.toLowerCase().includes('invalid') ? (
+								<span className="mt-1 block text-rose-200/80">
+									Use an <strong>Admin panel</strong> email/password (or a company login from
+									Company access) — not an employee login.
+								</span>
+							) : null}
 						</p>
 					) : null}
 
-					<form onSubmit={loginEmail} className="mt-8 space-y-3">
-						<input
-							type="email"
-							required
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="Email"
-							className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm outline-none focus:border-[#0047FF]"
-						/>
-						<input
-							type="password"
-							required
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							placeholder="Password"
-							className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm outline-none focus:border-[#0047FF]"
-						/>
+					<form onSubmit={loginEmail} className="mt-6 space-y-3">
+						<label className="block space-y-1">
+							<span className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+								Admin / company email
+							</span>
+							<input
+								type="email"
+								required
+								autoComplete="username"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="e.g. your admin Gmail"
+								className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm outline-none focus:border-[#0047FF]"
+							/>
+						</label>
+						<label className="block space-y-1">
+							<span className="text-[11px] font-bold uppercase tracking-wide text-zinc-400">
+								Password (same as Admin panel)
+							</span>
+							<input
+								type="password"
+								required
+								autoComplete="current-password"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								placeholder="Admin panel password"
+								className="w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm outline-none focus:border-[#0047FF]"
+							/>
+						</label>
 						<button
 							type="submit"
 							disabled={busy}
@@ -283,15 +303,20 @@ export function EmployeeVerificationApp() {
 						<div className="h-px flex-1 bg-zinc-800" />
 					</div>
 
-					<GoogleSignInButton onClick={loginGoogle} disabled={busy} loading={busy} label="Continue with Google" />
+					<GoogleSignInButton
+						onClick={loginGoogle}
+						disabled={busy}
+						loading={busy}
+						label="Continue with Google (admin Gmail)"
+					/>
 
 					<p className="mt-8 text-center text-[11px] text-zinc-600">
-						<a href="/" className="underline hover:text-zinc-400">
-							Employee portal
+						<a href="/admin" className="font-semibold text-[#6B8CFF] underline hover:text-white">
+							Open Admin panel
 						</a>
 						{' · '}
-						<a href="/admin" className="underline hover:text-zinc-400">
-							Admin panel
+						<a href="/" className="underline hover:text-zinc-400">
+							Employee portal
 						</a>
 					</p>
 				</div>
@@ -654,6 +679,103 @@ function HistoryBlock({
 						</li>
 					))}
 				</ul>
+			)}
+		</div>
+	);
+}
+
+function LoginHintsBox({ onPickEmail }: { onPickEmail: (email: string) => void }) {
+	const [hints, setHints] = useState<{
+		workspaceAdmins: { email: string; org: string }[];
+		companyLogins: { email: string; role: string; company: string | null }[];
+		howTo: string[];
+	} | null>(null);
+
+	useEffect(() => {
+		void fetch('/api/verification/login-hints', { cache: 'no-store' })
+			.then((r) => r.json())
+			.then((data) => {
+				if (data?.workspaceAdmins) setHints(data);
+			})
+			.catch(() => {});
+	}, []);
+
+	return (
+		<div className="mt-6 rounded-xl border border-[#0047FF]/40 bg-[#0B1220] p-4 text-sm">
+			<p className="text-xs font-bold uppercase tracking-wider text-[#6B8CFF]">
+				Who can log in here (credentials)
+			</p>
+			<ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-zinc-300">
+				<li>
+					<strong className="text-white">Same email + password as Admin panel</strong> (
+					<a href="/admin" className="text-[#6B8CFF] underline">
+						/admin
+					</a>
+					) — not employee portal logins.
+				</li>
+				<li>
+					<strong className="text-white">Google:</strong> only admin Gmails registered in Admin.
+				</li>
+				<li>
+					<strong className="text-white">Company logins:</strong> created later under Company access
+					(after a workspace admin signs in).
+				</li>
+			</ul>
+
+			{hints ? (
+				<div className="mt-3 space-y-3">
+					<div>
+						<p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+							Workspace admin emails — tap to fill
+						</p>
+						<ul className="mt-1 space-y-1">
+							{hints.workspaceAdmins.length === 0 ? (
+								<li className="font-mono text-[11px] text-zinc-500">None found</li>
+							) : (
+								hints.workspaceAdmins.map((a) => (
+									<li key={a.email}>
+										<button
+											type="button"
+											className="w-full rounded border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-left font-mono text-[12px] text-emerald-300 hover:border-[#0047FF]"
+											onClick={() => onPickEmail(a.email)}
+										>
+											{a.email}
+											<span className="ml-2 text-[10px] text-zinc-500">{a.org}</span>
+										</button>
+									</li>
+								))
+							)}
+						</ul>
+						<p className="mt-1 text-[10px] text-zinc-500">
+							Then type the same password you use on the Admin panel.
+						</p>
+					</div>
+					{hints.companyLogins.length > 0 ? (
+						<div>
+							<p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+								Company verification logins — tap to fill
+							</p>
+							<ul className="mt-1 space-y-1">
+								{hints.companyLogins.map((u) => (
+									<li key={u.email}>
+										<button
+											type="button"
+											className="w-full rounded border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-left font-mono text-[12px] text-amber-200 hover:border-[#0047FF]"
+											onClick={() => onPickEmail(u.email)}
+										>
+											{u.email}
+											<span className="ml-2 text-[10px] text-zinc-500">
+												{u.company || u.role}
+											</span>
+										</button>
+									</li>
+								))}
+							</ul>
+						</div>
+					) : null}
+				</div>
+			) : (
+				<p className="mt-3 text-[11px] text-zinc-500">Loading allowed emails…</p>
 			)}
 		</div>
 	);

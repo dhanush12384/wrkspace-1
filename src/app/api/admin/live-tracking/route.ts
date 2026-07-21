@@ -30,29 +30,37 @@ async function getOrCreateConfig() {
 	});
 }
 
-/** Snapshot of employees with last known GPS for admin live map. */
+/** Snapshot of employees with last known GPS for admin live map.
+ * Each pin is that employee's own lastLat/lastLng from their phone — never office center.
+ */
 export async function GET(req: NextRequest) {
 	try {
 		await requireAdminEmail(req);
 		const config = await getOrCreateConfig();
-		const employees = await db.employee.findMany({
-			select: {
-				id: true,
-				firstName: true,
-				middleName: true,
-				lastName: true,
-				email: true,
-				phone: true,
-				wingName: true,
-				role: true,
-				photoUrl: true,
-				lastLat: true,
-				lastLng: true,
-				lastLocationAt: true,
-				liveTrackActive: true,
-			},
-			orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
-		});
+		const [employees, offices] = await Promise.all([
+			db.employee.findMany({
+				select: {
+					id: true,
+					firstName: true,
+					middleName: true,
+					lastName: true,
+					email: true,
+					phone: true,
+					wingName: true,
+					role: true,
+					photoUrl: true,
+					lastLat: true,
+					lastLng: true,
+					lastLocationAt: true,
+					liveTrackActive: true,
+				},
+				orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
+			}),
+			db.office.findMany({
+				where: { active: true },
+				select: { id: true, name: true, lat: true, lng: true },
+			}),
+		]);
 
 		const now = Date.now();
 		const rows = employees.map((e) => {
@@ -65,6 +73,25 @@ export async function GET(req: NextRequest) {
 			const ageMs = at ? now - at : null;
 			const isLive = Boolean(hasLoc && ageMs != null && ageMs >= 0 && ageMs <= FRESH_MS);
 			const name = [e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ').trim();
+
+			let nearOfficeName: string | null = null;
+			if (hasLoc) {
+				for (const o of offices) {
+					const dLat = ((e.lastLat! - o.lat) * Math.PI) / 180;
+					const dLng = ((e.lastLng! - o.lng) * Math.PI) / 180;
+					const a =
+						Math.sin(dLat / 2) ** 2 +
+						Math.cos((e.lastLat! * Math.PI) / 180) *
+							Math.cos((o.lat * Math.PI) / 180) *
+							Math.sin(dLng / 2) ** 2;
+					const meters = 2 * 6371000 * Math.asin(Math.sqrt(a));
+					if (meters <= 100) {
+						nearOfficeName = o.name;
+						break;
+					}
+				}
+			}
+
 			return {
 				id: e.id,
 				name,
@@ -80,8 +107,9 @@ export async function GET(req: NextRequest) {
 				isLive,
 				hasLocation: hasLoc,
 				liveTrackActive: e.liveTrackActive,
+				nearOfficeName,
 				mapsUrl: hasLoc
-					? `https://www.google.com/maps?q=${e.lastLat},${e.lastLng}&z=18`
+					? `https://www.google.com/maps/search/?api=1&query=${e.lastLat},${e.lastLng}`
 					: null,
 			};
 		});
@@ -103,6 +131,7 @@ export async function GET(req: NextRequest) {
 				live: live.length,
 				personalActive: rows.filter((r) => r.liveTrackActive).length,
 			},
+			note: 'Each pin is that employee phone GPS (lastLat/lastLng), not office coordinates.',
 			at: new Date().toISOString(),
 		});
 	} catch (e: any) {

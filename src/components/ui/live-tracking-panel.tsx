@@ -253,7 +253,11 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 											<p className="mt-0.5 text-[11px] text-zinc-400">{e.phone}</p>
 											<p className="mt-0.5 font-mono text-[10px] text-zinc-500">
 												{e.hasLocation
-													? `${e.lat!.toFixed(5)}, ${e.lng!.toFixed(5)} · ${ageLabel(e.ageMs)}`
+													? `${e.lat!.toFixed(5)}, ${e.lng!.toFixed(5)} · ${ageLabel(e.ageMs)}${
+															(e as any).nearOfficeName
+																? ` · near ${(e as any).nearOfficeName}`
+																: ''
+														}`
 													: 'No location yet — open app + allow GPS'}
 											</p>
 										</button>
