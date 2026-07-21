@@ -75,7 +75,7 @@ export function CorpBottomNav({
 				style={{
 					height: `calc(${BAR}px + env(safe-area-inset-bottom, 0px))`,
 					paddingTop: 14,
-					paddingBottom: 'max(6px, calc(env(safe-area-inset-bottom, 0px) * 0.3 + 4px))',
+					paddingBottom: 'max(6px, env(safe-area-inset-bottom, 0px))',
 				}}
 			>
 				<NavBtn active={section === 'home'} onClick={onHome} label="Home">

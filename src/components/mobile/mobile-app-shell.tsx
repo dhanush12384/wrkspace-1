@@ -7,6 +7,7 @@ import { MobileHomeTab } from './tabs/home-tab';
 import {
 	clearOfficeExitPending,
 	markOfficeExitPending,
+	markOfficeWorkAck,
 	readOfficeExitPending,
 	useMobileTracking,
 } from './use-mobile-tracking';
@@ -14,6 +15,7 @@ import { keepCheckedIn, clockOut, startGoingHomeTrip } from '@/app/admin/actions
 import { ensureLocationPermission, getPosition, isFemaleEmployee } from '@/lib/mobile-api';
 import { importWithRetry } from '@/lib/import-with-retry';
 import { registerWebPush, subscribeOfficeExitPush } from '@/lib/web-push';
+import { todayKeyIST } from '@/lib/attendance-geo';
 
 const AUTO_CHECKOUT_MS = 5 * 60 * 1000;
 
@@ -212,6 +214,10 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 		employee,
 		enabled: locStatus === 'ok',
 		onLeaveOffice: openLeaveDialog,
+		onBackInsideOffice: () => {
+			clearLeaveTimers();
+			setLeaveOpen(false);
+		},
 		onLocationError: () => setLocStatus('denied'),
 	});
 
@@ -278,6 +284,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 		try {
 			if (mode === 'office_work') {
 				await keepCheckedIn(employee.id, 'office_work');
+				markOfficeWorkAck(todayKeyIST());
 			} else {
 				await clockOut(employee.id, 'going_home');
 				if (isFemaleEmployee(employee)) {
@@ -488,7 +495,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 
 			{leaveOpen ? (
 				<div className="fixed inset-0 z-[90] flex items-end bg-black/45 sm:items-center sm:justify-center">
-					<div className="w-full rounded-t-2xl bg-white p-5 sm:max-w-md sm:rounded-2xl">
+					<div className="w-full rounded-t-2xl bg-white p-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:max-w-md sm:rounded-2xl">
 						<p className="text-lg font-bold text-[#0F172A]">Leaving office area</p>
 						<p className="mt-2 text-sm text-[#64748B]">
 							{isFemaleEmployee(employee)

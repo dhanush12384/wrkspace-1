@@ -14,6 +14,7 @@ const OUTSIDE_CONFIRM_TICKS = 3;
 const EXIT_HYSTERESIS_M = 50;
 
 export const OFFICE_EXIT_KEY = 'wrkspace_office_exit_pending';
+export const OFFICE_WORK_ACK_KEY = 'wrkspace_office_work_ack';
 
 export function markOfficeExitPending() {
 	try {
@@ -31,6 +32,30 @@ export function clearOfficeExitPending() {
 		sessionStorage.removeItem(OFFICE_EXIT_KEY);
 	} catch {
 		/* ignore */
+	}
+}
+
+export function markOfficeWorkAck(dateKey: string) {
+	try {
+		sessionStorage.setItem(OFFICE_WORK_ACK_KEY, dateKey);
+	} catch {
+		/* ignore */
+	}
+}
+
+export function clearOfficeWorkAck() {
+	try {
+		sessionStorage.removeItem(OFFICE_WORK_ACK_KEY);
+	} catch {
+		/* ignore */
+	}
+}
+
+export function hasOfficeWorkAck(dateKey: string): boolean {
+	try {
+		return sessionStorage.getItem(OFFICE_WORK_ACK_KEY) === dateKey;
+	} catch {
+		return false;
 	}
 }
 
@@ -66,15 +91,24 @@ type Opts = {
 	employee: any;
 	enabled: boolean;
 	onLeaveOffice?: () => void;
+	/** GPS says back inside while a leave prompt was pending — dismiss UI. */
+	onBackInsideOffice?: () => void;
 	onLocationError?: () => void;
 };
 
-export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocationError }: Opts) {
+export function useMobileTracking({
+	employee,
+	enabled,
+	onLeaveOffice,
+	onBackInsideOffice,
+	onLocationError,
+}: Opts) {
 	const leavePrompted = useRef(false);
 	const wasInsideExit = useRef(false);
 	const outsideStreak = useRef(0);
 	const officesRef = useRef<{ lat: number; lng: number; geofenceM?: number }[]>([]);
 	const errorNotified = useRef(false);
+	const lastOfficesFetch = useRef(0);
 
 	useEffect(() => {
 		if (!enabled || !employee?.id) return;
@@ -90,7 +124,11 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 			}
 		};
 
-		const loadOffices = async () => {
+		const loadOffices = async (force = false) => {
+			const now = Date.now();
+			if (!force && now - lastOfficesFetch.current < 5 * 60_000 && officesRef.current.length) {
+				return;
+			}
 			try {
 				const data = await apiGet<{ offices?: any[] }>('/api/attendance/offices');
 				officesRef.current = (data.offices || [])
@@ -105,12 +143,14 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 							Number.isFinite(o.lng) &&
 							!(o.lat === 0 && o.lng === 0),
 					);
+				lastOfficesFetch.current = now;
 			} catch {
 				/* ignore */
 			}
 		};
 
-		const fireLeavePrompt = async () => {
+		const fireLeavePrompt = async (dateKey: string) => {
+			if (hasOfficeWorkAck(dateKey)) return;
 			leavePrompted.current = true;
 			wasInsideExit.current = false;
 			markOfficeExitPending();
@@ -121,8 +161,10 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 		const tickOffice = async () => {
 			if (!alive) return;
 			try {
+				await loadOffices();
 				const today = await apiGet<any>('/api/attendance/today');
 				const att = today.attendance || today;
+				const dateKey = String(att?.date || today?.date || '');
 				const onShift =
 					att?.checkIn && (!att?.checkOut || String(att.checkOut).trim() === '');
 				if (!onShift) {
@@ -130,6 +172,7 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 					wasInsideExit.current = false;
 					outsideStreak.current = 0;
 					clearOfficeExitPending();
+					clearOfficeWorkAck();
 					return;
 				}
 
@@ -167,19 +210,20 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 				if (!outside) {
 					wasInsideExit.current = true;
 					outsideStreak.current = 0;
-					if (!readOfficeExitPending()) {
+					if (readOfficeExitPending() || leavePrompted.current) {
+						clearOfficeExitPending();
 						leavePrompted.current = false;
+						onBackInsideOffice?.();
 					}
 					return;
 				}
 
 				outsideStreak.current += 1;
-				// ONLY after we saw them inside this shift — never prompt from a cold GPS jump.
 				const confirmed =
 					wasInsideExit.current && outsideStreak.current >= OUTSIDE_CONFIRM_TICKS;
 
 				if (confirmed && !leavePrompted.current) {
-					await fireLeavePrompt();
+					await fireLeavePrompt(dateKey);
 				}
 			} catch {
 				failLoc();
@@ -205,7 +249,7 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 			}
 		};
 
-		void loadOffices().then(() => {
+		void loadOffices(true).then(() => {
 			void tickOffice();
 			void tickHome();
 		});
@@ -217,7 +261,7 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 			if (officeTimer) window.clearInterval(officeTimer);
 			if (homeTimer) window.clearInterval(homeTimer);
 		};
-	}, [employee, enabled, onLeaveOffice, onLocationError]);
+	}, [employee, enabled, onLeaveOffice, onBackInsideOffice, onLocationError]);
 
 	useEffect(() => {
 		if (!employee?.id) return;
