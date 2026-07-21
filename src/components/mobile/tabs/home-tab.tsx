@@ -24,6 +24,28 @@ import {
 } from '@/app/admin/actions';
 import { cn } from '@/lib/utils';
 
+/** Never pass Date/objects into JSX — React #31 crash on Android. */
+function asText(value: unknown, fallback = '—'): string {
+	if (value == null || value === '') return fallback;
+	if (value instanceof Date) {
+		if (Number.isNaN(value.getTime())) return fallback;
+		return value.toLocaleString();
+	}
+	if (typeof value === 'object') return fallback;
+	const s = String(value).trim();
+	return s || fallback;
+}
+
+function asDayText(value: unknown, fallback = ''): string {
+	if (value == null || value === '') return fallback;
+	if (value instanceof Date) {
+		if (Number.isNaN(value.getTime())) return fallback;
+		return value.toLocaleDateString();
+	}
+	if (typeof value === 'object') return fallback;
+	return String(value).trim() || fallback;
+}
+
 type Props = {
 	employee: any;
 	refreshToken: number;
@@ -228,14 +250,12 @@ export function MobileHomeTab({
 					<div className="mt-3.5 flex">
 						<div className="flex-1 px-2">
 							<p className="text-[11px] font-semibold text-[#64748B]">Check-in</p>
-							<p className="text-[15px] font-bold text-[#0F172A]">{today?.checkIn || '—'}</p>
+							<p className="text-[15px] font-bold text-[#0F172A]">{asText(today?.checkIn)}</p>
 						</div>
 						<div className="w-px self-stretch bg-[#E2E8F0]" />
 						<div className="flex-1 px-2">
 							<p className="text-[11px] font-semibold text-[#64748B]">Check-out</p>
-							<p className="text-[15px] font-bold text-[#0F172A]">
-								{today?.checkOut && String(today.checkOut).trim() ? today.checkOut : '—'}
-							</p>
+							<p className="text-[15px] font-bold text-[#0F172A]">{asText(today?.checkOut)}</p>
 						</div>
 					</div>
 					<div className="mt-3.5 space-y-2">
@@ -395,7 +415,7 @@ export function MobileHomeTab({
 												{ev.title || ev.name}
 											</p>
 											<p className="text-xs font-bold text-[#0047FF]">
-												{ev.date || ev.eventDate || ev.startDate || ''}
+												{asDayText(ev.date || ev.eventDate || ev.startDate)}
 											</p>
 										</div>
 										<ChevronRight className="size-4 text-[#94A3B8]" />

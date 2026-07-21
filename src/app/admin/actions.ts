@@ -1845,7 +1845,15 @@ export async function getEventsForEmployee(employeeId: string) {
       where: { allowed: true },
       orderBy: { startDate: 'asc' },
     });
-    return events.filter((e) => eventHasRepresentative(e.representatives, id));
+    // Serialize dates — raw Date in JSX crashes React (#31) on mobile web.
+    return events
+      .filter((e) => eventHasRepresentative(e.representatives, id))
+      .map((e) => ({
+        ...e,
+        startDate: e.startDate ? new Date(e.startDate).toISOString() : null,
+        endDate: e.endDate ? new Date(e.endDate).toISOString() : null,
+        createdAt: e.createdAt ? new Date(e.createdAt).toISOString() : null,
+      }));
   } catch (error) {
     console.error('Error fetching employee events:', error);
     return [];
