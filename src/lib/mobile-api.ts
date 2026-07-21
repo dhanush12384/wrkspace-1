@@ -74,7 +74,8 @@ export function getPosition(timeoutMs = 20000): Promise<GeolocationPosition> {
 		navigator.geolocation.getCurrentPosition(resolve, reject, {
 			enableHighAccuracy: true,
 			timeout: timeoutMs,
-			maximumAge: 5000,
+			// Prefer a fresh fix for geofence — stale Wi‑Fi positions false-trigger leave-office.
+			maximumAge: 0,
 		});
 	});
 }
