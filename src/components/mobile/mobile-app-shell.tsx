@@ -45,6 +45,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 	const [leaveOpen, setLeaveOpen] = useState(false);
 	const [leaveBusy, setLeaveBusy] = useState(false);
 	const [installHint, setInstallHint] = useState(false);
+	const [messagesChatOpen, setMessagesChatOpen] = useState(false);
 
 	useEffect(() => {
 		document.documentElement.classList.remove('dark');
@@ -130,7 +131,10 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 					<MobileTasksTab employee={employee} />
 				</div>
 				<div className={section === 'messages' ? 'h-full' : 'hidden'}>
-					<MobileMessagesTab employee={employee} />
+					<MobileMessagesTab
+						employee={employee}
+						onChatOpenChange={(open) => setMessagesChatOpen(open)}
+					/>
 				</div>
 				<div className={section === 'more' ? 'h-full' : 'hidden'}>
 					<MobileMoreTab
@@ -144,10 +148,20 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 
 			<CorpBottomNav
 				section={section}
-				onHome={() => setSection('home')}
-				onTasks={() => setSection('tasks')}
+				hidden={messagesChatOpen && section === 'messages'}
+				onHome={() => {
+					setMessagesChatOpen(false);
+					setSection('home');
+				}}
+				onTasks={() => {
+					setMessagesChatOpen(false);
+					setSection('tasks');
+				}}
 				onMessages={() => setSection('messages')}
-				onMore={() => setSection('more')}
+				onMore={() => {
+					setMessagesChatOpen(false);
+					setSection('more');
+				}}
 				onScanner={() => setScannerOpen(true)}
 			/>
 
