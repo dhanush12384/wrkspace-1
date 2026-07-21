@@ -487,7 +487,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 				!channelsReady ? (
 					<div className="h-0.5 animate-pulse bg-[#0047FF]/40" />
 				) : (
-					<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[160px] pt-3.5">
+					<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[172px] pt-3.5">
 						<p className="mb-2.5 pl-1 text-xs font-bold tracking-[0.4px] text-[#64748B]">
 							Channels
 						</p>
@@ -543,7 +543,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 								/>
 							</div>
 						</div>
-						<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[160px]">
+						<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[172px]">
 							{threads.length === 0 ? (
 								<div className="mb-3.5 rounded-[14px] bg-[#E8EFFF] p-4 text-[13px] font-semibold leading-snug text-[#0F172A]">
 									No direct messages yet. Tap a colleague below to start chatting.

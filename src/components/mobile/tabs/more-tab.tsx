@@ -100,7 +100,7 @@ export function MobileMoreTab({ employee, onOpenPanel, onLogout, onProfile }: Pr
 				subtitle="Leaves, logs, profile & tools"
 				onProfile={onProfile}
 			/>
-			<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[160px] pt-4">
+			<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[172px] pt-4">
 				<div className="rounded-[14px] border border-[#E2E8F0] bg-white px-1 py-2">
 					<Section title="Workspace" items={work} />
 					<Section title="Business" items={business} />

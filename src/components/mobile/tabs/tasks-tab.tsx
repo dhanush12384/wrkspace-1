@@ -69,7 +69,7 @@ export function MobileTasksTab({ employee }: Props) {
 				</div>
 			</div>
 
-			<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[160px] pt-4">
+			<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[172px] pt-4">
 				{error ? <p className="mb-3 text-xs font-medium text-[#B42318]">{error}</p> : null}
 				{loading ? (
 					<div className="flex justify-center py-16">
