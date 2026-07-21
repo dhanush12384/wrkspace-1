@@ -19,7 +19,8 @@ import { Button } from './button';
 import { Input } from './input';
 import { cn } from '@/lib/utils';
 import { memberChatColor } from '@/lib/chat-member-color';
-import { ChatAvatar } from './chat-avatar';
+import { ChatAvatar, clearChatAvatarCache } from './chat-avatar';
+import { connectRealtime } from '@/lib/realtime-client';
 import { 
 	getMessages, 
 	postMessage, 
@@ -170,6 +171,39 @@ export function MessagesView({ currentUser }: MessagesViewProps) {
 		};
 		loadMembers();
 	}, [currentUser.id]);
+
+	// Live profile photo updates → refresh avatars on all open Messages screens
+	useEffect(() => {
+		const token =
+			typeof window !== 'undefined'
+				? localStorage.getItem('wrkspace_employee_token') ||
+					(() => {
+						try {
+							const s = localStorage.getItem('wrkspace_employee_session');
+							return s ? (JSON.parse(s) as { token?: string }).token || '' : '';
+						} catch {
+							return '';
+						}
+					})()
+				: '';
+		if (!token) return;
+		const stop = connectRealtime({
+			token,
+			onSafety: (p) => {
+				if (String(p.kind || '') !== 'photo_updated') return;
+				const id = String(p.employeeId || '');
+				clearChatAvatarCache(id || undefined);
+				setMembers((prev) =>
+					prev.map((m) =>
+						m.id === id ? { ...m, hasPhoto: Boolean(p.hasPhoto) } : { ...m },
+					),
+				);
+				// Force remount-ish refresh of message list avatars
+				setMessages((prev) => [...prev]);
+			},
+		});
+		return stop;
+	}, []);
 
 	// Check access to target channel
 	const checkAccess = async (channelId: string) => {

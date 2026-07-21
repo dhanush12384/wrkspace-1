@@ -18,6 +18,15 @@ type Props = {
 
 const _cache = new Map<string, string | null>();
 
+/** Clear cached photo (e.g. after live photo_updated socket event). */
+export function clearChatAvatarCache(employeeId?: string) {
+	if (!employeeId) {
+		_cache.clear();
+		return;
+	}
+	_cache.delete(employeeId);
+}
+
 /**
  * WhatsApp-style chat avatar — loads real profile photo by employee id.
  */
@@ -40,14 +49,21 @@ export function ChatAvatar({ id, name, photoUrl, hasPhoto = true, size = 32, cla
 			if (id) _cache.set(id, direct);
 			return;
 		}
-		if (!id || hasPhoto === false) return;
-		if (_cache.has(id)) {
-			setSrc(_cache.get(id) || null);
+		if (!id || hasPhoto === false) {
+			if (hasPhoto === false) setSrc(null);
 			return;
 		}
 
 		let cancelled = false;
 		(async () => {
+			if (_cache.has(id)) {
+				const cached = _cache.get(id) || null;
+				if (!cancelled) {
+					setSrc(cached);
+					setFailed(!cached);
+				}
+				return;
+			}
 			try {
 				const res = await loadEmployeeAvatar(id);
 				const url = (res.photoUrl || '').trim() || null;

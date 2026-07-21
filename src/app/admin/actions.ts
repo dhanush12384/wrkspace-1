@@ -373,9 +373,17 @@ export async function addEmployee(employeeData: {
 export async function getEmployees() {
   try {
     const employees = await db.employee.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
-    return employees;
+    // Strip huge base64 from list payload; keep hasPhoto for admin directory.
+    return employees.map((e) => {
+      const { photoUrl, ...rest } = e as typeof e & { photoUrl?: string | null };
+      return {
+        ...rest,
+        hasPhoto: Boolean(photoUrl && String(photoUrl).trim()),
+        photoUrl: null as string | null,
+      };
+    });
   } catch (error) {
     console.error('Error fetching employees:', error);
     return [];
@@ -481,7 +489,14 @@ export async function updateEmployeePhoto(employeeId: string, photoUrl: string |
       where: { id },
       data: { photoUrl: next },
     });
-    return { success: true as const, employee };
+    try {
+      const { emitSafetyUpdate } = await import('@/lib/realtime-emit');
+      void emitSafetyUpdate('photo_updated', {
+        employeeId: id,
+        hasPhoto: Boolean(next),
+      });
+    } catch (_) {}
+    return { success: true as const, employee: { ...employee, photoUrl: next ? '[set]' : null, hasPhoto: Boolean(next) } };
   } catch (error: any) {
     console.error('updateEmployeePhoto', error);
     return { success: false as const, error: error.message || 'Failed to save photo' };

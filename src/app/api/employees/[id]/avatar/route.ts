@@ -12,43 +12,42 @@ function requireAnyUser(req: NextRequest) {
 	return payload;
 }
 
-/** Binary avatar for Messages (mobile NetworkImage / web <img> with Bearer). */
+function photoToBuffer(raw: string | null | undefined) {
+	const s = String(raw || '').trim();
+	if (!s) return null;
+	if (s.startsWith('data:')) {
+		const i = s.indexOf('base64,');
+		if (i < 0) return null;
+		const semi = s.indexOf(';');
+		const contentType = (semi > 5 ? s.slice(5, semi) : 'image/jpeg') || 'image/jpeg';
+		const buf = Buffer.from(s.slice(i + 7), 'base64');
+		return { contentType, buf };
+	}
+	if (s.startsWith('http://') || s.startsWith('https://')) {
+		return { redirect: s };
+	}
+	return { contentType: 'image/jpeg', buf: Buffer.from(s, 'base64') };
+}
+
+/** Binary avatar for Messages. */
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
 	try {
 		requireAnyUser(req);
 		const { id } = await ctx.params;
 		const emp = await db.employee.findUnique({
-			where: { id },
+			where: { id: String(id || '').trim() },
 			select: { photoUrl: true },
 		});
-		const raw = (emp?.photoUrl || '').trim();
-		if (!raw) return new Response('Not found', { status: 404 });
-
-		if (raw.startsWith('data:')) {
-			const match = /^data:([^;]+);base64,(.+)$/s.exec(raw);
-			if (!match) return jsonError('Invalid photo', 500);
-			const contentType = match[1] || 'image/jpeg';
-			const buf = Buffer.from(match[2], 'base64');
-			return new Response(buf, {
-				status: 200,
-				headers: {
-					'Content-Type': contentType,
-					'Cache-Control': 'private, max-age=3600',
-				},
-			});
+		const parsed = photoToBuffer(emp?.photoUrl);
+		if (!parsed) return new Response('Not found', { status: 404 });
+		if ('redirect' in parsed && parsed.redirect) {
+			return Response.redirect(parsed.redirect, 302);
 		}
-
-		if (raw.startsWith('http://') || raw.startsWith('https://')) {
-			return Response.redirect(raw, 302);
-		}
-
-		// Raw base64 without data: prefix
-		const buf = Buffer.from(raw, 'base64');
-		return new Response(buf, {
+		return new Response(parsed.buf, {
 			status: 200,
 			headers: {
-				'Content-Type': 'image/jpeg',
-				'Cache-Control': 'private, max-age=3600',
+				'Content-Type': parsed.contentType || 'image/jpeg',
+				'Cache-Control': 'private, max-age=300',
 			},
 		});
 	} catch (e: any) {
