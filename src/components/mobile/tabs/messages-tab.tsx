@@ -606,16 +606,32 @@ export function MobileMessagesTab({ employee, onChatOpenChange }: Props) {
 								return (
 									<div
 										key={m.id}
-										className={cn('mb-2.5 flex gap-2', mine ? 'flex-row-reverse' : 'flex-row')}
+										className={cn(
+											'mb-2 flex items-end gap-2',
+											mine ? 'flex-row-reverse' : 'flex-row',
+										)}
 									>
 										<ChatAvatar
 											id={mine ? myId : m.senderId}
 											name={mine ? myName : m.senderName || '?'}
 											photoUrl={mine ? employee?.photoUrl : undefined}
 											hasPhoto
-											size={32}
+											size={28}
 										/>
-										<div className={cn('max-w-[78%]', mine ? 'items-end' : 'items-start')}>
+										<div
+											className={cn(
+												'flex max-w-[78%] flex-col',
+												mine ? 'items-end' : 'items-start',
+											)}
+										>
+											{!mine && !inDm ? (
+												<p
+													className="mb-0.5 px-1 text-[11px] font-bold"
+													style={{ color: color.bg }}
+												>
+													{m.senderName}
+												</p>
+											) : null}
 											<button
 												type="button"
 												onContextMenu={(e) => {
@@ -628,22 +644,17 @@ export function MobileMessagesTab({ employee, onChatOpenChange }: Props) {
 													e.currentTarget.addEventListener('touchend', clear, { once: true });
 													e.currentTarget.addEventListener('touchmove', clear, { once: true });
 												}}
-												className="w-full rounded-2xl px-3 py-2 text-left"
+												className="w-fit max-w-full rounded-[14px] px-3 py-[9px] text-left"
 												style={{
 													backgroundColor: color.bg,
 													color: color.fg,
-													borderBottomRightRadius: mine ? 6 : 16,
-													borderBottomLeftRadius: mine ? 16 : 6,
+													borderBottomRightRadius: mine ? 4 : 14,
+													borderBottomLeftRadius: mine ? 14 : 4,
 												}}
 											>
-												{!mine && !inDm ? (
-													<p className="mb-0.5 text-[11px] font-bold opacity-90">
-														{m.senderName}
-													</p>
-												) : null}
 												{m.replyPreview ? (
-													<p className="mb-1 rounded-lg bg-black/10 px-2 py-1 text-[11px] opacity-90">
-														↩ {m.replyPreview}
+													<p className="mb-1.5 rounded-lg border-l-[3px] border-current/40 bg-black/10 px-2 py-1.5 text-[12px] opacity-90">
+														{m.replyPreview}
 													</p>
 												) : null}
 												{m.attachmentType === 'image' && m.attachmentUrl ? (
@@ -651,7 +662,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange }: Props) {
 													<img
 														src={m.attachmentUrl}
 														alt=""
-														className="mb-1 max-h-48 max-w-full rounded-lg object-cover"
+														className="mb-1.5 max-h-48 max-w-[220px] rounded-[10px] object-cover"
 													/>
 												) : null}
 												{m.attachmentType &&
@@ -660,26 +671,22 @@ export function MobileMessagesTab({ employee, onChatOpenChange }: Props) {
 													<a
 														href={m.attachmentUrl}
 														download={m.attachmentName || 'file'}
-														className="mb-1 flex items-center gap-2 rounded-lg bg-black/10 px-2 py-1.5 text-[13px] font-bold"
+														className="mb-1.5 flex max-w-[220px] items-center gap-2 rounded-[10px] bg-black/10 px-2.5 py-2 text-[13px] font-bold"
 														onClick={(e) => e.stopPropagation()}
 													>
 														{m.attachmentType === 'video' ? (
-															<Video className="size-4" />
+															<Video className="size-4 shrink-0" />
 														) : (
-															<FileText className="size-4" />
+															<FileText className="size-4 shrink-0" />
 														)}
 														<span className="truncate">{m.attachmentName || 'Attachment'}</span>
 													</a>
 												) : null}
 												{m.content ? (
-													<p className="whitespace-pre-wrap break-words text-[14.5px] font-medium leading-snug">
+													<p className="whitespace-pre-wrap break-words text-sm font-normal leading-[1.4]">
 														{m.content}
 													</p>
 												) : null}
-												<p className="mt-1 text-right text-[10px] font-semibold opacity-70">
-													{m.editedAt ? 'edited · ' : ''}
-													{formatTime(m.createdAt)}
-												</p>
 											</button>
 											{Object.keys(counts).length > 0 ? (
 												<div
@@ -701,6 +708,10 @@ export function MobileMessagesTab({ employee, onChatOpenChange }: Props) {
 													))}
 												</div>
 											) : null}
+											<p className="mt-0.5 px-1 text-[10px] text-[#64748B]">
+												{formatTime(m.createdAt)}
+												{m.editedAt ? ' · edited' : ''}
+											</p>
 										</div>
 									</div>
 								);
