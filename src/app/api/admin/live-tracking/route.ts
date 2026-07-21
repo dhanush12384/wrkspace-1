@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
 				hasLocation: hasLoc,
 				liveTrackActive: e.liveTrackActive,
 				mapsUrl: hasLoc
-					? `https://www.google.com/maps?q=${e.lastLat},${e.lastLng}`
+					? `https://www.google.com/maps?q=${e.lastLat},${e.lastLng}&z=18`
 					: null,
 			};
 		});

@@ -86,7 +86,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 	useEffect(() => {
 		if (!adminEmail) return;
 		void load();
-		const id = window.setInterval(() => void load(), 8000);
+		const id = window.setInterval(() => void load(), 5000);
 		return () => window.clearInterval(id);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminEmail]);
@@ -115,8 +115,9 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 				<div>
 					<h2 className="text-xl font-bold">Live tracking</h2>
 					<p className="mt-1 max-w-xl text-xs text-zinc-400">
-						Employees who allow location on their phone appear here. Start tracking asks phones to
-						send GPS every ~15s. Use Track/Stop on a row for one person.
+						Pins are each employee&apos;s phone GPS (not the office). Click a name to zoom to their
+						exact pin. Green = updated in last 5 min. Track requires their wrkspace app open with
+						location allowed.
 						{lastAt ? ` · Refreshed ${lastAt}` : ''}
 					</p>
 					{error ? <p className="mt-1 text-xs text-rose-400">{error}</p> : null}
@@ -262,6 +263,18 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 													href={e.mapsUrl}
 													target="_blank"
 													rel="noreferrer"
+													onClick={(ev) => {
+														ev.stopPropagation();
+														if (e.lat != null && e.lng != null) {
+															// Force exact pin URL (avoid cached office searches)
+															ev.preventDefault();
+															window.open(
+																`https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}`,
+																'_blank',
+																'noopener,noreferrer',
+															);
+														}
+													}}
 													className="rounded border border-zinc-700 px-2 py-1 text-center text-[10px] font-semibold text-zinc-200 hover:bg-zinc-800"
 												>
 													Maps
@@ -293,6 +306,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 														setRowBusy(e.id);
 														try {
 															await postAction('start_one', e.id);
+															setFocusId(e.id);
 														} catch (err: any) {
 															setError(String(err?.message || err));
 														} finally {

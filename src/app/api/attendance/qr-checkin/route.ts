@@ -61,6 +61,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Save the phone's real GPS (not office center) for Live tracking
+    await db.employee.update({
+      where: { id: emp.id },
+      data: { lastLat: lat, lastLng: lng, lastLocationAt: new Date() },
+    });
+
     // Check-in at office ends any open going-home trip
     await db.safetyTrip.updateMany({
       where: { employeeId: emp.id, status: 'IN_TRANSIT' },

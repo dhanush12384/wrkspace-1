@@ -216,48 +216,86 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 		};
 	}, [employee, enabled, onLeaveOffice, onLocationError]);
 
-	/** Admin Live Tracking — post GPS while global/personal track is ON (even off-shift). */
+	/** Admin Live Tracking — continuous GPS while global/personal track is ON. */
 	useEffect(() => {
 		if (!employee?.id) return;
 
 		let alive = true;
 		let shouldTrack = false;
 		let statusTimer: number | undefined;
-		let beatTimer: number | undefined;
+		let watchId: number | undefined;
+		let lastPostedAt = 0;
 
-		const heartbeat = async () => {
-			if (!alive || !shouldTrack) return;
-			try {
-				const pos = await getPosition(12000);
-				errorNotified.current = false;
-				await apiPost('/api/attendance/location', {
-					lat: pos.coords.latitude,
-					lng: pos.coords.longitude,
-				});
-			} catch {
-				/* permission denied or timeout — admin map simply won't see this phone */
+		const stopWatch = () => {
+			if (watchId != null && navigator.geolocation?.clearWatch) {
+				navigator.geolocation.clearWatch(watchId);
+				watchId = undefined;
 			}
+		};
+
+		const postFix = async (lat: number, lng: number) => {
+			if (!alive || !shouldTrack) return;
+			const now = Date.now();
+			// Avoid spamming DB — at most ~ every 8s
+			if (now - lastPostedAt < 8_000) return;
+			lastPostedAt = now;
+			try {
+				await apiPost('/api/attendance/location', { lat, lng });
+			} catch {
+				/* ignore */
+			}
+		};
+
+		const startWatch = () => {
+			if (!alive || !shouldTrack || !navigator.geolocation) return;
+			if (watchId != null) return;
+			watchId = navigator.geolocation.watchPosition(
+				(pos) => {
+					errorNotified.current = false;
+					void postFix(pos.coords.latitude, pos.coords.longitude);
+				},
+				() => {
+					/* keep trying via status refresh */
+				},
+				{ enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
+			);
 		};
 
 		const refreshFlag = async () => {
 			if (!alive) return;
 			try {
 				const st = await apiGet<{ shouldTrack?: boolean }>('/api/attendance/live-track-status');
-				shouldTrack = Boolean(st.shouldTrack);
-				if (shouldTrack) void heartbeat();
+				const next = Boolean(st.shouldTrack);
+				if (next && !shouldTrack) {
+					shouldTrack = true;
+					startWatch();
+					// Immediate one-shot so admin sees a pin ASAP
+					try {
+						const pos = await getPosition(12000);
+						lastPostedAt = 0;
+						await postFix(pos.coords.latitude, pos.coords.longitude);
+					} catch {
+						/* ignore */
+					}
+				} else if (!next && shouldTrack) {
+					shouldTrack = false;
+					stopWatch();
+				} else if (next) {
+					shouldTrack = true;
+					startWatch();
+				}
 			} catch {
 				/* ignore */
 			}
 		};
 
 		void refreshFlag();
-		statusTimer = window.setInterval(() => void refreshFlag(), 30_000);
-		beatTimer = window.setInterval(() => void heartbeat(), 15_000);
+		statusTimer = window.setInterval(() => void refreshFlag(), 10_000);
 
 		return () => {
 			alive = false;
 			if (statusTimer) window.clearInterval(statusTimer);
-			if (beatTimer) window.clearInterval(beatTimer);
+			stopWatch();
 		};
 	}, [employee?.id]);
 }
