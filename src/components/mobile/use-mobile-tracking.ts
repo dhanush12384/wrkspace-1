@@ -5,9 +5,13 @@ import { apiGet, apiPost, getPosition, isFemaleEmployee } from '@/lib/mobile-api
 
 const OFFICE_WATCH_MS = 45_000;
 const HOME_WATCH_MS = 25_000;
+/** Exit fence — must match Office.geofenceM default; indoors GPS often drifts 50–150m. */
 const EXIT_GEOFENCE_M = 300;
-const MAX_ACCURACY_M = 80;
-const OUTSIDE_CONFIRM_TICKS = 2;
+const MAX_ACCURACY_M = 65;
+/** Require several bad readings in a row before prompting (stops office Wi‑Fi GPS jumps). */
+const OUTSIDE_CONFIRM_TICKS = 3;
+/** Extra meters beyond fence + accuracy before counting as outside. */
+const EXIT_HYSTERESIS_M = 50;
 
 export const OFFICE_EXIT_KEY = 'wrkspace_office_exit_pending';
 
@@ -129,7 +133,6 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 					return;
 				}
 
-				// Already pending a choice (e.g. from push) — keep UI in sync
 				const pending = readOfficeExitPending();
 				if (pending && !leavePrompted.current) {
 					leavePrompted.current = true;
@@ -158,8 +161,8 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 
 				if (!nearest) return;
 
-				const acc = typeof accuracy === 'number' && accuracy > 0 ? accuracy : 25;
-				const outside = nearest.d > nearest.r + Math.min(acc, 60);
+				const acc = typeof accuracy === 'number' && accuracy > 0 ? accuracy : 35;
+				const outside = nearest.d > nearest.r + Math.min(acc, 70) + EXIT_HYSTERESIS_M;
 
 				if (!outside) {
 					wasInsideExit.current = true;
@@ -171,9 +174,9 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 				}
 
 				outsideStreak.current += 1;
+				// ONLY after we saw them inside this shift — never prompt from a cold GPS jump.
 				const confirmed =
-					outsideStreak.current >= OUTSIDE_CONFIRM_TICKS &&
-					(wasInsideExit.current || nearest.d > nearest.r + 100);
+					wasInsideExit.current && outsideStreak.current >= OUTSIDE_CONFIRM_TICKS;
 
 				if (confirmed && !leavePrompted.current) {
 					await fireLeavePrompt();
@@ -216,7 +219,6 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 		};
 	}, [employee, enabled, onLeaveOffice, onLocationError]);
 
-	/** Admin Live Tracking — continuous GPS while global/personal track is ON. */
 	useEffect(() => {
 		if (!employee?.id) return;
 
@@ -236,7 +238,6 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 		const postFix = async (lat: number, lng: number) => {
 			if (!alive || !shouldTrack) return;
 			const now = Date.now();
-			// Avoid spamming DB — at most ~ every 8s
 			if (now - lastPostedAt < 8_000) return;
 			lastPostedAt = now;
 			try {
@@ -254,9 +255,7 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 					errorNotified.current = false;
 					void postFix(pos.coords.latitude, pos.coords.longitude);
 				},
-				() => {
-					/* keep trying via status refresh */
-				},
+				() => {},
 				{ enableHighAccuracy: true, maximumAge: 0, timeout: 20000 },
 			);
 		};
@@ -269,7 +268,6 @@ export function useMobileTracking({ employee, enabled, onLeaveOffice, onLocation
 				if (next && !shouldTrack) {
 					shouldTrack = true;
 					startWatch();
-					// Immediate one-shot so admin sees a pin ASAP
 					try {
 						const pos = await getPosition(12000);
 						lastPostedAt = 0;

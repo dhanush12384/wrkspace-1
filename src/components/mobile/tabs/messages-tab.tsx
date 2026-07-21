@@ -193,25 +193,58 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 		void loadDirect();
 	}, [loadChannels, loadDirect]);
 
-	useEffect(() => {
-		if (!inChat) return;
-		const el = listRef.current;
-		if (el) el.scrollTop = el.scrollHeight;
-	}, [messages, inChat]);
-
-	const reloadChat = async () => {
+	const reloadChat = useCallback(async () => {
 		if (dmPeerId) {
 			const data = await apiGet<{ messages?: Msg[] }>(
 				`/api/messages?peerId=${encodeURIComponent(dmPeerId)}`,
 			);
-			setMessages(Array.isArray(data.messages) ? data.messages : []);
+			const next = Array.isArray(data.messages) ? data.messages : [];
+			setMessages((prev) => {
+				if (prev.length === next.length && prev[prev.length - 1]?.id === next[next.length - 1]?.id) {
+					return prev;
+				}
+				return next;
+			});
 		} else if (inChannelChat) {
 			const data = await apiGet<{ messages?: Msg[] }>(
 				`/api/messages?channel=${encodeURIComponent(channel)}`,
 			);
-			setMessages(Array.isArray(data.messages) ? data.messages : []);
+			const next = Array.isArray(data.messages) ? data.messages : [];
+			setMessages((prev) => {
+				if (prev.length === next.length && prev[prev.length - 1]?.id === next[next.length - 1]?.id) {
+					return prev;
+				}
+				return next;
+			});
 		}
-	};
+	}, [dmPeerId, inChannelChat, channel]);
+
+	useEffect(() => {
+		if (!inChat) return;
+		const el = listRef.current;
+		if (!el) return;
+		const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+		if (nearBottom) el.scrollTop = el.scrollHeight;
+	}, [messages, inChat]);
+
+	/** Pull new messages from server while chat is open (FCM is for background alerts). */
+	useEffect(() => {
+		if (!inChat) return;
+		let alive = true;
+		const tick = async () => {
+			if (!alive) return;
+			try {
+				await reloadChat();
+			} catch {
+				/* ignore */
+			}
+		};
+		const id = window.setInterval(() => void tick(), 4000);
+		return () => {
+			alive = false;
+			window.clearInterval(id);
+		};
+	}, [inChat, reloadChat]);
 
 	const closeChat = () => {
 		setInChannelChat(false);

@@ -318,10 +318,10 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 					'var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, sans-serif',
 			}}
 		>
-			{/* iOS PWA status bar (clock / signal) — always brand blue, never amber banners */}
+			{/* Status bar / notch — keep chrome below the clock (never under it) */}
 			<div
 				className="shrink-0 bg-[#0047FF]"
-				style={{ height: 'env(safe-area-inset-top, 0px)' }}
+				style={{ height: 'max(env(safe-area-inset-top, 0px), 0px)' }}
 				aria-hidden
 			/>
 
@@ -439,7 +439,10 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 
 			{panelOpen && panel ? (
 				<div className="fixed inset-0 z-[70] flex flex-col bg-[#F0F3FF]">
-					<div className="flex items-center gap-2 border-b border-[#E2E8F0] bg-white px-2 py-2.5">
+					<div
+						className="flex items-center gap-2 border-b border-[#E2E8F0] bg-white px-2 pb-2.5"
+						style={{ paddingTop: 'max(10px, env(safe-area-inset-top, 0px))' }}
+					>
 						<button
 							type="button"
 							onClick={popPanel}
