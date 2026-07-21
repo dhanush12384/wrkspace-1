@@ -305,3 +305,34 @@ model OfficeQr {
 
   @@index([officeId])
 }
+
+/// External / partner companies that use the Employee Verification portal.
+model VerificationCompany {
+  id           String                   @id @default(uuid())
+  name         String
+  contactEmail String?
+  contactPhone String?
+  notes        String?
+  active       Boolean                  @default(true)
+  createdAt    DateTime                 @default(now())
+  createdBy    String?
+  users        VerificationPortalUser[]
+}
+
+/// Logins for /employee-verification — SUPER (wrkspace) or COMPANY viewer.
+model VerificationPortalUser {
+  id          String               @id @default(uuid())
+  email       String               @unique
+  password    String
+  displayName String?
+  /// SUPER = full wrkspace directory · COMPANY = company-scoped verifier
+  role        String               @default("COMPANY")
+  companyId   String?
+  company     VerificationCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  active      Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  lastLoginAt DateTime?
+
+  @@index([companyId])
+  @@index([role])
+}

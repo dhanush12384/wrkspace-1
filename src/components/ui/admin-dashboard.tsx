@@ -1508,6 +1508,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					>
 						Live tracking
 					</button>
+					<a
+						href="/employee-verification"
+						className="py-3 border-b-2 border-transparent text-brand-300/60 hover:text-white transition-all cursor-pointer whitespace-nowrap"
+					>
+						Employee verification ↗
+					</a>
 					{(isSuperAdmin || allowedTabs.includes('employees')) && (
 						<button
 							onClick={() => setActiveTab('employees')}
