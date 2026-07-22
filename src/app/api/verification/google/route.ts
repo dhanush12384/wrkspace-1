@@ -1,10 +1,16 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
-import { jsonError, signVerificationToken } from '@/lib/api-auth';
+import { jsonError, signEmployeeToken, signVerificationToken } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-/** After Firebase Google sign-in — portal user OR workspace admin email. */
+/**
+ * After Firebase Google sign-in — works for everyone on this portal:
+ * 1) portal / company account → public/company general view (or SUPER if portal SUPER)
+ * 2) workspace admin → full admin dossier
+ * 3) employee email → professional profile self-service
+ * 4) any other Google account → public viewer (general employee info only)
+ */
 export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json().catch(() => ({}));
@@ -73,7 +79,51 @@ export async function POST(req: NextRequest) {
 			});
 		}
 
-		return jsonError('No verification access for this Google account', 403);
+		const employee = await db.employee.findUnique({ where: { email } });
+		if (employee) {
+			const token = signEmployeeToken({
+				id: employee.id,
+				email: employee.email,
+				role: employee.role || 'Employee',
+			});
+			return Response.json({
+				ok: true,
+				kind: 'employee',
+				token,
+				employee,
+				user: {
+					id: employee.id,
+					email: employee.email,
+					role: 'EMPLOYEE',
+					companyId: null,
+					companyName: null,
+					source: 'employee',
+				},
+			});
+		}
+
+		// Any other Google account → public viewer (general employee information only).
+		const publicId = `public:${email}`;
+		const token = signVerificationToken({
+			id: publicId,
+			email,
+			role: 'COMPANY',
+			companyId: null,
+			companyName: 'Public',
+			source: 'public_google',
+		});
+		return Response.json({
+			ok: true,
+			token,
+			user: {
+				id: publicId,
+				email,
+				role: 'COMPANY',
+				companyId: null,
+				companyName: 'Public',
+				source: 'public_google',
+			},
+		});
 	} catch (e: any) {
 		return jsonError(e.message || 'Google login failed', 500);
 	}

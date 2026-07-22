@@ -12,7 +12,7 @@ export type VerificationJwt = {
 	role: 'SUPER' | 'COMPANY';
 	companyId?: string | null;
 	companyName?: string | null;
-	source: 'portal' | 'workspace_admin';
+	source: 'portal' | 'workspace_admin' | 'public_google';
 };
 
 export function signEmployeeToken(employee: { id: string; email: string; role: string }) {
@@ -42,7 +42,7 @@ export function signVerificationToken(user: {
 	role: 'SUPER' | 'COMPANY';
 	companyId?: string | null;
 	companyName?: string | null;
-	source: 'portal' | 'workspace_admin';
+	source: 'portal' | 'workspace_admin' | 'public_google';
 }) {
 	return jwt.sign(
 		{

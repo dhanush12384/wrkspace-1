@@ -268,6 +268,33 @@ export function EmployeeVerificationApp() {
 			});
 			const data = await res.json().catch(() => ({}));
 			if (!res.ok) throw new Error(data?.error || 'Google login failed');
+
+			// Employee Google → professional profile panel only
+			if (data.kind === 'employee' || data.user?.role === 'EMPLOYEE') {
+				const emp = data.employee || {};
+				try {
+					localStorage.setItem(EMP_TOKEN_KEY, data.token);
+				} catch {
+					/* ignore */
+				}
+				setEmpRecord(emp);
+				const next: Session = {
+					token: data.token,
+					user: {
+						id: emp.id || data.user?.id,
+						email: emp.email || data.user?.email || gEmail,
+						role: 'EMPLOYEE',
+						companyId: null,
+						companyName: null,
+						source: 'employee',
+					},
+				};
+				saveSession(next);
+				setSession(next);
+				return;
+			}
+
+			// Admin / public / company → verification directory session
 			applyLogin(data);
 		} catch (err: any) {
 			const code = String(err?.code || '');
@@ -426,8 +453,9 @@ export function EmployeeVerificationApp() {
 							<p className="ev-kicker">Sign in</p>
 							<h2>Verification portal</h2>
 							<p className="ev-sub">
-								One email &amp; password for public / company accounts, employees, and admins. We
-								verify against the database and open the matching panel automatically.
+								One email &amp; password for public viewers, employees, and admins. Google sign-in
+								works for everyone too — we check the database and open the matching panel
+								(general info, professional profile, or full admin dossier).
 							</p>
 
 							{error ? (
@@ -481,7 +509,7 @@ export function EmployeeVerificationApp() {
 								onClick={loginGoogle}
 								disabled={busy}
 								loading={busy}
-								label="Continue with Google (admin)"
+								label="Continue with Google"
 							/>
 						</div>
 					</section>
