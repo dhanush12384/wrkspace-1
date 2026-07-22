@@ -565,11 +565,11 @@ function SummaryTab({
 			{canEditRemarks ? (
 				<TextArea
 					sx={sx}
-					label="Admin remarks"
+					label="Admin remarks (admin only)"
 					rows={3}
 					value={profile.remarks}
 					onChange={(v) => setField('remarks', v)}
-					placeholder="Internal notes visible only to wrkspace admins (strengths, risk flags, etc.)…"
+					placeholder="Internal notes — only admins can set remarks and Active/Inactive status…"
 				/>
 			) : null}
 		</section>

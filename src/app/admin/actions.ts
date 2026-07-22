@@ -514,15 +514,17 @@ export async function updateEmployeeProfessionalProfile(
     const { sanitizeProfessionalProfile, profileFromEmployee } = await import(
       '@/lib/employee-professional-profile'
     );
-    const data = sanitizeProfessionalProfile(payload as any);
+    const data = sanitizeProfessionalProfile(payload as any, { allowRemarks: false });
     const employee = await db.employee.update({
       where: { id },
       data,
     });
+    const profile = profileFromEmployee(employee as any);
+    profile.remarks = '';
     return {
       success: true as const,
-      employee,
-      profile: profileFromEmployee(employee as any),
+      employee: { ...employee, remarks: null },
+      profile,
     };
   } catch (error: any) {
     console.error('updateEmployeeProfessionalProfile', error);

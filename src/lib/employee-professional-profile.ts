@@ -333,8 +333,14 @@ function clipTags(list: unknown, maxTags: number, maxLen: number): string[] {
 	return out;
 }
 
-/** Sanitize payload before DB write (JSON columns stay compact strings, empties become null). */
-export function sanitizeProfessionalProfile(input: Partial<ProfessionalProfile>) {
+/** Sanitize payload before DB write (JSON columns stay compact strings, empties become null).
+ *  `allowRemarks` — only admins may write remarks; employee self-service omits the field
+ *  so existing admin remarks are never overwritten.
+ */
+export function sanitizeProfessionalProfile(
+	input: Partial<ProfessionalProfile>,
+	opts?: { allowRemarks?: boolean },
+) {
 	const experience = (input.experience || [])
 		.slice(0, 30)
 		.map((x) => ({
@@ -453,7 +459,7 @@ export function sanitizeProfessionalProfile(input: Partial<ProfessionalProfile>)
 		}))
 		.filter((c) => c.title || c.content);
 
-	return {
+	const out: Record<string, unknown> = {
 		professionalTitle: clip(input.professionalTitle, 160) || null,
 		city: clip(input.city, 100) || null,
 		state: clip(input.state, 100) || null,
@@ -470,7 +476,6 @@ export function sanitizeProfessionalProfile(input: Partial<ProfessionalProfile>)
 		careerObjective: clip(input.careerObjective, 2000) || null,
 		yearsOfExperience: clip(input.yearsOfExperience, 20) || null,
 		industry: clip(input.industry, 100) || null,
-		remarks: clip(input.remarks, 2000) || null,
 
 		emergencyContactName: clip(input.emergencyContactName, 80) || null,
 		emergencyContactPhone: clip(input.emergencyContactPhone, 40) || null,
@@ -487,4 +492,10 @@ export function sanitizeProfessionalProfile(input: Partial<ProfessionalProfile>)
 		customSections: customSections.length ? JSON.stringify(customSections) : null,
 		// qualifications column intentionally left untouched (legacy fallback only, no longer written)
 	};
+
+	if (opts?.allowRemarks) {
+		out.remarks = clip(input.remarks, 2000) || null;
+	}
+
+	return out;
 }

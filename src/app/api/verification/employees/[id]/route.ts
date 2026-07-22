@@ -243,7 +243,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 			employmentStatus?: string;
 		};
 
-		const data: Record<string, unknown> = sanitizeProfessionalProfile(body);
+		const data: Record<string, unknown> = sanitizeProfessionalProfile(body, { allowRemarks: true });
 		if (body.employmentStatus !== undefined) {
 			const status = String(body.employmentStatus).trim();
 			if (status !== 'Active' && status !== 'Inactive') {
