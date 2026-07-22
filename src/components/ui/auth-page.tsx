@@ -371,12 +371,12 @@ export function AuthPage() {
 		);
 	}
 
-	// â”€â”€â”€ AUTHENTICATION PORTAL VIEWS (centered black, no split panel) â”€â”€â”€
+	// --- AUTHENTICATION PORTAL (centered black, no split panel) ---
 	return (
 		<main className="relative flex min-h-screen items-center justify-center bg-black px-6 py-12 font-sans">
 			<div className="w-full max-w-[420px] z-10">
 				<AnimatePresence mode="wait">
-					{/* â”€â”€â”€ LOGIN VIEW â”€â”€â”€ */}
+					{/* --- LOGIN VIEW --- */}
 					{view === 'login' && (
 						<motion.div
 							key="login"
