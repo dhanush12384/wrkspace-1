@@ -107,8 +107,12 @@ model Employee {
   internships    String? @db.Text
   /// JSON array: publications & research { id, title, authors, journal, conference, year, url, abstract }
   publications   String? @db.Text
-  /// JSON array: custom sections { id, title, content }
+  /// JSON array: custom sections { id, title, content, fileUrl? }
   customSections String? @db.Text
+  /// Optional attachments for Personal / Summary / Skills tabs (image or PDF data URL)
+  personalFileUrl String? @db.Text
+  summaryFileUrl  String? @db.Text
+  skillsFileUrl   String? @db.Text
   /// Last known device location (continuous while app monitors / on shift)
   lastLat      Float?
   lastLng      Float?

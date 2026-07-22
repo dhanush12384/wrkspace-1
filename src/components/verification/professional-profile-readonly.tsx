@@ -63,6 +63,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 						<strong>{employee?.phone || '—'}</strong>
 					</div>
 				</div>
+				{p.personalFileUrl ? (
+					<p style={{ marginTop: 10 }}>
+						<a href={p.personalFileUrl} target="_blank" rel="noreferrer">
+							View personal document
+						</a>
+					</p>
+				) : null}
 			</div>
 
 			<div className="ev-card" style={{ marginBottom: 12 }}>
@@ -118,6 +125,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 						<strong>{p.industry || '—'}</strong>
 					</div>
 				</div>
+				{p.summaryFileUrl ? (
+					<p style={{ marginTop: 10 }}>
+						<a href={p.summaryFileUrl} target="_blank" rel="noreferrer">
+							View resume / summary file
+						</a>
+					</p>
+				) : null}
 				{showRemarks ? (
 					<div className="ev-subsection">
 						<p className="ev-muted" style={{ marginBottom: 4 }}>
@@ -161,6 +175,14 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 									</span>
 								) : null}
 								{q.cgpa ? <span className="ev-muted"> · CGPA {q.cgpa}</span> : null}
+								{q.fileUrl ? (
+									<>
+										{' · '}
+										<a href={q.fileUrl} target="_blank" rel="noreferrer">
+											View file
+										</a>
+									</>
+								) : null}
 							</li>
 						))}
 					</ul>
@@ -169,6 +191,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 
 			<div className="ev-card" style={{ marginBottom: 12 }}>
 				<h3>Skills</h3>
+				{p.skillsFileUrl ? (
+					<p style={{ marginBottom: 10 }}>
+						<a href={p.skillsFileUrl} target="_blank" rel="noreferrer">
+							View skills document
+						</a>
+					</p>
+				) : null}
 				{!hasAnySkill ? (
 					<p className="ev-muted">None listed.</p>
 				) : (
@@ -209,6 +238,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 								</span>
 								{x.description ? <div className="ev-muted">{x.description}</div> : null}
 								{x.technologiesUsed ? <div className="ev-muted">Tech: {x.technologiesUsed}</div> : null}
+								{x.fileUrl ? (
+									<div>
+										<a href={x.fileUrl} target="_blank" rel="noreferrer">
+											View attachment
+										</a>
+									</div>
+								) : null}
 							</li>
 						))}
 					</ul>
@@ -232,6 +268,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 								</span>
 								{x.description ? <div className="ev-muted">{x.description}</div> : null}
 								{x.technologiesUsed ? <div className="ev-muted">Tech: {x.technologiesUsed}</div> : null}
+								{x.fileUrl ? (
+									<div>
+										<a href={x.fileUrl} target="_blank" rel="noreferrer">
+											View attachment
+										</a>
+									</div>
+								) : null}
 							</li>
 						))}
 					</ul>
@@ -266,6 +309,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 									</>
 								) : null}
 								{pr.description ? <div className="ev-muted">{pr.description}</div> : null}
+								{pr.fileUrl ? (
+									<div>
+										<a href={pr.fileUrl} target="_blank" rel="noreferrer">
+											View attachment
+										</a>
+									</div>
+								) : null}
 							</li>
 						))}
 					</ul>
@@ -355,6 +405,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 									</>
 								) : null}
 								{pub.abstract ? <div className="ev-muted">{pub.abstract}</div> : null}
+								{pub.fileUrl ? (
+									<div>
+										<a href={pub.fileUrl} target="_blank" rel="noreferrer">
+											View file
+										</a>
+									</div>
+								) : null}
 							</li>
 						))}
 					</ul>
@@ -372,6 +429,13 @@ export function ProfessionalProfileReadonly({ profile, employee, showRemarks = f
 							<p className="ev-prose" style={{ whiteSpace: 'pre-wrap' }}>
 								{c.content || '—'}
 							</p>
+							{c.fileUrl ? (
+								<p style={{ marginTop: 6 }}>
+									<a href={c.fileUrl} target="_blank" rel="noreferrer">
+										View attachment
+									</a>
+								</p>
+							) : null}
 						</div>
 					))}
 				</div>

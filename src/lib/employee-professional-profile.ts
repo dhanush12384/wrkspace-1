@@ -21,6 +21,8 @@ export type ProfileExperience = {
 	current?: boolean;
 	description?: string;
 	technologiesUsed?: string;
+	/** Optional proof / offer letter / letter of experience (image or PDF data URL) */
+	fileUrl?: string;
 };
 
 export type ProfileInternship = {
@@ -33,6 +35,7 @@ export type ProfileInternship = {
 	current?: boolean;
 	description?: string;
 	technologiesUsed?: string;
+	fileUrl?: string;
 };
 
 export type ProfileEducation = {
@@ -43,6 +46,8 @@ export type ProfileEducation = {
 	cgpa?: string;
 	from?: string;
 	to?: string;
+	/** Optional marksheet / degree certificate */
+	fileUrl?: string;
 };
 
 export type SkillCategoryKey =
@@ -76,6 +81,8 @@ export type ProfileProject = {
 	liveUrl?: string;
 	tech?: string;
 	description?: string;
+	/** Optional screenshot / demo PDF */
+	fileUrl?: string;
 };
 
 export type ProfileCertification = {
@@ -108,12 +115,14 @@ export type ProfilePublication = {
 	year?: string;
 	url?: string;
 	abstract?: string;
+	fileUrl?: string;
 };
 
 export type ProfileCustomSection = {
 	id: string;
 	title: string;
 	content: string;
+	fileUrl?: string;
 };
 
 export type ProfessionalProfile = {
@@ -129,6 +138,8 @@ export type ProfessionalProfile = {
 	codeforcesUrl: string;
 	codechefUrl: string;
 	hackerrankUrl: string;
+	/** Optional ID / personal document (image or PDF) */
+	personalFileUrl: string;
 
 	// Professional summary
 	about: string; // Resume summary
@@ -136,6 +147,10 @@ export type ProfessionalProfile = {
 	yearsOfExperience: string;
 	industry: string;
 	remarks: string;
+	/** Optional full resume PDF / summary attachment */
+	summaryFileUrl: string;
+	/** Optional skills proof / certificate */
+	skillsFileUrl: string;
 
 	// Emergency contact
 	emergencyContactName: string;
@@ -208,6 +223,7 @@ function migrateLegacyEducation(emp: Record<string, unknown>): ProfileEducation[
 			cgpa: '',
 			from: '',
 			to: q.year || '',
+			fileUrl: '',
 		}))
 		.filter((q) => q.institution || q.degree);
 }
@@ -216,7 +232,17 @@ export function profileFromEmployee(emp: Record<string, unknown> | null | undefi
 	const e = emp || {};
 
 	const educationRaw = parseJsonArray<ProfileEducation>(e.education);
-	const education = educationRaw.length > 0 ? educationRaw : migrateLegacyEducation(e);
+	const educationBase = educationRaw.length > 0 ? educationRaw : migrateLegacyEducation(e);
+	const education = educationBase.map((q) => ({
+		id: q.id || newId(),
+		institution: q.institution || '',
+		degree: q.degree || '',
+		specialization: q.specialization || '',
+		cgpa: q.cgpa || '',
+		from: q.from || '',
+		to: q.to || '',
+		fileUrl: q.fileUrl || '',
+	}));
 
 	const projects = parseJsonArray<ProfileProject & { url?: string; year?: string }>(e.projects).map((p) => ({
 		id: p.id || newId(),
@@ -226,6 +252,7 @@ export function profileFromEmployee(emp: Record<string, unknown> | null | undefi
 		liveUrl: p.liveUrl || (p.url && !/github\.com/i.test(p.url) ? p.url : '') || '',
 		tech: p.tech || '',
 		description: p.description || '',
+		fileUrl: p.fileUrl || '',
 	}));
 
 	const certifications = parseJsonArray<ProfileCertification & { year?: string }>(e.certifications).map((c) => ({
@@ -249,6 +276,7 @@ export function profileFromEmployee(emp: Record<string, unknown> | null | undefi
 		current: Boolean(x.current),
 		description: x.description || '',
 		technologiesUsed: x.technologiesUsed || '',
+		fileUrl: x.fileUrl || '',
 	}));
 
 	const internships = parseJsonArray<ProfileInternship>(e.internships).map((x) => ({
@@ -261,6 +289,7 @@ export function profileFromEmployee(emp: Record<string, unknown> | null | undefi
 		current: Boolean(x.current),
 		description: x.description || '',
 		technologiesUsed: x.technologiesUsed || '',
+		fileUrl: x.fileUrl || '',
 	}));
 
 	return {
@@ -275,12 +304,15 @@ export function profileFromEmployee(emp: Record<string, unknown> | null | undefi
 		codeforcesUrl: String(e.codeforcesUrl || ''),
 		codechefUrl: String(e.codechefUrl || ''),
 		hackerrankUrl: String(e.hackerrankUrl || ''),
+		personalFileUrl: String(e.personalFileUrl || ''),
 
 		about: String(e.about || ''),
 		careerObjective: String(e.careerObjective || ''),
 		yearsOfExperience: String(e.yearsOfExperience || ''),
 		industry: String(e.industry || ''),
 		remarks: String(e.remarks || ''),
+		summaryFileUrl: String(e.summaryFileUrl || ''),
+		skillsFileUrl: String(e.skillsFileUrl || ''),
 
 		emergencyContactName: String(e.emergencyContactName || ''),
 		emergencyContactPhone: String(e.emergencyContactPhone || ''),
@@ -309,11 +341,13 @@ export function profileFromEmployee(emp: Record<string, unknown> | null | undefi
 			year: p.year || '',
 			url: p.url || '',
 			abstract: p.abstract || '',
+			fileUrl: p.fileUrl || '',
 		})),
 		customSections: parseJsonArray<ProfileCustomSection>(e.customSections).map((c) => ({
 			id: c.id || newId(),
 			title: c.title || '',
 			content: c.content || '',
+			fileUrl: c.fileUrl || '',
 		})),
 	};
 }
@@ -354,6 +388,7 @@ export function sanitizeProfessionalProfile(
 			current: Boolean(x.current),
 			description: clip(x.description, 1000) || undefined,
 			technologiesUsed: clip(x.technologiesUsed, 300) || undefined,
+			fileUrl: clip(x.fileUrl, 900_000) || undefined,
 		}))
 		.filter((x) => x.title || x.company);
 
@@ -369,6 +404,7 @@ export function sanitizeProfessionalProfile(
 			current: Boolean(x.current),
 			description: clip(x.description, 1000) || undefined,
 			technologiesUsed: clip(x.technologiesUsed, 300) || undefined,
+			fileUrl: clip(x.fileUrl, 900_000) || undefined,
 		}))
 		.filter((x) => x.title || x.company);
 
@@ -382,6 +418,7 @@ export function sanitizeProfessionalProfile(
 			cgpa: clip(q.cgpa, 20) || undefined,
 			from: clip(q.from, 20) || undefined,
 			to: clip(q.to, 20) || undefined,
+			fileUrl: clip(q.fileUrl, 900_000) || undefined,
 		}))
 		.filter((q) => q.institution || q.degree);
 
@@ -408,6 +445,7 @@ export function sanitizeProfessionalProfile(
 			liveUrl: clip(p.liveUrl, 500) || undefined,
 			tech: clip(p.tech, 300) || undefined,
 			description: clip(p.description, 1000) || undefined,
+			fileUrl: clip(p.fileUrl, 900_000) || undefined,
 		}))
 		.filter((p) => p.name);
 
@@ -447,6 +485,7 @@ export function sanitizeProfessionalProfile(
 			year: clip(p.year, 20) || undefined,
 			url: clip(p.url, 500) || undefined,
 			abstract: clip(p.abstract, 1200) || undefined,
+			fileUrl: clip(p.fileUrl, 900_000) || undefined,
 		}))
 		.filter((p) => p.title);
 
@@ -456,8 +495,9 @@ export function sanitizeProfessionalProfile(
 			id: clip(c.id, 40) || newId(),
 			title: clip(c.title, 160),
 			content: clip(c.content, 3000),
+			fileUrl: clip(c.fileUrl, 900_000) || undefined,
 		}))
-		.filter((c) => c.title || c.content);
+		.filter((c) => c.title || c.content || c.fileUrl);
 
 	const out: Record<string, unknown> = {
 		professionalTitle: clip(input.professionalTitle, 160) || null,
@@ -471,11 +511,14 @@ export function sanitizeProfessionalProfile(
 		codeforcesUrl: clip(input.codeforcesUrl, 500) || null,
 		codechefUrl: clip(input.codechefUrl, 500) || null,
 		hackerrankUrl: clip(input.hackerrankUrl, 500) || null,
+		personalFileUrl: clip(input.personalFileUrl, 900_000) || null,
 
 		about: clip(input.about, 4000) || null,
 		careerObjective: clip(input.careerObjective, 2000) || null,
 		yearsOfExperience: clip(input.yearsOfExperience, 20) || null,
 		industry: clip(input.industry, 100) || null,
+		summaryFileUrl: clip(input.summaryFileUrl, 900_000) || null,
+		skillsFileUrl: clip(input.skillsFileUrl, 900_000) || null,
 
 		emergencyContactName: clip(input.emergencyContactName, 80) || null,
 		emergencyContactPhone: clip(input.emergencyContactPhone, 40) || null,

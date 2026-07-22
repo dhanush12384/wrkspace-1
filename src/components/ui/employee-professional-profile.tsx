@@ -85,6 +85,57 @@ async function fileToDataUrl(file: File, maxBytes = 350_000): Promise<string> {
 	});
 }
 
+function AttachmentUpload({
+	sx,
+	fileUrl,
+	label,
+	onUploaded,
+	onCleared,
+	onError,
+}: {
+	sx: Sx;
+	fileUrl?: string;
+	label: string;
+	onUploaded: (url: string) => void;
+	onCleared?: () => void;
+	onError: (msg: string) => void;
+}) {
+	const has = Boolean(fileUrl && fileUrl !== '[set]');
+	return (
+		<div className="flex flex-wrap items-center gap-2">
+			<label className={`${sx.btnGhost} cursor-pointer`}>
+				<UploadIcon className="size-3.5" />
+				{has ? 'Replace file' : label}
+				<input
+					type="file"
+					accept="image/*,application/pdf"
+					className="hidden"
+					onChange={(e) => {
+						const f = e.target.files?.[0];
+						e.target.value = '';
+						if (!f) return;
+						void fileToDataUrl(f)
+							.then((url) => onUploaded(url))
+							.catch((err) => onError(err.message || 'Upload failed'));
+					}}
+				/>
+			</label>
+			{has ? (
+				<>
+					<a href={fileUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#0047FF] underline">
+						View file
+					</a>
+					{onCleared ? (
+						<button type="button" className="text-xs font-semibold text-[#B42318]" onClick={onCleared}>
+							Remove file
+						</button>
+					) : null}
+				</>
+			) : null}
+		</div>
+	);
+}
+
 export function EmployeeProfessionalProfileEditor({
 	employee,
 	onEmployeeUpdate,
@@ -291,20 +342,55 @@ export function EmployeeProfessionalProfileEditor({
 			</div>
 
 			{activeTab === 'personal' && (
-				<PersonalTab employee={employee} profile={profile} setField={setField} sx={sx} />
+				<PersonalTab
+					employee={employee}
+					profile={profile}
+					setField={setField}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
 			{activeTab === 'summary' && (
-				<SummaryTab profile={profile} setField={setField} sx={sx} canEditRemarks={Boolean(canEditRemarks)} />
+				<SummaryTab
+					profile={profile}
+					setField={setField}
+					sx={sx}
+					canEditRemarks={Boolean(canEditRemarks)}
+					setMsg={setMsg}
+				/>
 			)}
 			{activeTab === 'experience' && (
-				<ExperienceTab profile={profile} addItem={addItem} updateItem={updateItem} removeItem={removeItem} sx={sx} />
+				<ExperienceTab
+					profile={profile}
+					addItem={addItem}
+					updateItem={updateItem}
+					removeItem={removeItem}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
 			{activeTab === 'education' && (
-				<EducationTab profile={profile} addItem={addItem} updateItem={updateItem} removeItem={removeItem} sx={sx} />
+				<EducationTab
+					profile={profile}
+					addItem={addItem}
+					updateItem={updateItem}
+					removeItem={removeItem}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
-			{activeTab === 'skills' && <SkillsTab profile={profile} addTag={addTag} removeTag={removeTag} sx={sx} />}
+			{activeTab === 'skills' && (
+				<SkillsTab profile={profile} addTag={addTag} removeTag={removeTag} sx={sx} setField={setField} setMsg={setMsg} />
+			)}
 			{activeTab === 'projects' && (
-				<ProjectsTab profile={profile} addItem={addItem} updateItem={updateItem} removeItem={removeItem} sx={sx} />
+				<ProjectsTab
+					profile={profile}
+					addItem={addItem}
+					updateItem={updateItem}
+					removeItem={removeItem}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
 			{activeTab === 'certifications' && (
 				<CertificationsTab
@@ -317,16 +403,44 @@ export function EmployeeProfessionalProfileEditor({
 				/>
 			)}
 			{activeTab === 'achievements' && (
-				<AchievementsTab profile={profile} addItem={addItem} updateItem={updateItem} removeItem={removeItem} sx={sx} setMsg={setMsg} />
+				<AchievementsTab
+					profile={profile}
+					addItem={addItem}
+					updateItem={updateItem}
+					removeItem={removeItem}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
 			{activeTab === 'internships' && (
-				<InternshipsTab profile={profile} addItem={addItem} updateItem={updateItem} removeItem={removeItem} sx={sx} />
+				<InternshipsTab
+					profile={profile}
+					addItem={addItem}
+					updateItem={updateItem}
+					removeItem={removeItem}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
 			{activeTab === 'publications' && (
-				<PublicationsTab profile={profile} addItem={addItem} updateItem={updateItem} removeItem={removeItem} sx={sx} />
+				<PublicationsTab
+					profile={profile}
+					addItem={addItem}
+					updateItem={updateItem}
+					removeItem={removeItem}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
 			{activeTab === 'custom' && (
-				<CustomSectionsTab profile={profile} addItem={addItem} updateItem={updateItem} removeItem={removeItem} sx={sx} />
+				<CustomSectionsTab
+					profile={profile}
+					addItem={addItem}
+					updateItem={updateItem}
+					removeItem={removeItem}
+					sx={sx}
+					setMsg={setMsg}
+				/>
 			)}
 
 			<div className="flex justify-end">
@@ -468,11 +582,13 @@ function PersonalTab({
 	profile,
 	setField,
 	sx,
+	setMsg,
 }: {
 	employee: any;
 	profile: ProfessionalProfile;
 	setField: <K extends keyof ProfessionalProfile>(key: K, value: ProfessionalProfile[K]) => void;
 	sx: Sx;
+	setMsg: (m: { type: 'ok' | 'err'; text: string } | null) => void;
 }) {
 	const fullName = `${employee?.firstName || ''} ${employee?.middleName ? employee.middleName + ' ' : ''}${employee?.lastName || ''}`.trim();
 	return (
@@ -523,6 +639,19 @@ function PersonalTab({
 					<Field sx={sx} label="Relation" value={profile.emergencyContactRelation} onChange={(v) => setField('emergencyContactRelation', v)} />
 				</div>
 			</section>
+
+			<section className={sx.box}>
+				<p className={sx.label}>Attachment (optional)</p>
+				<p className={sx.muted}>Upload ID proof, address proof, or any personal document (image / PDF, under ~300KB).</p>
+				<AttachmentUpload
+					sx={sx}
+					fileUrl={profile.personalFileUrl}
+					label="Upload personal document"
+					onUploaded={(url) => setField('personalFileUrl', url)}
+					onCleared={() => setField('personalFileUrl', '')}
+					onError={(text) => setMsg({ type: 'err', text })}
+				/>
+			</section>
 		</div>
 	);
 }
@@ -534,11 +663,13 @@ function SummaryTab({
 	setField,
 	sx,
 	canEditRemarks,
+	setMsg,
 }: {
 	profile: ProfessionalProfile;
 	setField: <K extends keyof ProfessionalProfile>(key: K, value: ProfessionalProfile[K]) => void;
 	sx: Sx;
 	canEditRemarks: boolean;
+	setMsg: (m: { type: 'ok' | 'err'; text: string } | null) => void;
 }) {
 	return (
 		<section className={sx.box}>
@@ -558,13 +689,25 @@ function SummaryTab({
 					placeholder="Internal notes — only admins can set remarks and Active/Inactive status…"
 				/>
 			) : null}
+			<div className="pt-2 space-y-2">
+				<p className={sx.label}>Resume / summary attachment (optional)</p>
+				<p className={sx.muted}>Upload your full résumé PDF or summary document (image / PDF, under ~300KB).</p>
+				<AttachmentUpload
+					sx={sx}
+					fileUrl={profile.summaryFileUrl}
+					label="Upload resume / summary file"
+					onUploaded={(url) => setField('summaryFileUrl', url)}
+					onCleared={() => setField('summaryFileUrl', '')}
+					onError={(text) => setMsg({ type: 'err', text })}
+				/>
+			</div>
 		</section>
 	);
 }
 
 /* ---------- Tab 3: Experience ---------- */
 
-function ExperienceTab({ profile, addItem, updateItem, removeItem, sx }: ListTabProps) {
+function ExperienceTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.experience;
 	return (
 		<section className={sx.box}>
@@ -585,6 +728,7 @@ function ExperienceTab({ profile, addItem, updateItem, removeItem, sx }: ListTab
 							current: false,
 							description: '',
 							technologiesUsed: '',
+							fileUrl: '',
 						}))
 					}
 				/>
@@ -606,6 +750,14 @@ function ExperienceTab({ profile, addItem, updateItem, removeItem, sx }: ListTab
 					</label>
 					<TextArea sx={sx} label="Responsibilities" rows={3} value={x.description || ''} onChange={(v) => updateItem('experience', x.id, { description: v })} placeholder="What you did…" />
 					<Field sx={sx} label="Technologies used" value={x.technologiesUsed || ''} onChange={(v) => updateItem('experience', x.id, { technologiesUsed: v })} placeholder="e.g. React, Node.js, PostgreSQL" />
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={x.fileUrl}
+						label="Upload experience letter / proof"
+						onUploaded={(url) => updateItem('experience', x.id, { fileUrl: url })}
+						onCleared={() => updateItem('experience', x.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('experience', x.id)} />
 				</ItemCard>
 			))}
@@ -615,7 +767,7 @@ function ExperienceTab({ profile, addItem, updateItem, removeItem, sx }: ListTab
 
 /* ---------- Tab 4: Education ---------- */
 
-function EducationTab({ profile, addItem, updateItem, removeItem, sx }: ListTabProps) {
+function EducationTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.education;
 	return (
 		<section className={sx.box}>
@@ -624,7 +776,18 @@ function EducationTab({ profile, addItem, updateItem, removeItem, sx }: ListTabP
 				<AddButton
 					sx={sx}
 					label="Add education"
-					onClick={() => addItem('education', () => ({ id: newId(), institution: '', degree: '', specialization: '', cgpa: '', from: '', to: '' }))}
+					onClick={() =>
+						addItem('education', () => ({
+							id: newId(),
+							institution: '',
+							degree: '',
+							specialization: '',
+							cgpa: '',
+							from: '',
+							to: '',
+							fileUrl: '',
+						}))
+					}
 				/>
 			</div>
 			{list.length === 0 ? <EmptyHint sx={sx} text="No education entries yet." /> : null}
@@ -638,6 +801,14 @@ function EducationTab({ profile, addItem, updateItem, removeItem, sx }: ListTabP
 						<Field sx={sx} label="Start year" value={q.from || ''} onChange={(v) => updateItem('education', q.id, { from: v })} />
 						<Field sx={sx} label="End year" value={q.to || ''} onChange={(v) => updateItem('education', q.id, { to: v })} />
 					</div>
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={q.fileUrl}
+						label="Upload marksheet / degree"
+						onUploaded={(url) => updateItem('education', q.id, { fileUrl: url })}
+						onCleared={() => updateItem('education', q.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('education', q.id)} />
 				</ItemCard>
 			))}
@@ -652,15 +823,31 @@ function SkillsTab({
 	addTag,
 	removeTag,
 	sx,
+	setField,
+	setMsg,
 }: {
 	profile: ProfessionalProfile;
 	addTag: (cat: SkillCategoryKey, raw: string) => void;
 	removeTag: (cat: SkillCategoryKey, v: string) => void;
 	sx: Sx;
+	setField: <K extends keyof ProfessionalProfile>(key: K, value: ProfessionalProfile[K]) => void;
+	setMsg: (m: { type: 'ok' | 'err'; text: string } | null) => void;
 }) {
 	const [drafts, setDrafts] = useState<Record<string, string>>({});
 	return (
 		<div className="space-y-4">
+			<section className={sx.box}>
+				<p className={sx.label}>Skills proof (optional)</p>
+				<p className={sx.muted}>Upload a skills certificate or assessment screenshot (image / PDF, under ~300KB).</p>
+				<AttachmentUpload
+					sx={sx}
+					fileUrl={profile.skillsFileUrl}
+					label="Upload skills document"
+					onUploaded={(url) => setField('skillsFileUrl', url)}
+					onCleared={() => setField('skillsFileUrl', '')}
+					onError={(text) => setMsg({ type: 'err', text })}
+				/>
+			</section>
 			{SKILL_CATEGORIES.map(({ key, label }) => {
 				const tags = profile.skills[key] || [];
 				const draft = drafts[key] || '';
@@ -708,13 +895,28 @@ function SkillsTab({
 
 /* ---------- Tab 6: Projects ---------- */
 
-function ProjectsTab({ profile, addItem, updateItem, removeItem, sx }: ListTabProps) {
+function ProjectsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.projects;
 	return (
 		<section className={sx.box}>
 			<div className="flex items-center justify-between">
 				<p className={sx.label}>Projects</p>
-				<AddButton sx={sx} label="Add project" onClick={() => addItem('projects', () => ({ id: newId(), name: '', role: '', githubUrl: '', liveUrl: '', tech: '', description: '' }))} />
+				<AddButton
+					sx={sx}
+					label="Add project"
+					onClick={() =>
+						addItem('projects', () => ({
+							id: newId(),
+							name: '',
+							role: '',
+							githubUrl: '',
+							liveUrl: '',
+							tech: '',
+							description: '',
+							fileUrl: '',
+						}))
+					}
+				/>
 			</div>
 			{list.length === 0 ? <EmptyHint sx={sx} text="No projects yet." /> : null}
 			{list.map((p: ProfileProject) => (
@@ -727,6 +929,14 @@ function ProjectsTab({ profile, addItem, updateItem, removeItem, sx }: ListTabPr
 					</div>
 					<Field sx={sx} label="Tech stack" value={p.tech || ''} onChange={(v) => updateItem('projects', p.id, { tech: v })} placeholder="e.g. React, Express, MongoDB" />
 					<TextArea sx={sx} label="Description" rows={3} value={p.description || ''} onChange={(v) => updateItem('projects', p.id, { description: v })} />
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={p.fileUrl}
+						label="Upload screenshot / project file"
+						onUploaded={(url) => updateItem('projects', p.id, { fileUrl: url })}
+						onCleared={() => updateItem('projects', p.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('projects', p.id)} />
 				</ItemCard>
 			))}
@@ -761,26 +971,14 @@ function CertificationsTab({
 						<Field sx={sx} label="Credential URL" value={c.credentialUrl || ''} onChange={(v) => updateItem('certifications', c.id, { credentialUrl: v })} />
 						<Field sx={sx} label="Issue date" value={c.issueDate || ''} onChange={(v) => updateItem('certifications', c.id, { issueDate: v })} placeholder="e.g. Jan 2024" />
 					</div>
-					<div className="flex flex-wrap items-center gap-2">
-						<label className={`${sx.btnGhost} cursor-pointer`}>
-							<UploadIcon className="size-3.5" />
-							{c.fileUrl ? 'Replace file' : 'Upload certificate'}
-							<input
-								type="file"
-								accept="image/*,application/pdf"
-								className="hidden"
-								onChange={(e) => {
-									const f = e.target.files?.[0];
-									e.target.value = '';
-									if (!f) return;
-									void fileToDataUrl(f)
-										.then((url) => updateItem('certifications', c.id, { fileUrl: url }))
-										.catch((err) => setMsg({ type: 'err', text: err.message || 'Upload failed' }));
-								}}
-							/>
-						</label>
-						{c.fileUrl ? <span className={sx.muted}>File attached</span> : null}
-					</div>
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={c.fileUrl}
+						label="Upload certificate"
+						onUploaded={(url) => updateItem('certifications', c.id, { fileUrl: url })}
+						onCleared={() => updateItem('certifications', c.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('certifications', c.id)} />
 				</ItemCard>
 			))}
@@ -814,26 +1012,14 @@ function AchievementsTab({
 						<Field sx={sx} label="Date" value={a.date || ''} onChange={(v) => updateItem('achievements', a.id, { date: v })} />
 					</div>
 					<TextArea sx={sx} label="Description" rows={2} value={a.description || ''} onChange={(v) => updateItem('achievements', a.id, { description: v })} />
-					<div className="flex flex-wrap items-center gap-2">
-						<label className={`${sx.btnGhost} cursor-pointer`}>
-							<UploadIcon className="size-3.5" />
-							{a.fileUrl ? 'Replace file' : 'Upload certificate (optional)'}
-							<input
-								type="file"
-								accept="image/*,application/pdf"
-								className="hidden"
-								onChange={(e) => {
-									const f = e.target.files?.[0];
-									e.target.value = '';
-									if (!f) return;
-									void fileToDataUrl(f)
-										.then((url) => updateItem('achievements', a.id, { fileUrl: url }))
-										.catch((err) => setMsg({ type: 'err', text: err.message || 'Upload failed' }));
-								}}
-							/>
-						</label>
-						{a.fileUrl ? <span className={sx.muted}>File attached</span> : null}
-					</div>
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={a.fileUrl}
+						label="Upload proof / certificate"
+						onUploaded={(url) => updateItem('achievements', a.id, { fileUrl: url })}
+						onCleared={() => updateItem('achievements', a.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('achievements', a.id)} />
 				</ItemCard>
 			))}
@@ -843,7 +1029,7 @@ function AchievementsTab({
 
 /* ---------- Tab 9: Internships ---------- */
 
-function InternshipsTab({ profile, addItem, updateItem, removeItem, sx }: ListTabProps) {
+function InternshipsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.internships;
 	return (
 		<section className={sx.box}>
@@ -852,7 +1038,24 @@ function InternshipsTab({ profile, addItem, updateItem, removeItem, sx }: ListTa
 					<p className={sx.label}>Internships</p>
 					<p className={sx.muted}>Optional — same as work experience, no employment type.</p>
 				</div>
-				<AddButton sx={sx} label="Add internship" onClick={() => addItem('internships', () => ({ id: newId(), title: '', company: '', location: '', from: '', to: '', current: false, description: '', technologiesUsed: '' }))} />
+				<AddButton
+					sx={sx}
+					label="Add internship"
+					onClick={() =>
+						addItem('internships', () => ({
+							id: newId(),
+							title: '',
+							company: '',
+							location: '',
+							from: '',
+							to: '',
+							current: false,
+							description: '',
+							technologiesUsed: '',
+							fileUrl: '',
+						}))
+					}
+				/>
 			</div>
 			{list.length === 0 ? <EmptyHint sx={sx} text="No internships yet." /> : null}
 			{list.map((x: ProfileInternship) => (
@@ -870,6 +1073,14 @@ function InternshipsTab({ profile, addItem, updateItem, removeItem, sx }: ListTa
 					</label>
 					<TextArea sx={sx} label="Responsibilities" rows={3} value={x.description || ''} onChange={(v) => updateItem('internships', x.id, { description: v })} />
 					<Field sx={sx} label="Technologies used" value={x.technologiesUsed || ''} onChange={(v) => updateItem('internships', x.id, { technologiesUsed: v })} />
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={x.fileUrl}
+						label="Upload internship letter / proof"
+						onUploaded={(url) => updateItem('internships', x.id, { fileUrl: url })}
+						onCleared={() => updateItem('internships', x.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('internships', x.id)} />
 				</ItemCard>
 			))}
@@ -879,7 +1090,7 @@ function InternshipsTab({ profile, addItem, updateItem, removeItem, sx }: ListTa
 
 /* ---------- Tab 10: Publications ---------- */
 
-function PublicationsTab({ profile, addItem, updateItem, removeItem, sx }: ListTabProps) {
+function PublicationsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.publications;
 	return (
 		<section className={sx.box}>
@@ -888,7 +1099,23 @@ function PublicationsTab({ profile, addItem, updateItem, removeItem, sx }: ListT
 					<p className={sx.label}>Publications &amp; research</p>
 					<p className={sx.muted}>Optional</p>
 				</div>
-				<AddButton sx={sx} label="Add publication" onClick={() => addItem('publications', () => ({ id: newId(), title: '', authors: '', journal: '', conference: '', year: '', url: '', abstract: '' }))} />
+				<AddButton
+					sx={sx}
+					label="Add publication"
+					onClick={() =>
+						addItem('publications', () => ({
+							id: newId(),
+							title: '',
+							authors: '',
+							journal: '',
+							conference: '',
+							year: '',
+							url: '',
+							abstract: '',
+							fileUrl: '',
+						}))
+					}
+				/>
 			</div>
 			{list.length === 0 ? <EmptyHint sx={sx} text="No publications yet." /> : null}
 			{list.map((p: ProfilePublication) => (
@@ -902,6 +1129,14 @@ function PublicationsTab({ profile, addItem, updateItem, removeItem, sx }: ListT
 						<Field sx={sx} label="DOI / URL" value={p.url || ''} onChange={(v) => updateItem('publications', p.id, { url: v })} />
 					</div>
 					<TextArea sx={sx} label="Abstract / summary" rows={3} value={p.abstract || ''} onChange={(v) => updateItem('publications', p.id, { abstract: v })} />
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={p.fileUrl}
+						label="Upload paper / PDF"
+						onUploaded={(url) => updateItem('publications', p.id, { fileUrl: url })}
+						onCleared={() => updateItem('publications', p.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('publications', p.id)} />
 				</ItemCard>
 			))}
@@ -911,7 +1146,7 @@ function PublicationsTab({ profile, addItem, updateItem, removeItem, sx }: ListT
 
 /* ---------- Tab 11: Custom Sections ---------- */
 
-function CustomSectionsTab({ profile, addItem, updateItem, removeItem, sx }: ListTabProps) {
+function CustomSectionsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.customSections;
 	return (
 		<section className={sx.box}>
@@ -920,13 +1155,25 @@ function CustomSectionsTab({ profile, addItem, updateItem, removeItem, sx }: Lis
 					<p className={sx.label}>Custom sections</p>
 					<p className={sx.muted}>Optional — anything not covered above</p>
 				</div>
-				<AddButton sx={sx} label="Add section" onClick={() => addItem('customSections', () => ({ id: newId(), title: '', content: '' }))} />
+				<AddButton
+					sx={sx}
+					label="Add section"
+					onClick={() => addItem('customSections', () => ({ id: newId(), title: '', content: '', fileUrl: '' }))}
+				/>
 			</div>
 			{list.length === 0 ? <EmptyHint sx={sx} text="No custom sections yet." /> : null}
 			{list.map((c: ProfileCustomSection) => (
 				<ItemCard key={c.id}>
 					<Field sx={sx} label="Section title" value={c.title} onChange={(v) => updateItem('customSections', c.id, { title: v })} />
 					<TextArea sx={sx} label="Content" rows={4} value={c.content} onChange={(v) => updateItem('customSections', c.id, { content: v })} />
+					<AttachmentUpload
+						sx={sx}
+						fileUrl={c.fileUrl}
+						label="Upload supporting file"
+						onUploaded={(url) => updateItem('customSections', c.id, { fileUrl: url })}
+						onCleared={() => updateItem('customSections', c.id, { fileUrl: '' })}
+						onError={(text) => setMsg({ type: 'err', text })}
+					/>
 					<RemoveButton sx={sx} label="Remove" onClick={() => removeItem('customSections', c.id)} />
 				</ItemCard>
 			))}
@@ -950,4 +1197,5 @@ type ListTabProps = {
 		id: string,
 	) => void;
 	sx: Sx;
+	setMsg: (m: { type: 'ok' | 'err'; text: string } | null) => void;
 };
