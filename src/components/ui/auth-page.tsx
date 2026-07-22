@@ -381,8 +381,9 @@ export function AuthPage() {
 		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-[3fr_5fr] bg-black font-sans">
 			{/* Left Side Panel — logo, paths, quote (no Secure sign-in card) */}
 			<div className="relative hidden h-full flex-col border-r border-zinc-900 bg-black p-10 lg:flex overflow-hidden">
-				<div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-black z-0" />
-				<div className="absolute inset-0 z-0">
+				{/* Solid black only — no light corner wash */}
+				<div className="absolute inset-0 bg-black z-0" />
+				<div className="absolute inset-0 z-0 opacity-40">
 					<FloatingPaths position={1} />
 					<FloatingPaths position={-1} />
 				</div>
@@ -778,7 +779,7 @@ export function AuthPage() {
 }
 
 function FloatingPaths({ position }: { position: number }) {
-	const paths = Array.from({ length: 36 }, (_, i) => ({
+	const paths = Array.from({ length: 28 }, (_, i) => ({
 		id: i,
 		d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
 			380 - i * 5 * position
@@ -787,12 +788,12 @@ function FloatingPaths({ position }: { position: number }) {
 		} ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
 			684 - i * 5 * position
 		} ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-		width: 0.5 + i * 0.02,
+		width: 0.45 + i * 0.015,
 	}));
 
 	return (
 		<div className="pointer-events-none absolute inset-0">
-			<svg className="h-full w-full text-white" viewBox="0 0 696 316" fill="none">
+			<svg className="h-full w-full text-zinc-600" viewBox="0 0 696 316" fill="none">
 				<title>Background Paths</title>
 				{paths.map((path) => (
 					<motion.path
@@ -800,15 +801,15 @@ function FloatingPaths({ position }: { position: number }) {
 						d={path.d}
 						stroke="currentColor"
 						strokeWidth={path.width}
-						strokeOpacity={0.06 + path.id * 0.015}
-						initial={{ pathLength: 0.3, opacity: 0.5 }}
+						strokeOpacity={0.12 + path.id * 0.008}
+						initial={{ pathLength: 0.3, opacity: 0.35 }}
 						animate={{
 							pathLength: 1,
-							opacity: [0.2, 0.5, 0.2],
+							opacity: [0.2, 0.4, 0.2],
 							pathOffset: [0, 1, 0],
 						}}
 						transition={{
-							duration: 20 + Math.random() * 10,
+							duration: 22 + (path.id % 7) * 2,
 							repeat: Number.POSITIVE_INFINITY,
 							ease: 'linear',
 						}}
