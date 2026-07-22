@@ -1039,32 +1039,55 @@
 	}
 }
 
-/* --- Login mode toggle (Company/Admin vs Employee) --- */
-.ev-login-mode-toggle {
-	display: flex;
-	gap: 6px;
-	padding: 4px;
-	margin: 14px 0 6px;
-	border-radius: 12px;
-	background: rgba(255, 255, 255, 0.05);
-	border: 1px solid var(--ev-line);
+/* --- Unified sign-in overlay (public browsing stays gate-free) --- */
+.ev-signin-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+	display: grid;
+	place-items: center;
 }
 
-.ev-mode-tab {
-	flex: 1;
+.ev-signin-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(4, 8, 18, 0.72);
+	backdrop-filter: blur(3px);
+}
+
+.ev-signin-modal {
+	position: relative;
+	z-index: 1;
+	padding: 20px;
+}
+
+.ev-signin-close {
+	position: absolute;
+	top: 14px;
+	right: 14px;
 	border: 0;
+	background: rgba(255, 255, 255, 0.06);
+	color: #cbd5e1;
+	width: 30px;
+	height: 30px;
+	border-radius: 999px;
+	font-size: 18px;
+	line-height: 1;
 	cursor: pointer;
-	padding: 9px 10px;
-	border-radius: 9px;
-	font-size: 12.5px;
-	font-weight: 700;
-	background: transparent;
-	color: #94a3b8;
-	transition: background 0.15s ease, color 0.15s ease;
 }
 
-.ev-mode-tab.is-active {
-	background: #0047ff;
+.ev-signin-close:hover {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.ev-pill-muted {
+	background: rgba(255, 255, 255, 0.06);
+	border-color: var(--ev-line);
+	color: #94a3b8;
+}
+
+.ev-nav-btn-signin {
+	background: var(--ev-blue);
 	color: white;
 }
 

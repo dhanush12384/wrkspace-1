@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
-import { jsonError, requireVerification } from '@/lib/api-auth';
+import { jsonError, requireVerification, tryVerification } from '@/lib/api-auth';
 import { buildEmployeeInsights } from '@/lib/employee-dossier';
 import { profileFromEmployee, sanitizeProfessionalProfile, type ProfessionalProfile } from '@/lib/employee-professional-profile';
 
@@ -8,10 +8,15 @@ export const dynamic = 'force-dynamic';
 
 type Ctx = { params: Promise<{ id: string }> };
 
-/** Full employee dossier for company / admin verification decisions. */
+/**
+ * Employee dossier. Public / anonymous visitors ("outsiders") get general info only —
+ * no login wall, no attendance/task/leave history, no professional profile. A valid
+ * SUPER admin token unlocks the full workplace dossier.
+ */
 export async function GET(req: NextRequest, ctx: Ctx) {
 	try {
-		const user = requireVerification(req);
+		const user = tryVerification(req);
+		const isAdmin = user?.role === 'SUPER';
 		const { id } = await ctx.params;
 		const employeeId = String(id || '').trim();
 		if (!employeeId) return jsonError('Employee id required', 400);
@@ -71,6 +76,53 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 		});
 		if (!emp) return jsonError('Employee not found', 404);
 
+		const name = [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(' ').trim();
+		const tenureDays = Math.max(
+			0,
+			Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / 86_400_000),
+		);
+
+		const serialize = <T extends Record<string, unknown>>(row: T) => {
+			const out: Record<string, unknown> = { ...row };
+			for (const [k, v] of Object.entries(out)) {
+				if (v instanceof Date) out[k] = v.toISOString();
+			}
+			return out;
+		};
+
+		// Public / anonymous viewers only get general, non-sensitive info + employment
+		// status. No attendance/task/leave/event history is even queried for them — the
+		// full workplace dossier & professional profile is admin (SUPER) only.
+		if (!isAdmin) {
+			return Response.json({
+				employee: {
+					id: emp.id,
+					name,
+					email: emp.email,
+					phone: emp.phone,
+					wingName: emp.wingName,
+					wingLeadName: emp.wingLeadName,
+					role: emp.role,
+					gender: emp.gender,
+					photoUrl: emp.photoUrl,
+					createdAt: emp.createdAt?.toISOString?.() || emp.createdAt,
+					employmentStatus: emp.employmentStatus || 'Active',
+					tenureDays,
+				},
+				profile: null,
+				profileRestricted: true,
+				insights: null,
+				summary: null,
+				attendance: [],
+				tasks: [],
+				submissions: [],
+				leaves: [],
+				events: [],
+				safetyTrips: [],
+				at: new Date().toISOString(),
+			});
+		}
+
 		const [attendance, tasks, submissions, leaves, events, sosCount, trips] = await Promise.all([
 			db.attendance.findMany({
 				where: { employeeId },
@@ -116,7 +168,6 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 			}),
 		]);
 
-		const name = [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(' ').trim();
 		const myEvents = events.filter((ev) => {
 			try {
 				const reps = JSON.parse(ev.representatives || '[]') as { id?: string }[];
@@ -125,11 +176,6 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 				return String(ev.representatives || '').includes(employeeId);
 			}
 		});
-
-		const tenureDays = Math.max(
-			0,
-			Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / 86_400_000),
-		);
 
 		const insights = buildEmployeeInsights({
 			attendance,
@@ -141,42 +187,13 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 			wingName: emp.wingName,
 		});
 
-		const serialize = <T extends Record<string, unknown>>(row: T) => {
-			const out: Record<string, unknown> = { ...row };
-			for (const [k, v] of Object.entries(out)) {
-				if (v instanceof Date) out[k] = v.toISOString();
-			}
-			return out;
-		};
-
-		const isAdmin = user.role === 'SUPER';
-
-		// Public / company (outsider) viewers only get general, non-sensitive info +
-		// employment status. The full company-facing professional profile (about,
-		// education, skills, experience, projects, certifications, achievements,
-		// internships, publications, custom sections, EC, remarks, live location)
-		// is admin (SUPER) only.
-		const employeeOut = isAdmin
-			? { ...serialize(emp as any), name, tenureDays }
-			: {
-					id: emp.id,
-					name,
-					email: emp.email,
-					phone: emp.phone,
-					wingName: emp.wingName,
-					wingLeadName: emp.wingLeadName,
-					role: emp.role,
-					gender: emp.gender,
-					photoUrl: emp.photoUrl,
-					createdAt: emp.createdAt?.toISOString?.() || emp.createdAt,
-					employmentStatus: emp.employmentStatus || 'Active',
-					tenureDays,
-				};
+		// We only reach here for admin (SUPER) viewers — full, non-restricted payload.
+		const employeeOut = { ...serialize(emp as any), name, tenureDays };
 
 		return Response.json({
 			employee: employeeOut,
-			profile: isAdmin ? profileFromEmployee(emp as any) : null,
-			profileRestricted: !isAdmin,
+			profile: profileFromEmployee(emp as any),
+			profileRestricted: false,
 			insights,
 			summary: {
 				attendanceDays: attendance.length,

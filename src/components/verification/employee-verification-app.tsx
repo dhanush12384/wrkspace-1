@@ -67,17 +67,15 @@ function initials(name: string) {
 export function EmployeeVerificationApp() {
 	const [session, setSession] = useState<Session | null>(null);
 	const [ready, setReady] = useState(false);
-	const [loginMode, setLoginMode] = useState<'org' | 'employee'>('org');
+	// Public / anonymous visitors browse freely — this only controls whether the
+	// sign-in overlay (for admins & employees) is shown on top of that view.
+	const [showSignIn, setShowSignIn] = useState(false);
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [showPass, setShowPass] = useState(false);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState('');
 
-	// Employee self-service login (fill / view own professional profile only).
-	const [empEmail, setEmpEmail] = useState('');
-	const [empPassword, setEmpPassword] = useState('');
-	const [empShowPass, setEmpShowPass] = useState(false);
 	const [empRecord, setEmpRecord] = useState<any | null>(null);
 	const [statusSaving, setStatusSaving] = useState(false);
 	const [q, setQ] = useState('');
@@ -139,40 +137,62 @@ export function EmployeeVerificationApp() {
 		setError('');
 	};
 
-	/** Employees log in with their normal wrkspace credentials to fill/view ONLY their own profile. */
-	const loginEmployee = async (e: React.FormEvent) => {
+	/**
+	 * ONE sign-in form for both admins and employees — the server figures out who's who.
+	 * We try the admin/company portal login first, then fall back to the normal wrkspace
+	 * employee login. Whichever the DB recognises wins; if neither does, we show one
+	 * combined "invalid credentials" error.
+	 */
+	const loginUnified = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setBusy(true);
 		setError('');
 		try {
-			const res = await fetch('/api/auth/login', {
+			const orgRes = await fetch('/api/verification/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: empEmail, password: empPassword }),
+				body: JSON.stringify({ email, password }),
 			});
-			const data = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(data?.error || 'Login failed');
-			const emp = data.employee || {};
-			// Reuse the shared professional-profile editor's own auth lookup.
-			try {
-				localStorage.setItem(EMP_TOKEN_KEY, data.token);
-			} catch {
-				/* ignore */
+			const orgData = await orgRes.json().catch(() => ({}));
+			if (orgRes.ok) {
+				applyLogin(orgData);
+				setShowSignIn(false);
+				return;
 			}
-			setEmpRecord(emp);
-			const next: Session = {
-				token: data.token,
-				user: {
-					id: emp.id,
-					email: emp.email,
-					role: 'EMPLOYEE',
-					companyId: null,
-					companyName: null,
-					source: 'employee',
-				},
-			};
-			saveSession(next);
-			setSession(next);
+
+			const empRes = await fetch('/api/auth/login', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, password }),
+			});
+			const empData = await empRes.json().catch(() => ({}));
+			if (empRes.ok) {
+				const emp = empData.employee || {};
+				// Reuse the shared professional-profile editor's own auth lookup.
+				try {
+					localStorage.setItem(EMP_TOKEN_KEY, empData.token);
+				} catch {
+					/* ignore */
+				}
+				setEmpRecord(emp);
+				const next: Session = {
+					token: empData.token,
+					user: {
+						id: emp.id,
+						email: emp.email,
+						role: 'EMPLOYEE',
+						companyId: null,
+						companyName: null,
+						source: 'employee',
+					},
+				};
+				saveSession(next);
+				setSession(next);
+				setShowSignIn(false);
+				return;
+			}
+
+			throw new Error(orgData?.error || empData?.error || 'Invalid email or password');
 		} catch (err: any) {
 			setError(String(err?.message || err));
 		} finally {
@@ -214,26 +234,6 @@ export function EmployeeVerificationApp() {
 		}
 	};
 
-	const loginEmail = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setBusy(true);
-		setError('');
-		try {
-			const res = await fetch('/api/verification/login', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password }),
-			});
-			const data = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(data?.error || 'Login failed');
-			applyLogin(data);
-		} catch (err: any) {
-			setError(String(err?.message || err));
-		} finally {
-			setBusy(false);
-		}
-	};
-
 	const loginGoogle = async () => {
 		if (!firebaseAuth) {
 			setError('Google sign-in is not configured on this deployment.');
@@ -253,6 +253,7 @@ export function EmployeeVerificationApp() {
 			const data = await res.json().catch(() => ({}));
 			if (!res.ok) throw new Error(data?.error || 'Google login failed');
 			applyLogin(data);
+			setShowSignIn(false);
 		} catch (err: any) {
 			const code = String(err?.code || '');
 			if (code.includes('popup-closed') || code.includes('cancelled')) setError('');
@@ -263,7 +264,7 @@ export function EmployeeVerificationApp() {
 	};
 
 	const loadEmployees = useCallback(async () => {
-		if (!session?.token || session.user.role === 'EMPLOYEE') return;
+		if (session?.user.role === 'EMPLOYEE') return;
 		try {
 			const qs = q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
 			const res = await fetch(`/api/verification/employees${qs}`, {
@@ -281,7 +282,6 @@ export function EmployeeVerificationApp() {
 
 	const loadDossier = useCallback(
 		async (id: string) => {
-			if (!session?.token) return;
 			setDossierLoading(true);
 			setSelectedId(id);
 			setDossierTab('overview');
@@ -321,7 +321,7 @@ export function EmployeeVerificationApp() {
 	}, [session, authHeaders]);
 
 	useEffect(() => {
-		if (!session) return;
+		if (session?.user.role === 'EMPLOYEE') return;
 		void loadEmployees();
 	}, [session, loadEmployees]);
 
@@ -377,196 +377,88 @@ export function EmployeeVerificationApp() {
 		);
 	}
 
-	if (!session) {
-		return (
-			<main className="ev-root ev-login">
-				<div className="ev-login-grid">
-					<aside className="ev-login-brand">
-						<div className="ev-login-brand-inner">
-							<img
-								src="/branding/wrkspace-logo-on-dark.png"
-								alt="wrkspace"
-								className="ev-brand-logo"
-								onError={(e) => {
-									(e.target as HTMLImageElement).style.display = 'none';
-								}}
-							/>
-							<p className="ev-kicker">Employee verification</p>
-							<h1>Company-grade employee history</h1>
-							<p className="ev-lead">
-								One portal, three access levels — companies see general status only, employees
-								fill in their own professional profile, and wrkspace admins see and edit
-								everything.
-							</p>
-							<ul className="ev-brand-points">
-								<li>Public / company: name, role, wing &amp; active-inactive status</li>
-								<li>Employees: fill &amp; view only your own professional profile</li>
-								<li>Admins: full dossier, edits &amp; remarks for every employee</li>
-							</ul>
-						</div>
-					</aside>
+	const signInOverlay =
+		!session && showSignIn ? (
+			<div className="ev-signin-overlay">
+				<div className="ev-signin-backdrop" onClick={() => setShowSignIn(false)} />
+				<section className="ev-login-panel ev-signin-modal">
+					<div className="ev-login-card">
+						<button
+							type="button"
+							className="ev-signin-close"
+							onClick={() => setShowSignIn(false)}
+							aria-label="Close"
+						>
+							×
+						</button>
+						<p className="ev-kicker">Sign in</p>
+						<h2>Admin &amp; employee access</h2>
+						<p className="ev-sub">
+							One box for everyone — your normal wrkspace employee email &amp; password, or your{' '}
+							<strong>Admin panel</strong> / company login. We check the database and take you to the
+							right place automatically. Browsing the general directory needs no sign-in at all.
+						</p>
 
-					<section className="ev-login-panel">
-						<div className="ev-login-card">
-							<p className="ev-kicker">Sign in</p>
-							<h2>Verification access</h2>
-
-							<div className="ev-login-mode-toggle" role="tablist">
-								<button
-									type="button"
-									role="tab"
-									aria-selected={loginMode === 'org'}
-									className={`ev-mode-tab ${loginMode === 'org' ? 'is-active' : ''}`}
-									onClick={() => {
-										setLoginMode('org');
-										setError('');
-									}}
-								>
-									Company / Admin
-								</button>
-								<button
-									type="button"
-									role="tab"
-									aria-selected={loginMode === 'employee'}
-									className={`ev-mode-tab ${loginMode === 'employee' ? 'is-active' : ''}`}
-									onClick={() => {
-										setLoginMode('employee');
-										setError('');
-									}}
-								>
-									I&apos;m an employee
-								</button>
+						{error ? (
+							<div className="ev-alert ev-alert-error" role="alert">
+								<strong>{error}</strong>
 							</div>
+						) : null}
 
-							{error ? (
-								<div className="ev-alert ev-alert-error" role="alert">
-									<strong>{error}</strong>
-									{loginMode === 'org' && error.toLowerCase().includes('invalid') ? (
-										<span>
-											Employee logins go under the &quot;I&apos;m an employee&quot; tab above.
-										</span>
-									) : null}
-								</div>
-							) : null}
-
-							{loginMode === 'org' ? (
-								<>
-									<p className="ev-sub">
-										Use your <strong>Admin panel</strong> email &amp; password — or a company
-										login shared by wrkspace. General, view-only access to each employee&apos;s
-										active/inactive status and basic details. Same credentials as{' '}
-										<a href="/admin" style={{ color: '#8eb0ff' }}>
-											/admin
-										</a>
-										.
-									</p>
-									<form onSubmit={loginEmail} className="ev-form">
-										<label className="ev-field">
-											<span>Admin / company email</span>
-											<input
-												type="email"
-												required
-												autoComplete="username"
-												value={email}
-												onChange={(e) => setEmail(e.target.value)}
-												placeholder="your admin email"
-											/>
-										</label>
-										<label className="ev-field">
-											<span>Password (same as Admin panel)</span>
-											<div className="ev-pass-row">
-												<input
-													type={showPass ? 'text' : 'password'}
-													required
-													autoComplete="current-password"
-													value={password}
-													onChange={(e) => setPassword(e.target.value)}
-													placeholder="Your /admin password"
-												/>
-												<button
-													type="button"
-													className="ev-ghost-btn"
-													onClick={() => setShowPass((v) => !v)}
-												>
-													{showPass ? 'Hide' : 'Show'}
-												</button>
-											</div>
-										</label>
-										<button type="submit" disabled={busy} className="ev-btn ev-btn-primary">
-											{busy ? 'Signing in…' : 'Sign in with email'}
-										</button>
-									</form>
-
-									<div className="ev-or">
-										<span>or</span>
-									</div>
-
-									<GoogleSignInButton
-										onClick={loginGoogle}
-										disabled={busy}
-										loading={busy}
-										label="Continue with Google (admin Gmail)"
+						<form onSubmit={loginUnified} className="ev-form">
+							<label className="ev-field">
+								<span>Email</span>
+								<input
+									type="email"
+									required
+									autoComplete="username"
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									placeholder="you@wrkspace"
+								/>
+							</label>
+							<label className="ev-field">
+								<span>Password</span>
+								<div className="ev-pass-row">
+									<input
+										type={showPass ? 'text' : 'password'}
+										required
+										autoComplete="current-password"
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										placeholder="Your password"
 									/>
-								</>
-							) : (
-								<>
-									<p className="ev-sub">
-										Use your normal wrkspace employee email &amp; password. You&apos;ll be able
-										to fill in and view <strong>only your own</strong> professional profile
-										(personal info, summary, experience, education, skills, projects,
-										certifications, achievements &amp; more).
-									</p>
-									<form onSubmit={loginEmployee} className="ev-form">
-										<label className="ev-field">
-											<span>Employee email</span>
-											<input
-												type="email"
-												required
-												autoComplete="username"
-												value={empEmail}
-												onChange={(e) => setEmpEmail(e.target.value)}
-												placeholder="your employee email"
-											/>
-										</label>
-										<label className="ev-field">
-											<span>Password</span>
-											<div className="ev-pass-row">
-												<input
-													type={empShowPass ? 'text' : 'password'}
-													required
-													autoComplete="current-password"
-													value={empPassword}
-													onChange={(e) => setEmpPassword(e.target.value)}
-													placeholder="Your wrkspace password"
-												/>
-												<button
-													type="button"
-													className="ev-ghost-btn"
-													onClick={() => setEmpShowPass((v) => !v)}
-												>
-													{empShowPass ? 'Hide' : 'Show'}
-												</button>
-											</div>
-										</label>
-										<button type="submit" disabled={busy} className="ev-btn ev-btn-primary">
-											{busy ? 'Signing in…' : 'Sign in as employee'}
-										</button>
-									</form>
-								</>
-							)}
+									<button type="button" className="ev-ghost-btn" onClick={() => setShowPass((v) => !v)}>
+										{showPass ? 'Hide' : 'Show'}
+									</button>
+								</div>
+							</label>
+							<button type="submit" disabled={busy} className="ev-btn ev-btn-primary">
+								{busy ? 'Signing in…' : 'Sign in'}
+							</button>
+						</form>
 
-							<nav className="ev-login-links">
-								<a href="/admin">Admin panel</a>
-								<a href="/">Employee portal</a>
-							</nav>
+						<div className="ev-or">
+							<span>or</span>
 						</div>
-					</section>
-				</div>
-			</main>
-		);
-	}
 
-	if (session.user.role === 'EMPLOYEE') {
+						<GoogleSignInButton
+							onClick={loginGoogle}
+							disabled={busy}
+							loading={busy}
+							label="Continue with Google (admin Gmail)"
+						/>
+
+						<nav className="ev-login-links">
+							<a href="/admin">Admin panel</a>
+							<a href="/">Employee portal</a>
+						</nav>
+					</div>
+				</section>
+			</div>
+		) : null;
+
+	if (session?.user.role === 'EMPLOYEE') {
 		return (
 			<main className="ev-root ev-app">
 				<header className="ev-topbar print:hidden">
@@ -604,9 +496,11 @@ export function EmployeeVerificationApp() {
 	}
 
 	const emp = dossier?.employee;
+	const isAdmin = session?.user.role === 'SUPER';
 
 	return (
 		<main className="ev-root ev-app">
+			{signInOverlay}
 			<header className="ev-topbar print:hidden">
 				<div className="ev-topbar-inner">
 					<div className="ev-topbar-brand">
@@ -614,9 +508,18 @@ export function EmployeeVerificationApp() {
 						<div>
 							<p className="ev-kicker">Employee verification</p>
 							<p className="ev-top-user">
-								{session.user.email}
-								{session.user.companyName ? ` · ${session.user.companyName}` : ''}
-								<span className="ev-pill">{session.user.role}</span>
+								{session ? (
+									<>
+										{session.user.email}
+										{session.user.companyName ? ` · ${session.user.companyName}` : ''}
+										<span className="ev-pill">{session.user.role}</span>
+									</>
+								) : (
+									<>
+										Browsing generally
+										<span className="ev-pill ev-pill-muted">PUBLIC</span>
+									</>
+								)}
 							</p>
 						</div>
 					</div>
@@ -631,7 +534,7 @@ export function EmployeeVerificationApp() {
 						>
 							Directory
 						</button>
-						{session.user.role === 'SUPER' ? (
+						{isAdmin ? (
 							<button
 								type="button"
 								className={`ev-nav-btn ${tab === 'access' ? 'is-active' : ''}`}
@@ -640,9 +543,19 @@ export function EmployeeVerificationApp() {
 								Company access
 							</button>
 						) : null}
-						<button type="button" className="ev-nav-btn ev-nav-muted" onClick={logout}>
-							Sign out
-						</button>
+						{session ? (
+							<button type="button" className="ev-nav-btn ev-nav-muted" onClick={logout}>
+								Sign out
+							</button>
+						) : (
+							<button
+								type="button"
+								className="ev-nav-btn ev-nav-btn-signin"
+								onClick={() => setShowSignIn(true)}
+							>
+								Sign in
+							</button>
+						)}
 					</div>
 				</div>
 			</header>
@@ -653,7 +566,7 @@ export function EmployeeVerificationApp() {
 				</div>
 			) : null}
 
-			{tab === 'access' && session.user.role === 'SUPER' ? (
+			{tab === 'access' && isAdmin ? (
 				<div className="ev-shell ev-access-grid print:hidden">
 					<section className="ev-card">
 						<h2>Add verification company</h2>
@@ -874,9 +787,23 @@ export function EmployeeVerificationApp() {
 								<div className="ev-empty-art" aria-hidden />
 								<h2>Select an employee</h2>
 								<p>
-									Open a profile to review about, qualifications, certifications, experience, and
-									workplace history.
+									{isAdmin
+										? 'Open a profile to review about, qualifications, certifications, experience, and workplace history.'
+										: 'Open a profile to see their name, role, wing and active/inactive status — no sign-in required.'}
 								</p>
+								{!session ? (
+									<p className="ev-muted" style={{ marginTop: 10 }}>
+										Are you a wrkspace employee or admin?{' '}
+										<button
+											type="button"
+											className="ev-ghost-btn"
+											onClick={() => setShowSignIn(true)}
+										>
+											Sign in
+										</button>{' '}
+										to fill in your profile or manage every employee&apos;s dossier.
+									</p>
+								) : null}
 							</div>
 						) : (
 							<div className="ev-dossier" id="ev-print-area">
@@ -928,17 +855,17 @@ export function EmployeeVerificationApp() {
 								<div className="ev-toolbar print:hidden">
 									<div className="ev-tabs">
 										{(
-											[
-												['overview', 'Overview'],
-												['attendance', 'Attendance'],
-												['tasks', 'Tasks'],
-												['submissions', 'Submissions'],
-												['leaves', 'Leaves'],
-												['events', 'Events'],
-												...(session.user.role === 'SUPER'
-													? ([['edit_profile', 'Edit profile (admin)']] as [DossierTab, string][])
-													: []),
-											] as [DossierTab, string][]
+											isAdmin
+												? ([
+														['overview', 'Overview'],
+														['attendance', 'Attendance'],
+														['tasks', 'Tasks'],
+														['submissions', 'Submissions'],
+														['leaves', 'Leaves'],
+														['events', 'Events'],
+														['edit_profile', 'Edit profile (admin)'],
+													] as [DossierTab, string][])
+												: ([['overview', 'Overview']] as [DossierTab, string][])
 										).map(([id, label]) => (
 											<button
 												key={id}
@@ -963,9 +890,9 @@ export function EmployeeVerificationApp() {
 								{dossierTab === 'overview' ? (
 									<div className="ev-overview">
 										{(() => {
-											// Public / company viewers only get general info + employment status.
+											// Public / anonymous viewers only get general info + employment status.
 											// The deep company-facing professional profile is admin (SUPER) only.
-											if (session.user.role !== 'SUPER') {
+											if (!isAdmin) {
 												return (
 													<div className="ev-card">
 														<h3>General information</h3>
@@ -1434,7 +1361,7 @@ export function EmployeeVerificationApp() {
 									/>
 								) : null}
 
-								{dossierTab === 'edit_profile' && session.user.role === 'SUPER' && emp ? (
+								{dossierTab === 'edit_profile' && isAdmin && emp ? (
 									<div className="ev-admin-edit print:hidden">
 										<div className="ev-card" style={{ marginBottom: 16 }}>
 											<h3>Employment status</h3>

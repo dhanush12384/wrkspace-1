@@ -1,13 +1,16 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
-import { jsonError, requireVerification } from '@/lib/api-auth';
+import { jsonError, tryVerification } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-/** Directory of employees for verification reviewers. */
+/**
+ * Directory of employees. Public / anonymous visitors ("outsiders") get general info with
+ * zero login wall. A valid SUPER admin token unlocks live-location data too.
+ */
 export async function GET(req: NextRequest) {
 	try {
-		const authUser = requireVerification(req);
+		const authUser = tryVerification(req);
 		const q = String(req.nextUrl.searchParams.get('q') || '')
 			.trim()
 			.toLowerCase();
@@ -32,7 +35,7 @@ export async function GET(req: NextRequest) {
 			orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
 		});
 
-		const isAdmin = authUser.role === 'SUPER';
+		const isAdmin = authUser?.role === 'SUPER';
 		const rows = employees
 			.map((e) => {
 				const name = [e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ').trim();
