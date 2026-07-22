@@ -379,11 +379,12 @@ export function AuthPage() {
 	// --- AUTHENTICATION PORTAL (split: left brand + right form; no floating secure card) ---
 	return (
 		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-[3fr_5fr] bg-black font-sans">
-			{/* Left Side Panel — classic dark theme + wave paths (no Secure sign-in card, no white wash) */}
+			{/* Left Side Panel — original wave background theme (no Secure sign-in card) */}
 			<div className="relative hidden h-full flex-col border-r border-zinc-900 bg-black p-10 lg:flex overflow-hidden">
-				<div className="absolute inset-0 z-0 bg-black" />
-				{/* Soft depth only in blacks — never lightens the corner */}
-				<div className="absolute inset-0 z-0 bg-gradient-to-t from-black via-black to-[#09090b]" />
+				{/* Soft depth on black — same as before */}
+				<div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-black z-0" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.02),transparent_40%)] z-0" />
+				<div className="from-black absolute inset-0 z-10 bg-gradient-to-t to-transparent opacity-40" />
 				<div className="absolute inset-0 z-0">
 					<FloatingPaths position={1} />
 					<FloatingPaths position={-1} />
@@ -397,7 +398,7 @@ export function AuthPage() {
 					/>
 				</div>
 
-				{/* Spacer where the old Secure sign-in card used to float */}
+				{/* Spacer — Secure sign-in floating card removed */}
 				<div className="z-10 flex flex-1" aria-hidden />
 
 				<div className="z-10 mt-auto">
@@ -794,8 +795,7 @@ function FloatingPaths({ position }: { position: number }) {
 
 	return (
 		<div className="pointer-events-none absolute inset-0">
-			{/* Charcoal paths (not bright white) — same theme, no white wash */}
-			<svg className="h-full w-full text-zinc-500" viewBox="0 0 696 316" fill="none">
+			<svg className="h-full w-full text-white" viewBox="0 0 696 316" fill="none">
 				<title>Background Paths</title>
 				{paths.map((path) => (
 					<motion.path
@@ -803,15 +803,15 @@ function FloatingPaths({ position }: { position: number }) {
 						d={path.d}
 						stroke="currentColor"
 						strokeWidth={path.width}
-						strokeOpacity={Math.min(0.22, 0.05 + path.id * 0.005)}
-						initial={{ pathLength: 0.3, opacity: 0.45 }}
+						strokeOpacity={0.06 + path.id * 0.015}
+						initial={{ pathLength: 0.3, opacity: 0.5 }}
 						animate={{
 							pathLength: 1,
-							opacity: [0.25, 0.45, 0.25],
+							opacity: [0.2, 0.5, 0.2],
 							pathOffset: [0, 1, 0],
 						}}
 						transition={{
-							duration: 20 + (path.id % 8) * 1.5,
+							duration: 20 + Math.random() * 10,
 							repeat: Number.POSITIVE_INFINITY,
 							ease: 'linear',
 						}}
