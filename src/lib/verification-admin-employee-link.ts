@@ -5,6 +5,54 @@
 import { db } from '@/lib/db';
 import { signEmployeeToken } from '@/lib/api-auth';
 
+/** Full professional fields so My profile editor does not open empty / wipe on save. */
+export const linkedEmployeeSelect = {
+	id: true,
+	email: true,
+	firstName: true,
+	middleName: true,
+	lastName: true,
+	phone: true,
+	wingName: true,
+	wingLeadName: true,
+	role: true,
+	photoUrl: true,
+	gender: true,
+	employmentStatus: true,
+	professionalTitle: true,
+	about: true,
+	remarks: true,
+	city: true,
+	state: true,
+	country: true,
+	linkedinUrl: true,
+	githubUrl: true,
+	portfolioUrl: true,
+	leetcodeUrl: true,
+	codeforcesUrl: true,
+	codechefUrl: true,
+	hackerrankUrl: true,
+	careerObjective: true,
+	yearsOfExperience: true,
+	industry: true,
+	personalFileUrl: true,
+	summaryFileUrl: true,
+	skillsFileUrl: true,
+	emergencyContactName: true,
+	emergencyContactPhone: true,
+	emergencyContactRelation: true,
+	experience: true,
+	education: true,
+	skills: true,
+	projects: true,
+	certifications: true,
+	achievements: true,
+	internships: true,
+	publications: true,
+	customSections: true,
+	qualifications: true,
+} as const;
+
 export type LinkedEmployeePayload = {
 	id: string;
 	email: string;
@@ -18,22 +66,8 @@ export type LinkedEmployeePayload = {
 	photoUrl: string | null;
 	professionalTitle: string | null;
 	about: string | null;
+	[key: string]: unknown;
 };
-
-const employeeSelect = {
-	id: true,
-	email: true,
-	firstName: true,
-	middleName: true,
-	lastName: true,
-	phone: true,
-	wingName: true,
-	wingLeadName: true,
-	role: true,
-	photoUrl: true,
-	professionalTitle: true,
-	about: true,
-} as const;
 
 /**
  * Find the Employee row for a workspace Admin (by employeeId link or same email),
@@ -50,11 +84,11 @@ export async function linkAdminToEmployee(admin: {
 		.toLowerCase();
 
 	let employee = admin.employeeId
-		? await db.employee.findUnique({ where: { id: admin.employeeId }, select: employeeSelect })
+		? await db.employee.findUnique({ where: { id: admin.employeeId }, select: linkedEmployeeSelect })
 		: null;
 
 	if (!employee && email) {
-		employee = await db.employee.findUnique({ where: { email }, select: employeeSelect });
+		employee = await db.employee.findUnique({ where: { email }, select: linkedEmployeeSelect });
 	}
 
 	if (!employee) {
@@ -87,7 +121,7 @@ export async function linkAdminToEmployee(admin: {
 			employee = await db.employee.update({
 				where: { id: employee.id },
 				data: { role: 'Admin · Technical' },
-				select: employeeSelect,
+				select: linkedEmployeeSelect,
 			});
 		} catch {
 			/* keep existing role */
@@ -100,7 +134,7 @@ export async function linkAdminToEmployee(admin: {
 		role: employee.role || 'Employee',
 	});
 
-	return { employee, employeeToken };
+	return { employee: employee as LinkedEmployeePayload, employeeToken };
 }
 
 export function profileLooksIncomplete(emp: LinkedEmployeePayload | null | undefined) {

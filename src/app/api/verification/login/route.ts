@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, signVerificationToken } from '@/lib/api-auth';
-import { linkAdminToEmployee } from '@/lib/verification-admin-employee-link';
+import { linkAdminToEmployee, linkedEmployeeSelect } from '@/lib/verification-admin-employee-link';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,20 +38,7 @@ async function sessionFromPortalUser(user: {
 		} else {
 			const emp = await db.employee.findUnique({
 				where: { email: user.email },
-				select: {
-					id: true,
-					email: true,
-					firstName: true,
-					middleName: true,
-					lastName: true,
-					phone: true,
-					wingName: true,
-					wingLeadName: true,
-					role: true,
-					photoUrl: true,
-					professionalTitle: true,
-					about: true,
-				},
+				select: linkedEmployeeSelect,
 			});
 			if (emp) {
 				const { signEmployeeToken } = await import('@/lib/api-auth');

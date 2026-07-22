@@ -76,6 +76,9 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 				internships: true,
 				publications: true,
 				customSections: true,
+				personalFileUrl: true,
+				summaryFileUrl: true,
+				skillsFileUrl: true,
 			},
 		});
 		if (!emp) return jsonError('Employee not found', 404);

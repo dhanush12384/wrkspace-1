@@ -100,6 +100,7 @@ export function EmployeeVerificationApp() {
 	const [error, setError] = useState('');
 
 	const [empRecord, setEmpRecord] = useState<any | null>(null);
+	const [ownProfileLoading, setOwnProfileLoading] = useState(false);
 	const [statusSaving, setStatusSaving] = useState(false);
 	const [q, setQ] = useState('');
 	const [wingFilter, setWingFilter] = useState('all');
@@ -436,6 +437,36 @@ export function EmployeeVerificationApp() {
 		// Only when SUPER session token changes
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.token, session?.user.role, authHeaders]);
+
+	/** Always load FULL professional record for admin My profile (slim login payload is not enough). */
+	useEffect(() => {
+		if (!session?.token || session.user.role !== 'SUPER') return;
+		if (tab !== 'my_profile') return;
+		const id = session.user.employeeId || empRecord?.id;
+		if (!id) return;
+		let cancelled = false;
+		setOwnProfileLoading(true);
+		(async () => {
+			try {
+				const res = await fetch(`/api/verification/employees/${encodeURIComponent(id)}`, {
+					headers: { ...authHeaders },
+					cache: 'no-store',
+				});
+				const data = await res.json().catch(() => ({}));
+				if (!res.ok || cancelled) return;
+				if (data.employee) {
+					setEmpRecord((prev: any) => ({ ...(prev || {}), ...data.employee }));
+				}
+			} catch {
+				/* ignore */
+			} finally {
+				if (!cancelled) setOwnProfileLoading(false);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [session?.token, session?.user.role, session?.user.employeeId, empRecord?.id, tab, authHeaders]);
 
 	/** Rehydrate employee record after refresh (EMPLOYEE session only stores token). */
 	useEffect(() => {
@@ -883,10 +914,11 @@ export function EmployeeVerificationApp() {
 							Directory, and complete your own professional details here.
 						</p>
 					</div>
-					{empRecord?.id ? (
+					{empRecord?.id && !ownProfileLoading ? (
 						<EmployeeProfessionalProfileEditor
-							key={empRecord.id}
+							key={`${empRecord.id}-${String(empRecord.about || '').length}-${String(empRecord.experience || '').length}`}
 							employee={empRecord}
+							canEditRemarks
 							onEmployeeUpdate={setEmpRecord}
 							saveOverride={async (profile) => {
 								const id = linkedEmployeeId || empRecord.id;
@@ -897,7 +929,10 @@ export function EmployeeVerificationApp() {
 								});
 								const data = await res.json().catch(() => ({}));
 								if (!res.ok) throw new Error(data?.error || 'Failed to save profile');
-								return data;
+								if (data.employee) {
+									setEmpRecord((prev: any) => ({ ...(prev || {}), ...data.employee }));
+								}
+								return { employee: data.employee, profile: data.profile };
 							}}
 						/>
 					) : (
