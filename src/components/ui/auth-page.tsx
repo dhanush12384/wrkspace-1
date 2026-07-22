@@ -379,16 +379,16 @@ export function AuthPage() {
 	// --- AUTHENTICATION PORTAL (split: left brand + right form; no floating secure card) ---
 	return (
 		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-[3fr_5fr] bg-black font-sans">
-			{/* Left Side Panel — original wave background theme (no Secure sign-in card) */}
+			{/* Left Side Panel — wave paths on pure black (no top-left white wash) */}
 			<div className="relative hidden h-full flex-col border-r border-zinc-900 bg-black p-10 lg:flex overflow-hidden">
-				{/* Soft depth on black — same as before */}
-				<div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-black z-0" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.02),transparent_40%)] z-0" />
-				<div className="from-black absolute inset-0 z-10 bg-gradient-to-t to-transparent opacity-40" />
+				{/* Pure black base — no light gradients */}
+				<div className="absolute inset-0 z-0 bg-black" />
 				<div className="absolute inset-0 z-0">
 					<FloatingPaths position={1} />
 					<FloatingPaths position={-1} />
 				</div>
+				{/* Soft black veil at top so paths don't wash out the logo corner */}
+				<div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-[42%] bg-gradient-to-b from-black via-black/90 to-transparent" />
 
 				<div className="z-10 flex items-center gap-2">
 					<img
