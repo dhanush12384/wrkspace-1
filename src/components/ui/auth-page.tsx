@@ -373,13 +373,13 @@ export function AuthPage() {
 
 	// ─── AUTHENTICATION PORTAL VIEWS ───
 	return (
-		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-[3fr_5fr] bg-zinc-950 font-sans">
+		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-[3fr_5fr] bg-black font-sans">
 			{/* Left Side Panel (Brand/Quote) */}
-			<div className="relative hidden h-full flex-col border-r border-zinc-800/80 bg-zinc-950 p-10 lg:flex overflow-hidden">
-				{/* Premium dust grey background shading */}
-				<div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 z-0" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.015),transparent_40%)] z-0" />
-				<div className="from-zinc-950 absolute inset-0 z-10 bg-gradient-to-t to-transparent opacity-40" />
+			<div className="relative hidden h-full flex-col border-r border-zinc-900 bg-black p-10 lg:flex overflow-hidden">
+				{/* Soft depth on black */}
+				<div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-black z-0" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.02),transparent_40%)] z-0" />
+				<div className="from-black absolute inset-0 z-10 bg-gradient-to-t to-transparent opacity-40" />
 
 				<div className="z-10 flex items-center gap-2">
 					<img src="/branding/wrkspace-logo-on-dark.png?v=20260717" alt="wrkspace" className="h-10 w-auto object-contain" />
@@ -402,10 +402,10 @@ export function AuthPage() {
 			</div>
 
 			{/* Right Side Panel (Form) */}
-			<div className="relative flex min-h-screen flex-col justify-center bg-zinc-950 p-8 lg:p-12 overflow-hidden">
-				{/* Premium background shading gradients for right side */}
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_70%)] z-0" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.02),transparent_50%)] z-0" />
+			<div className="relative flex min-h-screen flex-col justify-center bg-black p-8 lg:p-12 overflow-hidden">
+				{/* Soft accents on black */}
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.04),transparent_70%)] z-0" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.025),transparent_50%)] z-0" />
 
 				{/* Form wrapper */}
 				<div className="w-full max-w-[420px] mx-auto z-10">
@@ -503,7 +503,7 @@ export function AuthPage() {
 										<div className="w-full border-t border-zinc-800" />
 									</div>
 									<div className="relative flex justify-center text-[11px] uppercase tracking-widest">
-										<span className="bg-zinc-950 px-3 text-zinc-500 font-mono font-bold">or</span>
+										<span className="bg-black px-3 text-zinc-500 font-mono font-bold">or</span>
 									</div>
 								</div>
 
