@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, signVerificationToken } from '@/lib/api-auth';
+import { linkAdminToEmployee } from '@/lib/verification-admin-employee-link';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,8 +25,50 @@ async function sessionFromPortalUser(user: {
 		where: { id: user.id },
 		data: { lastLoginAt: new Date() },
 	});
+
+	// Portal SUPER may also be a workspace person — attach linked employee if same email
+	let linkedEmployee = null as Awaited<ReturnType<typeof linkAdminToEmployee>>['employee'];
+	let employeeToken = null as string | null;
+	if (role === 'SUPER') {
+		const admin = await db.admin.findUnique({ where: { email: user.email } });
+		if (admin) {
+			const linked = await linkAdminToEmployee(admin);
+			linkedEmployee = linked.employee;
+			employeeToken = linked.employeeToken;
+		} else {
+			const emp = await db.employee.findUnique({
+				where: { email: user.email },
+				select: {
+					id: true,
+					email: true,
+					firstName: true,
+					middleName: true,
+					lastName: true,
+					phone: true,
+					wingName: true,
+					wingLeadName: true,
+					role: true,
+					photoUrl: true,
+					professionalTitle: true,
+					about: true,
+				},
+			});
+			if (emp) {
+				const { signEmployeeToken } = await import('@/lib/api-auth');
+				linkedEmployee = emp;
+				employeeToken = signEmployeeToken({
+					id: emp.id,
+					email: emp.email,
+					role: emp.role || 'Employee',
+				});
+			}
+		}
+	}
+
 	return {
 		token,
+		employeeToken,
+		linkedEmployee,
 		user: {
 			id: user.id,
 			email: user.email,
@@ -33,11 +76,18 @@ async function sessionFromPortalUser(user: {
 			companyId: user.companyId,
 			companyName: user.company?.name || null,
 			source: 'portal' as const,
+			employeeId: linkedEmployee?.id || null,
 		},
 	};
 }
 
-async function sessionFromWorkspaceAdmin(admin: { id: string; email: string; organizationName?: string | null }) {
+async function sessionFromWorkspaceAdmin(admin: {
+	id: string;
+	email: string;
+	organizationName?: string | null;
+	employeeId?: string | null;
+}) {
+	const linked = await linkAdminToEmployee(admin);
 	const token = signVerificationToken({
 		id: admin.id,
 		email: admin.email,
@@ -48,6 +98,8 @@ async function sessionFromWorkspaceAdmin(admin: { id: string; email: string; org
 	});
 	return {
 		token,
+		employeeToken: linked.employeeToken,
+		linkedEmployee: linked.employee,
 		user: {
 			id: admin.id,
 			email: admin.email,
@@ -55,6 +107,7 @@ async function sessionFromWorkspaceAdmin(admin: { id: string; email: string; org
 			companyId: null,
 			companyName: admin.organizationName || 'wrkspace',
 			source: 'workspace_admin' as const,
+			employeeId: linked.employee?.id || null,
 		},
 	};
 }

@@ -38,6 +38,8 @@ type PortalUser = {
 	companyId?: string | null;
 	companyName?: string | null;
 	source: string;
+	/** Linked Employee.id when this SUPER is also a technical/employee person */
+	employeeId?: string | null;
 };
 
 type Session = { token: string; user: PortalUser };
@@ -56,6 +58,7 @@ type EmpRow = {
 };
 
 type DossierTab = 'overview' | 'attendance' | 'tasks' | 'submissions' | 'leaves' | 'events' | 'edit_profile';
+type AppTab = 'directory' | 'access' | 'my_profile';
 
 function loadSession(): Session | null {
 	try {
@@ -102,7 +105,7 @@ export function EmployeeVerificationApp() {
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [dossier, setDossier] = useState<any | null>(null);
 	const [dossierLoading, setDossierLoading] = useState(false);
-	const [tab, setTab] = useState<'directory' | 'access'>('directory');
+	const [tab, setTab] = useState<AppTab>('directory');
 	const [dossierTab, setDossierTab] = useState<DossierTab>('overview');
 	const [copied, setCopied] = useState('');
 
@@ -153,6 +156,16 @@ export function EmployeeVerificationApp() {
 		saveSession(next);
 		setSession(next);
 		setError('');
+		if (data.employeeToken) {
+			try {
+				localStorage.setItem(EMP_TOKEN_KEY, data.employeeToken);
+			} catch {
+				/* ignore */
+			}
+		}
+		if (data.linkedEmployee) {
+			setEmpRecord(data.linkedEmployee);
+		}
 	};
 
 	/**
@@ -372,6 +385,45 @@ export function EmployeeVerificationApp() {
 		if (session?.user.role === 'SUPER' && tab === 'access') void loadAccess();
 	}, [session, tab, loadAccess]);
 
+	/** Rehydrate linked employee for SUPER (merged Admin · Technical) after refresh / old sessions. */
+	useEffect(() => {
+		if (!session?.token || session.user.role !== 'SUPER') return;
+		let cancelled = false;
+		(async () => {
+			try {
+				const res = await fetch('/api/verification/me', {
+					headers: { ...authHeaders },
+					cache: 'no-store',
+				});
+				const data = await res.json().catch(() => ({}));
+				if (!res.ok || cancelled) return;
+				if (data.employeeToken) {
+					try {
+						localStorage.setItem(EMP_TOKEN_KEY, data.employeeToken);
+					} catch {
+						/* ignore */
+					}
+				}
+				if (data.linkedEmployee) setEmpRecord(data.linkedEmployee);
+				if (data.employeeId && session.user.employeeId !== data.employeeId) {
+					const next: Session = {
+						...session,
+						user: { ...session.user, employeeId: data.employeeId },
+					};
+					saveSession(next);
+					setSession(next);
+				}
+			} catch {
+				/* ignore */
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+		// Only when SUPER session token changes
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [session?.token, session?.user.role, authHeaders]);
+
 	const printReport = () => {
 		window.print();
 	};
@@ -556,6 +608,15 @@ export function EmployeeVerificationApp() {
 
 	const emp = dossier?.employee;
 	const isAdmin = session.user.role === 'SUPER';
+	const linkedEmployeeId = session.user.employeeId || empRecord?.id || null;
+	const hasOwnEmployeeProfile = Boolean(isAdmin && linkedEmployeeId);
+	const ownProfileIncomplete = Boolean(
+		hasOwnEmployeeProfile &&
+			empRecord &&
+			!(
+				String(empRecord.professionalTitle || '').trim() && String(empRecord.about || '').trim()
+			),
+	);
 
 	return (
 		<main className="ev-root ev-app">
@@ -568,7 +629,11 @@ export function EmployeeVerificationApp() {
 								{session.user.email}
 								{session.user.companyName ? ` · ${session.user.companyName}` : ''}
 								<span className="ev-pill">
-									{session.user.role === 'COMPANY' ? 'PUBLIC' : session.user.role}
+									{session.user.role === 'COMPANY'
+										? 'PUBLIC'
+										: hasOwnEmployeeProfile
+											? 'ADMIN · TECHNICAL'
+											: session.user.role}
 								</span>
 							</p>
 						</div>
@@ -584,6 +649,15 @@ export function EmployeeVerificationApp() {
 						>
 							Directory
 						</button>
+						{hasOwnEmployeeProfile ? (
+							<button
+								type="button"
+								className={`ev-nav-btn ${tab === 'my_profile' ? 'is-active' : ''}`}
+								onClick={() => setTab('my_profile')}
+							>
+								My professional profile
+							</button>
+						) : null}
 						{isAdmin ? (
 							<button
 								type="button"
@@ -603,6 +677,21 @@ export function EmployeeVerificationApp() {
 			{error ? (
 				<div className="ev-shell">
 					<div className="ev-alert ev-alert-error print:hidden">{error}</div>
+				</div>
+			) : null}
+
+			{ownProfileIncomplete && tab !== 'my_profile' ? (
+				<div className="ev-shell print:hidden">
+					<div className="ev-alert ev-alert-info" role="status">
+						<strong>Complete your professional profile.</strong>
+						<span>
+							You manage everyone as admin — and you also need to fill your own professional details
+							(Admin · Technical).
+						</span>
+						<button type="button" className="ev-btn ev-btn-primary" onClick={() => setTab('my_profile')}>
+							Fill my profile
+						</button>
+					</div>
 				</div>
 			) : null}
 
@@ -737,6 +826,39 @@ export function EmployeeVerificationApp() {
 							) : null}
 						</ul>
 					</section>
+				</div>
+			) : tab === 'my_profile' && hasOwnEmployeeProfile ? (
+				<div className="ev-shell print:hidden">
+					<div className="ev-card" style={{ marginBottom: 16 }}>
+						<h2 style={{ margin: 0 }}>My professional profile</h2>
+						<p className="ev-muted" style={{ marginTop: 6 }}>
+							You are signed in as <strong>Admin · Technical</strong> — manage every employee from
+							Directory, and complete your own professional details here.
+						</p>
+					</div>
+					{empRecord?.id ? (
+						<EmployeeProfessionalProfileEditor
+							key={empRecord.id}
+							employee={empRecord}
+							onEmployeeUpdate={setEmpRecord}
+							saveOverride={async (profile) => {
+								const id = linkedEmployeeId || empRecord.id;
+								const res = await fetch(`/api/verification/employees/${encodeURIComponent(id)}`, {
+									method: 'PATCH',
+									headers: { 'Content-Type': 'application/json', ...authHeaders },
+									body: JSON.stringify(profile),
+								});
+								const data = await res.json().catch(() => ({}));
+								if (!res.ok) throw new Error(data?.error || 'Failed to save profile');
+								return data;
+							}}
+						/>
+					) : (
+						<div className="ev-card">
+							<div className="ev-spinner" />
+							<p className="ev-muted">Loading your employee profile…</p>
+						</div>
+					)}
 				</div>
 			) : (
 				<div className="ev-shell ev-workspace">

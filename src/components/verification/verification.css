@@ -319,6 +319,20 @@
 	color: #fecdd3;
 }
 
+.ev-alert-info {
+	border: 1px solid rgba(0, 71, 255, 0.4);
+	background: rgba(0, 71, 255, 0.12);
+	color: #bfdbfe;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 14px;
+}
+
+.ev-alert-info .ev-btn {
+	margin-left: auto;
+}
+
 /* —— App shell —— */
 .ev-topbar {
 	position: sticky;

@@ -1,15 +1,17 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, signEmployeeToken, signVerificationToken } from '@/lib/api-auth';
+import { linkAdminToEmployee } from '@/lib/verification-admin-employee-link';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * After Firebase Google sign-in — works for everyone on this portal:
- * 1) portal / company account → public/company general view (or SUPER if portal SUPER)
- * 2) workspace admin → full admin dossier
- * 3) employee email → professional profile self-service
- * 4) any other Google account → public viewer (general employee info only)
+ * 1) portal / company account
+ * 2) workspace admin (merged with Employee when same email / employeeId) → SUPER + own profile
+ * 3) employee who is also a non–team-lead admin → same merged SUPER session
+ * 4) employee-only → professional profile self-service
+ * 5) any other Google account → public viewer (general info only)
  */
 export async function POST(req: NextRequest) {
 	try {
@@ -41,9 +43,23 @@ export async function POST(req: NextRequest) {
 				where: { id: portal.id },
 				data: { lastLoginAt: new Date() },
 			});
+
+			let linkedEmployee = null as Awaited<ReturnType<typeof linkAdminToEmployee>>['employee'];
+			let employeeToken = null as string | null;
+			if (role === 'SUPER') {
+				const adminRow = await db.admin.findUnique({ where: { email } });
+				if (adminRow) {
+					const linked = await linkAdminToEmployee(adminRow);
+					linkedEmployee = linked.employee;
+					employeeToken = linked.employeeToken;
+				}
+			}
+
 			return Response.json({
 				ok: true,
 				token,
+				employeeToken,
+				linkedEmployee,
 				user: {
 					id: portal.id,
 					email: portal.email,
@@ -51,12 +67,14 @@ export async function POST(req: NextRequest) {
 					companyId: portal.companyId,
 					companyName: portal.company?.name || null,
 					source: 'portal',
+					employeeId: linkedEmployee?.id || null,
 				},
 			});
 		}
 
 		const admin = await db.admin.findUnique({ where: { email } });
 		if (admin && !admin.isTeamLead) {
+			const linked = await linkAdminToEmployee(admin);
 			const token = signVerificationToken({
 				id: admin.id,
 				email: admin.email,
@@ -68,6 +86,8 @@ export async function POST(req: NextRequest) {
 			return Response.json({
 				ok: true,
 				token,
+				employeeToken: linked.employeeToken,
+				linkedEmployee: linked.employee,
 				user: {
 					id: admin.id,
 					email: admin.email,
@@ -75,6 +95,7 @@ export async function POST(req: NextRequest) {
 					companyId: null,
 					companyName: admin.organizationName || 'wrkspace',
 					source: 'workspace_admin',
+					employeeId: linked.employee?.id || null,
 				},
 			});
 		}
@@ -98,6 +119,7 @@ export async function POST(req: NextRequest) {
 					companyId: null,
 					companyName: null,
 					source: 'employee',
+					employeeId: employee.id,
 				},
 			});
 		}
@@ -122,6 +144,7 @@ export async function POST(req: NextRequest) {
 				companyId: null,
 				companyName: 'Public',
 				source: 'public_google',
+				employeeId: null,
 			},
 		});
 	} catch (e: any) {
