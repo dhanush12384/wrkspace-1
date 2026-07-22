@@ -514,7 +514,7 @@ export function EmployeeVerificationApp() {
 				<div className="ev-login-grid">
 					<aside className="ev-login-brand">
 						<div className="ev-login-brand-inner">
-							<p className="ev-kicker">Employee Verification Portal</p>
+							<p className="ev-brand-title">Employee verification portal</p>
 							<h1>One login for employees &amp; admins</h1>
 							<VerificationAccessAnimation />
 						</div>
@@ -523,10 +523,10 @@ export function EmployeeVerificationApp() {
 					<section className="ev-login-panel">
 						<div className="ev-login-card">
 							<p className="ev-kicker">Sign in</p>
-							<h2>Verification portal</h2>
+							<h2>Welcome back</h2>
 							<p className="ev-sub">
-								Employees and admins only. Use your email &amp; password or Google — we open the
-								matching panel (professional profile or full admin dossier).
+								Employees and admins only. Sign in with email or Google to open your professional
+								profile or admin dossier.
 							</p>
 
 							{error ? (

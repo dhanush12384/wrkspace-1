@@ -51,19 +51,39 @@
 	color: var(--ev-blue);
 }
 
+/* Login brand title — sentence case (not ALL CAPS) */
+.ev-login-brand .ev-brand-title {
+	margin: 0;
+	font-size: 0.95rem;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	text-transform: none;
+	color: #0f172a;
+}
+
+.ev-login-card .ev-kicker {
+	text-transform: none;
+	letter-spacing: 0.04em;
+	font-weight: 600;
+	font-size: 12px;
+}
+
 /* —— Login —— */
 .ev-login-grid {
 	display: grid;
 	min-height: 100vh;
-	grid-template-columns: 1.1fr 0.9fr;
+	grid-template-columns: 1.15fr 0.85fr;
 	background: #ffffff;
 }
 
 .ev-login-brand {
 	position: relative;
-	padding: 40px 48px 48px;
+	padding: 36px 40px 40px;
 	border-right: 1px solid var(--ev-line);
-	background: #ffffff;
+	background:
+		radial-gradient(120% 80% at 10% 0%, rgba(0, 71, 255, 0.06), transparent 55%),
+		radial-gradient(90% 70% at 90% 100%, rgba(14, 165, 233, 0.05), transparent 50%),
+		linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
@@ -77,7 +97,7 @@
 	position: relative;
 	z-index: 1;
 	width: 100%;
-	max-width: 900px;
+	max-width: 980px;
 	margin: 0 auto;
 	display: flex;
 	flex-direction: column;
@@ -93,12 +113,13 @@
 }
 
 .ev-login-brand h1 {
-	margin: 10px 0 0;
-	font-size: clamp(1.75rem, 2.8vw, 2.4rem);
-	line-height: 1.15;
-	letter-spacing: -0.03em;
+	margin: 8px 0 0;
+	font-size: clamp(1.85rem, 3.2vw, 2.65rem);
+	line-height: 1.12;
+	letter-spacing: -0.035em;
 	font-weight: 600;
 	color: #0f172a;
+	max-width: 16ch;
 }
 
 .ev-lead {
@@ -113,50 +134,58 @@
 }
 
 .ev-login-anim {
-	margin-top: auto;
-	margin-bottom: auto;
+	margin-top: 20px;
+	margin-bottom: 0;
 	width: 100%;
-	max-width: 860px;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	border-radius: 0;
-	overflow: hidden;
+	overflow: visible;
 	border: 0;
-	background: #ffffff;
+	background: transparent;
 	box-shadow: none;
-	padding: 8px 0 0;
+	padding: 0;
 }
 
 .ev-login-anim-video {
 	display: block;
 	width: 100%;
-	height: auto;
-	max-height: min(82vh, 720px);
-	min-height: min(52vh, 480px);
-	aspect-ratio: auto;
+	height: min(88vh, 820px);
+	max-height: min(88vh, 820px);
+	min-height: min(62vh, 560px);
 	object-fit: contain;
-	background: #ffffff;
+	background: transparent;
 	mix-blend-mode: normal;
 }
 
 .ev-login-panel {
 	display: grid;
 	place-items: center;
-	padding: 32px 20px;
-	background: #f8fafc;
+	padding: 40px 28px;
+	background:
+		radial-gradient(80% 60% at 80% 20%, rgba(0, 71, 255, 0.04), transparent 55%),
+		#f1f5f9;
 }
 
 .ev-login-card {
-	width: min(460px, 100%);
-	padding: 28px;
-	border-radius: 20px;
-	border: 1px solid var(--ev-line);
+	width: min(420px, 100%);
+	padding: 32px 28px;
+	border-radius: 22px;
+	border: 1px solid rgba(148, 163, 184, 0.35);
 	background: #ffffff;
-	box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.8) inset,
+		0 24px 48px rgba(15, 23, 42, 0.08);
 }
 
 .ev-login-card h2 {
-	margin: 8px 0 0;
-	font-size: 1.65rem;
-	letter-spacing: -0.02em;
+	margin: 6px 0 0;
+	font-size: 1.7rem;
+	letter-spacing: -0.03em;
+	font-weight: 600;
 	color: #0f172a;
 }
 
@@ -178,12 +207,12 @@
 	gap: 6px;
 }
 
-.ev-field > span {
-	font-size: 11px;
-	font-weight: 700;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-	color: #64748b;
+.ev-login-card .ev-field > span {
+	text-transform: none;
+	letter-spacing: 0.01em;
+	font-weight: 600;
+	font-size: 12px;
+	color: #475569;
 }
 
 .ev-field input,
@@ -1020,12 +1049,25 @@
 		grid-template-columns: 1fr;
 	}
 	.ev-login-brand {
-		padding: 28px 20px 20px;
+		padding: 28px 20px 12px;
 		border-right: 0;
 		border-bottom: 1px solid var(--ev-line);
+		min-height: auto;
 	}
 	.ev-login-brand-inner {
 		margin-top: 0;
+	}
+	.ev-login-brand h1 {
+		max-width: none;
+		font-size: clamp(1.5rem, 6vw, 2rem);
+	}
+	.ev-login-anim-video {
+		height: min(48vh, 420px);
+		max-height: min(48vh, 420px);
+		min-height: 260px;
+	}
+	.ev-login-panel {
+		padding: 28px 16px 40px;
 	}
 	.ev-workspace,
 	.ev-access-grid,
