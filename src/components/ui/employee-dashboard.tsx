@@ -545,6 +545,14 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 		}
 	};
 
+	if (!employee?.id) {
+		return (
+			<div className="flex min-h-[40vh] items-center justify-center p-8 text-sm text-slate-500">
+				Loading your profile…
+			</div>
+		);
+	}
+
 	return (
 			<main className={cn(
 			"employee-portal bg-[#e8edf5] text-slate-900 relative flex flex-col font-sans",

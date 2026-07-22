@@ -437,6 +437,29 @@ export function EmployeeVerificationApp() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [session?.token, session?.user.role, authHeaders]);
 
+	/** Rehydrate employee record after refresh (EMPLOYEE session only stores token). */
+	useEffect(() => {
+		if (!session?.token || session.user.role !== 'EMPLOYEE') return;
+		if (empRecord?.id) return;
+		let cancelled = false;
+		(async () => {
+			try {
+				const res = await fetch('/api/auth/me', {
+					headers: { Authorization: `Bearer ${session.token}` },
+					cache: 'no-store',
+				});
+				const data = await res.json().catch(() => ({}));
+				if (!res.ok || cancelled) return;
+				if (data.employee) setEmpRecord(data.employee);
+			} catch {
+				/* ignore */
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [session?.token, session?.user.role, empRecord?.id]);
+
 	const printReport = () => {
 		window.print();
 	};

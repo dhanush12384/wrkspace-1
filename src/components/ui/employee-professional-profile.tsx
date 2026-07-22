@@ -236,6 +236,14 @@ export function EmployeeProfessionalProfileEditor({
 		);
 	}
 
+	if (!employee?.id) {
+		return (
+			<div className="rounded-xl border border-[#E2E8F0] bg-white p-6 text-sm text-[#64748B]">
+				Loading your employee profile…
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-5">
 			<div className="flex flex-wrap items-end justify-between gap-3">
@@ -466,15 +474,15 @@ function PersonalTab({
 	setField: <K extends keyof ProfessionalProfile>(key: K, value: ProfessionalProfile[K]) => void;
 	sx: Sx;
 }) {
-	const fullName = `${employee.firstName || ''} ${employee.middleName ? employee.middleName + ' ' : ''}${employee.lastName || ''}`.trim();
+	const fullName = `${employee?.firstName || ''} ${employee?.middleName ? employee.middleName + ' ' : ''}${employee?.lastName || ''}`.trim();
 	return (
 		<div className="space-y-4">
 			<section className={sx.box}>
 				<p className={sx.label}>Account details (managed by admin)</p>
 				<div className="grid gap-3 sm:grid-cols-2">
-					<Field sx={sx} label="Full name" value={fullName} readOnly required />
-					<Field sx={sx} label="Email" value={employee.email || ''} readOnly required />
-					<Field sx={sx} label="Phone" value={employee.phone || ''} readOnly required />
+					<Field sx={sx} label="Full name" value={fullName || '—'} readOnly required />
+					<Field sx={sx} label="Email" value={employee?.email || ''} readOnly required />
+					<Field sx={sx} label="Phone" value={employee?.phone || ''} readOnly required />
 					<Field sx={sx} label="Professional title" value={profile.professionalTitle} onChange={(v) => setField('professionalTitle', v)} placeholder="e.g. Full Stack Developer" />
 				</div>
 			</section>
