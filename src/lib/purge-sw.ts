@@ -1,6 +1,6 @@
 'use client';
 
-const PURGE_FLAG = 'wrkspace_sw_purged_v3';
+const PURGE_FLAG = 'wrkspace_sw_purged_v4';
 
 /**
  * One-shot cleanup of broken Firebase/FCM service workers.

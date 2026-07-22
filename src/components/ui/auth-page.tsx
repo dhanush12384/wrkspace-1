@@ -130,6 +130,11 @@ export function AuthPage() {
 	const [loggedInEmployee, setLoggedInEmployee] = useState<any>(null);
 	const [sessionRestored, setSessionRestored] = useState(false);
 
+	// Drop stale SW/caches so users don't keep seeing the old split login
+	useEffect(() => {
+		void import('@/lib/purge-sw').then((m) => m.purgeBrokenServiceWorkers());
+	}, []);
+
 	// Restore session from localStorage, then refresh from Neon (home/gender stay in sync)
 	useEffect(() => {
 		(async () => {
@@ -466,7 +471,7 @@ export function AuthPage() {
 								<Button
 									type="submit"
 									disabled={isLoading}
-									className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold transition-all duration-200 cursor-pointer"
+									className="w-full h-12 rounded-lg bg-[#5B5CF0] hover:bg-[#4F50E5] disabled:opacity-50 text-white text-[15px] font-bold transition-all duration-200 cursor-pointer shadow-none"
 								>
 									<span>{isLoading ? 'Processing...' : 'Continue With Email'}</span>
 								</Button>
