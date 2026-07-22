@@ -201,8 +201,8 @@ export function PeerColleagueView({ authHeaders }: Props) {
 			<div className="ev-card" style={{ maxWidth: 480 }}>
 				<h2 style={{ margin: 0 }}>View another employee</h2>
 				<p className="ev-muted" style={{ marginTop: 8 }}>
-					Enter their employee ID. An OTP is emailed to them — once they share it, you can view their
-					profile in read-only mode.
+					Enter their employee ID. An OTP is emailed to <strong>their</strong> registered email (not
+					yours). Ask them to share the code, then enter it below for a read-only view.
 				</p>
 
 				{err ? (
@@ -222,7 +222,7 @@ export function PeerColleagueView({ authHeaders }: Props) {
 							<span>Employee ID</span>
 							<input
 								value={employeeId}
-								onChange={(e) => setEmployeeId(e.target.value.toUpperCase())}
+								onChange={(e) => setEmployeeId(e.target.value.trim())}
 								placeholder="e.g. A1B2C3"
 								required
 								autoComplete="off"

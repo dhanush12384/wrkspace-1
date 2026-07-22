@@ -27,14 +27,22 @@ export async function POST(req: NextRequest) {
 	try {
 		const viewer = requireMember(req);
 		const body = await req.json().catch(() => ({}));
-		const employeeId = String(body?.employeeId || '')
-			.trim()
-			.toUpperCase();
+		const employeeId = String(body?.employeeId || '').trim();
 		const otp = String(body?.otp || '').trim();
 		if (!employeeId || !otp) return jsonError('Employee ID and OTP required', 400);
 		if (otp.length !== 6) return jsonError('OTP must be 6 digits', 400);
 
-		const target = await db.employee.findUnique({ where: { id: employeeId } });
+		let target = await db.employee.findUnique({ where: { id: employeeId } });
+		if (!target) {
+			target = await db.employee.findUnique({ where: { id: employeeId.toUpperCase() } });
+		}
+		if (!target) {
+			const rows = await db.employee.findMany({
+				where: { id: { equals: employeeId, mode: 'insensitive' } },
+				take: 1,
+			});
+			target = rows[0] || null;
+		}
 		if (!target) return jsonError('No employee found with that ID', 404);
 		if (target.id === viewer.viewerId) {
 			return jsonError('You already have your own profile', 400);
