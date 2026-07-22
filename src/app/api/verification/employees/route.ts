@@ -1,16 +1,17 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
-import { jsonError, tryVerification } from '@/lib/api-auth';
+import { jsonError, requireVerification } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Directory of employees. Public / anonymous visitors ("outsiders") get general info with
- * zero login wall. A valid SUPER admin token unlocks live-location data too.
+ * Directory of employees. Everyone must sign in first (one unified login page for
+ * admins, employees & public/company accounts). A valid SUPER admin token unlocks
+ * live-location data too; company/public accounts only ever get general info.
  */
 export async function GET(req: NextRequest) {
 	try {
-		const authUser = tryVerification(req);
+		const authUser = requireVerification(req);
 		const q = String(req.nextUrl.searchParams.get('q') || '')
 			.trim()
 			.toLowerCase();
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
 			orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
 		});
 
-		const isAdmin = authUser?.role === 'SUPER';
+		const isAdmin = authUser.role === 'SUPER';
 		const rows = employees
 			.map((e) => {
 				const name = [e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ').trim();

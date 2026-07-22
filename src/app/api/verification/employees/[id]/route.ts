@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
-import { jsonError, requireVerification, tryVerification } from '@/lib/api-auth';
+import { jsonError, requireVerification } from '@/lib/api-auth';
 import { buildEmployeeInsights } from '@/lib/employee-dossier';
 import { profileFromEmployee, sanitizeProfessionalProfile, type ProfessionalProfile } from '@/lib/employee-professional-profile';
 
@@ -9,14 +9,15 @@ export const dynamic = 'force-dynamic';
 type Ctx = { params: Promise<{ id: string }> };
 
 /**
- * Employee dossier. Public / anonymous visitors ("outsiders") get general info only —
- * no login wall, no attendance/task/leave history, no professional profile. A valid
+ * Employee dossier. Everyone must sign in first (one unified login page for admins,
+ * employees & public/company accounts). Company/public accounts only ever get
+ * general info — no attendance/task/leave history, no professional profile. A valid
  * SUPER admin token unlocks the full workplace dossier.
  */
 export async function GET(req: NextRequest, ctx: Ctx) {
 	try {
-		const user = tryVerification(req);
-		const isAdmin = user?.role === 'SUPER';
+		const user = requireVerification(req);
+		const isAdmin = user.role === 'SUPER';
 		const { id } = await ctx.params;
 		const employeeId = String(id || '').trim();
 		if (!employeeId) return jsonError('Employee id required', 400);
