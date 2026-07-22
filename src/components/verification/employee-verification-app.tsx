@@ -635,7 +635,11 @@ export function EmployeeVerificationApp() {
 								Fill in your professional details here. Admins can review your full profile.
 							</p>
 						</div>
-						<EmployeeProfessionalProfileEditor employee={empRecord} onEmployeeUpdate={setEmpRecord} />
+						{empRecord?.id ? (
+							<EmployeeProfessionalProfileEditor employee={empRecord} onEmployeeUpdate={setEmpRecord} />
+						) : (
+							<p className="ev-muted">Loading your employee profile…</p>
+						)}
 					</div>
 				)}
 			</main>
