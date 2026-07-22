@@ -80,10 +80,7 @@
 	position: relative;
 	padding: 36px 40px 40px;
 	border-right: 1px solid var(--ev-line);
-	background:
-		radial-gradient(120% 80% at 10% 0%, rgba(0, 71, 255, 0.06), transparent 55%),
-		radial-gradient(90% 70% at 90% 100%, rgba(14, 165, 233, 0.05), transparent 50%),
-		linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+	background: #ffffff;
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
@@ -113,13 +110,17 @@
 }
 
 .ev-login-brand h1 {
+	position: relative;
+	z-index: 2;
 	margin: 8px 0 0;
 	font-size: clamp(1.85rem, 3.2vw, 2.65rem);
-	line-height: 1.12;
+	line-height: 1.2;
 	letter-spacing: -0.035em;
 	font-weight: 600;
 	color: #0f172a;
-	max-width: 16ch;
+	max-width: none;
+	text-decoration: none;
+	background: #ffffff;
 }
 
 .ev-lead {
@@ -134,7 +135,9 @@
 }
 
 .ev-login-anim {
-	margin-top: 8px;
+	position: relative;
+	z-index: 1;
+	margin-top: 12px;
 	margin-bottom: 0;
 	width: 100%;
 	flex: 1 1 auto;
@@ -145,9 +148,10 @@
 	border-radius: 0;
 	overflow: hidden;
 	border: 0;
-	background: transparent;
+	background: #ffffff;
 	box-shadow: none;
 	padding: 0;
+	isolation: isolate;
 }
 
 .ev-login-anim-video {
@@ -159,11 +163,11 @@
 	margin: 0;
 	object-fit: contain;
 	object-position: center center;
-	/* Video file has empty padding — scale up so the illustration fills the panel height */
 	transform: scale(1.55);
 	transform-origin: center center;
-	background: transparent;
-	mix-blend-mode: normal;
+	background: #ffffff;
+	/* Blend light video plate into the white page so it looks embedded */
+	mix-blend-mode: multiply;
 }
 
 .ev-login-panel {

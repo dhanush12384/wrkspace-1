@@ -515,7 +515,7 @@ export function EmployeeVerificationApp() {
 					<aside className="ev-login-brand">
 						<div className="ev-login-brand-inner">
 							<p className="ev-brand-title">Employee verification portal</p>
-							<h1>One login for employees &amp; admins</h1>
+							<h1>One login for employees and admins</h1>
 							<VerificationAccessAnimation />
 						</div>
 					</aside>
