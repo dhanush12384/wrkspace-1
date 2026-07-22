@@ -479,23 +479,7 @@ export function EmployeeVerificationApp() {
 					<aside className="ev-login-brand">
 						<div className="ev-login-brand-inner">
 							<p className="ev-kicker">Employee Verification Portal</p>
-							<h1>Separate access for public, employees &amp; admins</h1>
-							<p className="ev-lead">
-								This is its own panel — not the main workspace app. One login for everyone; after
-								sign-in the database opens the right view for you.
-							</p>
-							<ul className="ev-brand-points">
-								<li>
-									<strong>Public:</strong> log in and view general employee info (name, role, wing,
-									active / inactive)
-								</li>
-								<li>
-									<strong>Employees:</strong> log in and fill only your professional profile
-								</li>
-								<li>
-									<strong>Admins:</strong> full employee dossier, edits &amp; remarks
-								</li>
-							</ul>
+							<h1>One login for public, employees &amp; admins</h1>
 							<VerificationAccessAnimation />
 						</div>
 					</aside>
@@ -505,9 +489,8 @@ export function EmployeeVerificationApp() {
 							<p className="ev-kicker">Sign in</p>
 							<h2>Verification portal</h2>
 							<p className="ev-sub">
-								One email &amp; password for public viewers, employees, and admins. Google sign-in
-								works for everyone too — we check the database and open the matching panel
-								(general info, professional profile, or full admin dossier).
+								Use your email &amp; password or Google. We open the right panel for public
+								viewers, employees, and admins.
 							</p>
 
 							{error ? (
