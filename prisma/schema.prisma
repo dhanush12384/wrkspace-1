@@ -42,6 +42,9 @@ model Employee {
   password     String?
   activeOtp    String?
   otpExpiresAt DateTime?
+  /// OTP so a colleague can view this employee's profile (read-only) after entering their employee ID
+  peerViewOtp           String?
+  peerViewOtpExpiresAt  DateTime?
   /// UNSPECIFIED | MALE | FEMALE
   gender       String   @default("UNSPECIFIED")
   fcmToken     String?

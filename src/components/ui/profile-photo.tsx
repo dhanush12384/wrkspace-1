@@ -29,7 +29,8 @@ export function ProfilePhotoEditor({
 	const [previewOpen, setPreviewOpen] = useState(false);
 	const [cropSrc, setCropSrc] = useState<string | null>(null);
 	const [err, setErr] = useState<string | null>(null);
-	const hasPhoto = Boolean(photoUrl);
+	const safePhotoUrl = photoUrl && photoUrl !== '[set]' ? photoUrl : null;
+	const hasPhoto = Boolean(safePhotoUrl);
 
 	const box = size === 'lg' ? 'size-20' : 'size-12';
 
@@ -42,7 +43,11 @@ export function ProfilePhotoEditor({
 				setErr(res.error || 'Upload failed');
 				return;
 			}
-			onUpdated?.(res.employee.photoUrl ?? dataUrl);
+			onUpdated?.(
+				res.employee.photoUrl && res.employee.photoUrl !== '[set]'
+					? res.employee.photoUrl
+					: dataUrl,
+			);
 			setPreviewOpen(false);
 			setCropSrc(null);
 		} catch {
@@ -102,7 +107,7 @@ export function ProfilePhotoEditor({
 			>
 				{hasPhoto ? (
 					// eslint-disable-next-line @next/next/no-img-element
-					<img src={photoUrl!} alt="" className="absolute inset-0 size-full object-cover" />
+					<img src={safePhotoUrl!} alt="" className="absolute inset-0 size-full object-cover" />
 				) : (
 					<span className={size === 'lg' ? 'text-2xl' : 'text-sm'}>{initials}</span>
 				)}
@@ -152,7 +157,7 @@ export function ProfilePhotoEditor({
 							</button>
 						</div>
 						{/* eslint-disable-next-line @next/next/no-img-element */}
-						<img src={photoUrl!} alt="Profile" className="w-full aspect-square object-cover bg-zinc-900" />
+						<img src={safePhotoUrl!} alt="Profile" className="w-full aspect-square object-cover bg-zinc-900" />
 						<div className="p-4 space-y-2">
 							<Button
 								type="button"

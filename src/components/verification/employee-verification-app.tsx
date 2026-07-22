@@ -5,6 +5,7 @@ import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { firebaseAuth, googleProvider } from '@/lib/firebase-client';
 import { signInWithPopup } from 'firebase/auth';
 import { EmployeeProfessionalProfileEditor } from '@/components/ui/employee-professional-profile';
+import { PeerColleagueView } from '@/components/verification/peer-colleague-view';
 import './verification.css';
 
 /** Separate Employee Verification portal login animation (not the main workspace app). */
@@ -58,7 +59,8 @@ type EmpRow = {
 };
 
 type DossierTab = 'overview' | 'attendance' | 'tasks' | 'submissions' | 'leaves' | 'events' | 'edit_profile';
-type AppTab = 'directory' | 'access' | 'my_profile';
+type AppTab = 'directory' | 'access' | 'my_profile' | 'peer_view';
+type EmpSelfTab = 'my_profile' | 'peer_view';
 
 function loadSession(): Session | null {
 	try {
@@ -106,6 +108,7 @@ export function EmployeeVerificationApp() {
 	const [dossier, setDossier] = useState<any | null>(null);
 	const [dossierLoading, setDossierLoading] = useState(false);
 	const [tab, setTab] = useState<AppTab>('directory');
+	const [empSelfTab, setEmpSelfTab] = useState<EmpSelfTab>('my_profile');
 	const [dossierTab, setDossierTab] = useState<DossierTab>('overview');
 	const [copied, setCopied] = useState('');
 
@@ -578,22 +581,40 @@ export function EmployeeVerificationApp() {
 								</p>
 							</div>
 						</div>
-					</div>
-					<div className="ev-topbar-actions">
-						<button type="button" className="ev-nav-btn ev-nav-muted" onClick={logout}>
-							Sign out
-						</button>
+						<div className="ev-topbar-actions">
+							<button
+								type="button"
+								className={`ev-nav-btn ${empSelfTab === 'my_profile' ? 'is-active' : ''}`}
+								onClick={() => setEmpSelfTab('my_profile')}
+							>
+								My profile
+							</button>
+							<button
+								type="button"
+								className={`ev-nav-btn ${empSelfTab === 'peer_view' ? 'is-active' : ''}`}
+								onClick={() => setEmpSelfTab('peer_view')}
+							>
+								View colleague
+							</button>
+							<button type="button" className="ev-nav-btn ev-nav-muted" onClick={logout}>
+								Sign out
+							</button>
+						</div>
 					</div>
 				</header>
-				<div className="ev-shell">
-					<div className="ev-card" style={{ marginBottom: 16 }}>
-						<h2 style={{ margin: 0 }}>My professional profile</h2>
-						<p className="ev-muted" style={{ marginTop: 6 }}>
-							Fill in your professional details here. Admins can review your full profile.
-						</p>
+				{empSelfTab === 'peer_view' ? (
+					<PeerColleagueView authHeaders={authHeaders as Record<string, string>} />
+				) : (
+					<div className="ev-shell">
+						<div className="ev-card" style={{ marginBottom: 16 }}>
+							<h2 style={{ margin: 0 }}>My professional profile</h2>
+							<p className="ev-muted" style={{ marginTop: 6 }}>
+								Fill in your professional details here. Admins can review your full profile.
+							</p>
+						</div>
+						<EmployeeProfessionalProfileEditor employee={empRecord} onEmployeeUpdate={setEmpRecord} />
 					</div>
-					<EmployeeProfessionalProfileEditor employee={empRecord} onEmployeeUpdate={setEmpRecord} />
-				</div>
+				)}
 			</main>
 		);
 	}
@@ -644,6 +665,15 @@ export function EmployeeVerificationApp() {
 								onClick={() => setTab('my_profile')}
 							>
 								My professional profile
+							</button>
+						) : null}
+						{isAdmin || hasOwnEmployeeProfile ? (
+							<button
+								type="button"
+								className={`ev-nav-btn ${tab === 'peer_view' ? 'is-active' : ''}`}
+								onClick={() => setTab('peer_view')}
+							>
+								View colleague
 							</button>
 						) : null}
 						{isAdmin ? (
@@ -815,6 +845,8 @@ export function EmployeeVerificationApp() {
 						</ul>
 					</section>
 				</div>
+			) : tab === 'peer_view' ? (
+				<PeerColleagueView authHeaders={authHeaders as Record<string, string>} />
 			) : tab === 'my_profile' && hasOwnEmployeeProfile ? (
 				<div className="ev-shell print:hidden">
 					<div className="ev-card" style={{ marginBottom: 16 }}>

@@ -77,7 +77,7 @@
 	position: relative;
 	z-index: 1;
 	width: 100%;
-	max-width: 560px;
+	max-width: 720px;
 	margin: 0 auto;
 	display: flex;
 	flex-direction: column;
@@ -116,20 +116,20 @@
 	margin-top: auto;
 	margin-bottom: auto;
 	width: 100%;
-	max-width: 520px;
+	max-width: 680px;
 	border-radius: 0;
 	overflow: hidden;
 	border: 0;
 	background: #ffffff;
 	box-shadow: none;
-	padding: 12px 0 0;
+	padding: 8px 0 0;
 }
 
 .ev-login-anim-video {
 	display: block;
 	width: 100%;
 	height: auto;
-	max-height: min(58vh, 420px);
+	max-height: min(72vh, 560px);
 	aspect-ratio: auto;
 	object-fit: contain;
 	background: #ffffff;
