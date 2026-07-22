@@ -6,12 +6,10 @@ import { linkAdminToEmployee } from '@/lib/verification-admin-employee-link';
 export const dynamic = 'force-dynamic';
 
 /**
- * After Firebase Google sign-in — works for everyone on this portal:
- * 1) portal / company account
- * 2) workspace admin (merged with Employee when same email / employeeId) → SUPER + own profile
- * 3) employee who is also a non–team-lead admin → same merged SUPER session
- * 4) employee-only → professional profile self-service
- * 5) any other Google account → public viewer (general info only)
+ * Google sign-in — employees and admins only (no public access).
+ * 1) portal SUPER admin
+ * 2) workspace admin → SUPER (+ linked employee profile when present)
+ * 3) employee → professional profile self-service
  */
 export async function POST(req: NextRequest) {
 	try {
@@ -27,14 +25,16 @@ export async function POST(req: NextRequest) {
 		});
 		if (portal) {
 			if (!portal.active) return jsonError('Account disabled', 403);
+			if (portal.role !== 'SUPER') {
+				return jsonError('This portal is for employees and admins only', 403);
+			}
 			if (portal.company && portal.company.active === false) {
 				return jsonError('Company access disabled', 403);
 			}
-			const role = portal.role === 'SUPER' ? 'SUPER' : 'COMPANY';
 			const token = signVerificationToken({
 				id: portal.id,
 				email: portal.email,
-				role,
+				role: 'SUPER',
 				companyId: portal.companyId,
 				companyName: portal.company?.name || null,
 				source: 'portal',
@@ -46,13 +46,11 @@ export async function POST(req: NextRequest) {
 
 			let linkedEmployee = null as Awaited<ReturnType<typeof linkAdminToEmployee>>['employee'];
 			let employeeToken = null as string | null;
-			if (role === 'SUPER') {
-				const adminRow = await db.admin.findUnique({ where: { email } });
-				if (adminRow) {
-					const linked = await linkAdminToEmployee(adminRow);
-					linkedEmployee = linked.employee;
-					employeeToken = linked.employeeToken;
-				}
+			const adminRow = await db.admin.findUnique({ where: { email } });
+			if (adminRow) {
+				const linked = await linkAdminToEmployee(adminRow);
+				linkedEmployee = linked.employee;
+				employeeToken = linked.employeeToken;
 			}
 
 			return Response.json({
@@ -63,7 +61,7 @@ export async function POST(req: NextRequest) {
 				user: {
 					id: portal.id,
 					email: portal.email,
-					role,
+					role: 'SUPER',
 					companyId: portal.companyId,
 					companyName: portal.company?.name || null,
 					source: 'portal',
@@ -124,29 +122,7 @@ export async function POST(req: NextRequest) {
 			});
 		}
 
-		// Any other Google account → public viewer (general employee information only).
-		const publicId = `public:${email}`;
-		const token = signVerificationToken({
-			id: publicId,
-			email,
-			role: 'COMPANY',
-			companyId: null,
-			companyName: 'Public',
-			source: 'public_google',
-		});
-		return Response.json({
-			ok: true,
-			token,
-			user: {
-				id: publicId,
-				email,
-				role: 'COMPANY',
-				companyId: null,
-				companyName: 'Public',
-				source: 'public_google',
-				employeeId: null,
-			},
-		});
+		return jsonError('No access — this portal is for employees and admins only', 403);
 	} catch (e: any) {
 		return jsonError(e.message || 'Google login failed', 500);
 	}

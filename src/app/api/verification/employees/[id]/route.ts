@@ -17,7 +17,10 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function GET(req: NextRequest, ctx: Ctx) {
 	try {
 		const user = requireVerification(req);
-		const isAdmin = user.role === 'SUPER';
+		if (user.role !== 'SUPER') {
+			return jsonError('This portal is for employees and admins only', 403);
+		}
+		const isAdmin = true;
 		const { id } = await ctx.params;
 		const employeeId = String(id || '').trim();
 		if (!employeeId) return jsonError('Employee id required', 400);

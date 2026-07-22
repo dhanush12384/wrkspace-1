@@ -123,6 +123,16 @@ export function EmployeeVerificationApp() {
 		setReady(true);
 	}, []);
 
+	/** Public / company access removed — force out any leftover COMPANY sessions. */
+	useEffect(() => {
+		if (!ready || !session) return;
+		if (session.user.role === 'COMPANY') {
+			logout();
+			setError('This portal is for employees and admins only.');
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ready, session?.user.role]);
+
 	const authHeaders = useMemo(() => {
 		if (!session?.token) return {};
 		return { Authorization: `Bearer ${session.token}` };
@@ -229,7 +239,7 @@ export function EmployeeVerificationApp() {
 		}
 	};
 
-	/** SUPER-only: toggle an employee's Active/Inactive status (shown to public/company viewers). */
+	/** SUPER-only: toggle an employee's Active/Inactive status. */
 	const setEmploymentStatus = async (employeeId: string, status: 'Active' | 'Inactive') => {
 		setStatusSaving(true);
 		try {
@@ -307,7 +317,7 @@ export function EmployeeVerificationApp() {
 				return;
 			}
 
-			// Admin / public / company → verification directory session
+			// Admin → verification directory session
 			applyLogin(data);
 		} catch (err: any) {
 			const code = String(err?.code || '');
@@ -479,7 +489,7 @@ export function EmployeeVerificationApp() {
 					<aside className="ev-login-brand">
 						<div className="ev-login-brand-inner">
 							<p className="ev-kicker">Employee Verification Portal</p>
-							<h1>One login for public, employees &amp; admins</h1>
+							<h1>One login for employees &amp; admins</h1>
 							<VerificationAccessAnimation />
 						</div>
 					</aside>
@@ -489,8 +499,8 @@ export function EmployeeVerificationApp() {
 							<p className="ev-kicker">Sign in</p>
 							<h2>Verification portal</h2>
 							<p className="ev-sub">
-								Use your email &amp; password or Google. We open the right panel for public
-								viewers, employees, and admins.
+								Employees and admins only. Use your email &amp; password or Google — we open the
+								matching panel (professional profile or full admin dossier).
 							</p>
 
 							{error ? (
@@ -579,8 +589,7 @@ export function EmployeeVerificationApp() {
 					<div className="ev-card" style={{ marginBottom: 16 }}>
 						<h2 style={{ margin: 0 }}>My professional profile</h2>
 						<p className="ev-muted" style={{ marginTop: 6 }}>
-							Fill in your professional details here. This panel is only for your profile — public
-							viewers only see general info; admins can review the full profile.
+							Fill in your professional details here. Admins can review your full profile.
 						</p>
 					</div>
 					<EmployeeProfessionalProfileEditor employee={empRecord} onEmployeeUpdate={setEmpRecord} />
@@ -612,11 +621,7 @@ export function EmployeeVerificationApp() {
 								{session.user.email}
 								{session.user.companyName ? ` · ${session.user.companyName}` : ''}
 								<span className="ev-pill">
-									{session.user.role === 'COMPANY'
-										? 'PUBLIC'
-										: hasOwnEmployeeProfile
-											? 'ADMIN · TECHNICAL'
-											: session.user.role}
+									{hasOwnEmployeeProfile ? 'ADMIN · TECHNICAL' : session.user.role}
 								</span>
 							</p>
 						</div>
@@ -1498,7 +1503,7 @@ export function EmployeeVerificationApp() {
 										<div className="ev-card" style={{ marginBottom: 16 }}>
 											<h3>Employment status</h3>
 											<p className="ev-muted" style={{ marginBottom: 10 }}>
-												Controls what public / company viewers see for this employee.
+												Controls the Active / Inactive status for this employee.
 											</p>
 											<div className="ev-inline-actions">
 												{(['Active', 'Inactive'] as const).map((s) => (

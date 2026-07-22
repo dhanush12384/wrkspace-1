@@ -128,6 +128,9 @@ export async function POST(req: NextRequest) {
 		});
 		if (portal) {
 			if (!portal.active) return jsonError('Account disabled', 403);
+			if (portal.role !== 'SUPER') {
+				return jsonError('This portal is for employees and admins only', 403);
+			}
 			if (portal.company && portal.company.active === false) {
 				return jsonError('Company access disabled', 403);
 			}

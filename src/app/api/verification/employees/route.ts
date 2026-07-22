@@ -12,6 +12,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
 	try {
 		const authUser = requireVerification(req);
+		if (authUser.role !== 'SUPER') {
+			return jsonError('This portal is for employees and admins only', 403);
+		}
 		const q = String(req.nextUrl.searchParams.get('q') || '')
 			.trim()
 			.toLowerCase();
