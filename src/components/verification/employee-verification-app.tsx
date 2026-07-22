@@ -1,129 +1,29 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Lock, CheckCircle2 } from 'lucide-react';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { firebaseAuth, googleProvider } from '@/lib/firebase-client';
 import { signInWithPopup } from 'firebase/auth';
 import { EmployeeProfessionalProfileEditor } from '@/components/ui/employee-professional-profile';
 import './verification.css';
 
-/**
- * Original animated "verifying access" illustration for the sign-in panel — a
- * database lookup card with a progress bar + "Access verified" badge that loops.
- * (Not a third-party asset — built in-house so there's no licensing/watermark risk.)
- */
+/** Separate Employee Verification portal login animation (not the main workspace app). */
+const LOGIN_ANIMATION_SRC =
+	'https://cdnl.iconscout.com/lottie/premium/preview-watermark/businesswoman-access-sensitive-information-using-login-password-animation-gif-download-13352243.mp4';
+
 function VerificationAccessAnimation() {
 	return (
-		<div style={{ position: 'relative', width: 232, height: 148, marginTop: 26 }}>
-			<motion.div
-				style={{
-					position: 'absolute',
-					inset: -26,
-					borderRadius: '50%',
-					background: 'radial-gradient(circle, rgba(0,71,255,0.22), transparent 70%)',
-					filter: 'blur(18px)',
-				}}
-				animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.9, 0.5] }}
-				transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+		<div className="ev-login-anim">
+			<video
+				className="ev-login-anim-video"
+				src={LOGIN_ANIMATION_SRC}
+				autoPlay
+				muted
+				loop
+				playsInline
+				preload="auto"
+				aria-label="Secure login animation"
 			/>
-
-			<motion.div
-				style={{
-					position: 'relative',
-					width: 220,
-					borderRadius: 16,
-					border: '1px solid rgba(255,255,255,0.12)',
-					background: 'rgba(14,20,36,0.85)',
-					padding: 16,
-					boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-					backdropFilter: 'blur(6px)',
-				}}
-				animate={{ y: [-6, 6, -6] }}
-				transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-			>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-					<motion.div
-						style={{
-							width: 34,
-							height: 34,
-							borderRadius: '50%',
-							background: 'rgba(0,71,255,0.22)',
-							display: 'grid',
-							placeItems: 'center',
-							color: '#8eb0ff',
-							flexShrink: 0,
-						}}
-						animate={{ scale: [1, 1.15, 1] }}
-						transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-					>
-						<Lock size={16} />
-					</motion.div>
-					<div>
-						<p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>Verifying access</p>
-						<p style={{ margin: 0, fontSize: 10, color: '#64748b' }}>Checking database…</p>
-					</div>
-				</div>
-				<div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-					<div
-						style={{
-							height: 6,
-							width: '100%',
-							borderRadius: 999,
-							background: 'rgba(255,255,255,0.08)',
-							overflow: 'hidden',
-						}}
-					>
-						<motion.div
-							style={{ height: 6, borderRadius: 999, background: '#0047ff' }}
-							animate={{ width: ['10%', '90%', '10%'] }}
-							transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-						/>
-					</div>
-					<div
-						style={{ height: 6, width: '60%', borderRadius: 999, background: 'rgba(255,255,255,0.08)' }}
-					/>
-				</div>
-			</motion.div>
-
-			<motion.div
-				style={{
-					position: 'absolute',
-					bottom: -16,
-					right: -10,
-					display: 'flex',
-					alignItems: 'center',
-					gap: 6,
-					borderRadius: 999,
-					border: '1px solid rgba(16,185,129,0.35)',
-					background: 'rgba(10,16,28,0.92)',
-					padding: '6px 12px',
-					boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
-				}}
-				animate={{ opacity: [0, 1, 1, 0], y: [8, 0, 0, -6] }}
-				transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', times: [0, 0.25, 0.8, 1] }}
-			>
-				<CheckCircle2 size={14} color="#34d399" />
-				<span style={{ fontSize: 10, fontWeight: 700, color: '#6ee7b7' }}>Access verified</span>
-			</motion.div>
-
-			{[0, 1, 2].map((i) => (
-				<motion.span
-					key={i}
-					style={{
-						position: 'absolute',
-						width: 6,
-						height: 6,
-						borderRadius: '50%',
-						background: 'rgba(94,144,255,0.7)',
-						left: `${18 + i * 34}%`,
-						top: `${-8 - i * 6}%`,
-					}}
-					animate={{ y: [0, -14, 0], opacity: [0.3, 1, 0.3] }}
-					transition={{ duration: 2.4 + i * 0.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
-				/>
-			))}
 		</div>
 	);
 }
@@ -458,7 +358,7 @@ export function EmployeeVerificationApp() {
 			.flat()
 			.filter(Boolean);
 		const text = [
-			`EMPLOYEE VERIFICATION — wrkspace`,
+			`EMPLOYEE VERIFICATION PORTAL`,
 			`Name: ${e.name}${p.professionalTitle ? ` — ${p.professionalTitle}` : ''}`,
 			`ID: ${e.id}`,
 			`Role: ${e.role} · Wing: ${e.wingName}`,
@@ -499,25 +399,23 @@ export function EmployeeVerificationApp() {
 				<div className="ev-login-grid">
 					<aside className="ev-login-brand">
 						<div className="ev-login-brand-inner">
-							<img
-								src="/branding/wrkspace-logo-on-dark.png"
-								alt="wrkspace"
-								className="ev-brand-logo"
-								onError={(e) => {
-									(e.target as HTMLImageElement).style.display = 'none';
-								}}
-							/>
-							<p className="ev-kicker">Employee verification</p>
-							<h1>Company-grade employee history</h1>
+							<p className="ev-kicker">Employee Verification Portal</p>
+							<h1>Separate access for public, employees &amp; admins</h1>
 							<p className="ev-lead">
-								One login for everyone — the database decides what you see. Admins get every
-								employee&apos;s full dossier, employees fill in only their own professional
-								profile, and public / company accounts see general status only.
+								This is its own panel — not the main workspace app. One login for everyone; after
+								sign-in the database opens the right view for you.
 							</p>
 							<ul className="ev-brand-points">
-								<li>Public / company: name, role, wing &amp; active-inactive status</li>
-								<li>Employees: fill &amp; view only your own professional profile</li>
-								<li>Admins: full dossier, edits &amp; remarks for every employee</li>
+								<li>
+									<strong>Public:</strong> log in and view general employee info (name, role, wing,
+									active / inactive)
+								</li>
+								<li>
+									<strong>Employees:</strong> log in and fill only your professional profile
+								</li>
+								<li>
+									<strong>Admins:</strong> full employee dossier, edits &amp; remarks
+								</li>
 							</ul>
 							<VerificationAccessAnimation />
 						</div>
@@ -526,11 +424,10 @@ export function EmployeeVerificationApp() {
 					<section className="ev-login-panel">
 						<div className="ev-login-card">
 							<p className="ev-kicker">Sign in</p>
-							<h2>Verification access</h2>
+							<h2>Verification portal</h2>
 							<p className="ev-sub">
-								One box for everyone — your normal wrkspace employee email &amp; password, your{' '}
-								<strong>Admin panel</strong> login, or a company login shared by wrkspace. We check
-								the database and take you to the right place automatically.
+								One email &amp; password for public / company accounts, employees, and admins. We
+								verify against the database and open the matching panel automatically.
 							</p>
 
 							{error ? (
@@ -548,7 +445,7 @@ export function EmployeeVerificationApp() {
 										autoComplete="username"
 										value={email}
 										onChange={(e) => setEmail(e.target.value)}
-										placeholder="you@wrkspace"
+										placeholder="your email"
 									/>
 								</label>
 								<label className="ev-field">
@@ -584,13 +481,8 @@ export function EmployeeVerificationApp() {
 								onClick={loginGoogle}
 								disabled={busy}
 								loading={busy}
-								label="Continue with Google (admin Gmail)"
+								label="Continue with Google (admin)"
 							/>
-
-							<nav className="ev-login-links">
-								<a href="/admin">Admin panel</a>
-								<a href="/">Employee portal</a>
-							</nav>
 						</div>
 					</section>
 				</div>
@@ -604,9 +496,8 @@ export function EmployeeVerificationApp() {
 				<header className="ev-topbar print:hidden">
 					<div className="ev-topbar-inner">
 						<div className="ev-topbar-brand">
-							<img src="/branding/wrkspace-logo-on-dark.png" alt="" className="ev-top-logo" />
 							<div>
-								<p className="ev-kicker">Employee verification</p>
+								<p className="ev-kicker">Employee Verification Portal</p>
 								<p className="ev-top-user">
 									{[empRecord?.firstName, empRecord?.lastName].filter(Boolean).join(' ') ||
 										session.user.email}
@@ -625,8 +516,8 @@ export function EmployeeVerificationApp() {
 					<div className="ev-card" style={{ marginBottom: 16 }}>
 						<h2 style={{ margin: 0 }}>My professional profile</h2>
 						<p className="ev-muted" style={{ marginTop: 6 }}>
-							Fill in your details below. This is what wrkspace admins see when reviewing your
-							profile — public / company viewers only ever see your name, role and active status.
+							Fill in your professional details here. This panel is only for your profile — public
+							viewers only see general info; admins can review the full profile.
 						</p>
 					</div>
 					<EmployeeProfessionalProfileEditor employee={empRecord} onEmployeeUpdate={setEmpRecord} />
@@ -643,13 +534,14 @@ export function EmployeeVerificationApp() {
 			<header className="ev-topbar print:hidden">
 				<div className="ev-topbar-inner">
 					<div className="ev-topbar-brand">
-						<img src="/branding/wrkspace-logo-on-dark.png" alt="" className="ev-top-logo" />
 						<div>
-							<p className="ev-kicker">Employee verification</p>
+							<p className="ev-kicker">Employee Verification Portal</p>
 							<p className="ev-top-user">
 								{session.user.email}
 								{session.user.companyName ? ` · ${session.user.companyName}` : ''}
-								<span className="ev-pill">{session.user.role}</span>
+								<span className="ev-pill">
+									{session.user.role === 'COMPANY' ? 'PUBLIC' : session.user.role}
+								</span>
 							</p>
 						</div>
 					</div>
@@ -1049,7 +941,7 @@ export function EmployeeVerificationApp() {
 														</div>
 														<p className="ev-muted" style={{ marginTop: 12 }}>
 															The full professional profile (résumé, experience, education, skills,
-															projects &amp; more) is only visible to wrkspace admins.
+															projects &amp; more) is only visible to portal admins.
 														</p>
 													</div>
 												);
