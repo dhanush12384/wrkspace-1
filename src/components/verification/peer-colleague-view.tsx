@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ProfessionalProfileReadonly } from '@/components/verification/professional-profile-readonly';
 
 type Props = {
 	authHeaders: Record<string, string>;
@@ -73,19 +74,59 @@ export function PeerColleagueView({ authHeaders }: Props) {
 	if (step === 'view' && view) {
 		const e = view.employee;
 		const p = view.profile || {};
-		const skills = Object.entries(p.skills || {}).flatMap(([k, arr]: [string, any]) =>
-			(Array.isArray(arr) ? arr : []).map((s: string) => `${k}: ${s}`),
-		);
+		const photo =
+			e.photoUrl && e.photoUrl !== '[set]' ? String(e.photoUrl) : '';
+		const meta = [e.role, e.wingName, e.employmentStatus || 'Active', e.id ? `ID ${e.id}` : null]
+			.filter(Boolean)
+			.join(' · ');
+
 		return (
 			<div className="ev-shell">
 				<div className="ev-card" style={{ marginBottom: 16 }}>
 					<div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-						<div>
-							<p className="ev-kicker">Read-only</p>
-							<h2 style={{ margin: '4px 0 0' }}>{e.name}</h2>
-							<p className="ev-muted" style={{ marginTop: 6 }}>
-								{e.role} · {e.wingName} · {e.employmentStatus || 'Active'} · ID {e.id}
-							</p>
+						<div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+							{photo ? (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									src={photo}
+									alt=""
+									style={{
+										width: 64,
+										height: 64,
+										borderRadius: 12,
+										objectFit: 'cover',
+										border: '1px solid #e2e8f0',
+									}}
+								/>
+							) : (
+								<div
+									style={{
+										width: 64,
+										height: 64,
+										borderRadius: 12,
+										background: '#eef2ff',
+										display: 'grid',
+										placeItems: 'center',
+										fontWeight: 700,
+										color: '#0047FF',
+										fontSize: 18,
+									}}
+								>
+									{String(e.name || '?')
+										.split(/\s+/)
+										.filter(Boolean)
+										.slice(0, 2)
+										.map((w: string) => w[0]?.toUpperCase())
+										.join('') || '?'}
+								</div>
+							)}
+							<div>
+								<p className="ev-kicker">Read-only · colleague profile</p>
+								<h2 style={{ margin: '4px 0 0' }}>{e.name}</h2>
+								<p className="ev-muted" style={{ marginTop: 6 }}>
+									{meta}
+								</p>
+							</div>
 						</div>
 						<button type="button" className="ev-btn ev-btn-ghost" onClick={reset}>
 							View another
@@ -93,105 +134,8 @@ export function PeerColleagueView({ authHeaders }: Props) {
 					</div>
 				</div>
 
-				<div className="ev-card" style={{ marginBottom: 12 }}>
-					<h3>General</h3>
-					<div className="ev-info-grid">
-						<div className="ev-info-item">
-							<span>Email</span>
-							<strong>{e.email}</strong>
-						</div>
-						<div className="ev-info-item">
-							<span>Phone</span>
-							<strong>{e.phone || '—'}</strong>
-						</div>
-						<div className="ev-info-item">
-							<span>Title</span>
-							<strong>{p.professionalTitle || e.professionalTitle || '—'}</strong>
-						</div>
-						<div className="ev-info-item">
-							<span>Location</span>
-							<strong>{[p.city, p.state, p.country].filter(Boolean).join(', ') || '—'}</strong>
-						</div>
-					</div>
-				</div>
-
-				{(p.about || p.careerObjective) && (
-					<div className="ev-card" style={{ marginBottom: 12 }}>
-						<h3>Summary</h3>
-						{p.about ? <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{p.about}</p> : null}
-						{p.careerObjective ? (
-							<p className="ev-muted" style={{ whiteSpace: 'pre-wrap', marginTop: 10 }}>
-								{p.careerObjective}
-							</p>
-						) : null}
-					</div>
-				)}
-
-				{Array.isArray(p.experience) && p.experience.length > 0 ? (
-					<div className="ev-card" style={{ marginBottom: 12 }}>
-						<h3>Experience</h3>
-						<ul>
-							{p.experience.map((x: any) => (
-								<li key={x.id || `${x.title}-${x.company}`}>
-									<strong>{x.title}</strong>
-									{x.company ? ` @ ${x.company}` : ''}{' '}
-									<span className="ev-muted">
-										({x.startYear || '?'}–{x.currentlyWorking ? 'Present' : x.endYear || '?'})
-									</span>
-								</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-
-				{Array.isArray(p.education) && p.education.length > 0 ? (
-					<div className="ev-card" style={{ marginBottom: 12 }}>
-						<h3>Education</h3>
-						<ul>
-							{p.education.map((ed: any) => (
-								<li key={ed.id || ed.college}>
-									<strong>{ed.degree || '—'}</strong>
-									{ed.college ? ` · ${ed.college}` : ''}
-								</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-
-				{skills.length > 0 ? (
-					<div className="ev-card" style={{ marginBottom: 12 }}>
-						<h3>Skills</h3>
-						<p style={{ margin: 0 }}>{skills.join(' · ')}</p>
-					</div>
-				) : null}
-
-				{Array.isArray(p.projects) && p.projects.length > 0 ? (
-					<div className="ev-card" style={{ marginBottom: 12 }}>
-						<h3>Projects</h3>
-						<ul>
-							{p.projects.map((pr: any) => (
-								<li key={pr.id || pr.name}>
-									<strong>{pr.name}</strong>
-									{pr.role ? ` — ${pr.role}` : ''}
-								</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-
-				{Array.isArray(p.certifications) && p.certifications.length > 0 ? (
-					<div className="ev-card" style={{ marginBottom: 12 }}>
-						<h3>Certifications</h3>
-						<ul>
-							{p.certifications.map((c: any) => (
-								<li key={c.id || c.name}>
-									<strong>{c.name}</strong>
-									{c.organization ? ` · ${c.organization}` : ''}
-								</li>
-							))}
-						</ul>
-					</div>
-				) : null}
+				{/* Full professional profile — same sections as admin dossier (no remarks) */}
+				<ProfessionalProfileReadonly profile={p} employee={e} showRemarks={false} />
 			</div>
 		);
 	}
@@ -202,7 +146,8 @@ export function PeerColleagueView({ authHeaders }: Props) {
 				<h2 style={{ margin: 0 }}>View another employee</h2>
 				<p className="ev-muted" style={{ marginTop: 8 }}>
 					Enter their employee ID. An OTP is emailed to <strong>their</strong> registered email (not
-					yours). Ask them to share the code, then enter it below for a read-only view.
+					yours). Ask them to share the code, then enter it below for a full read-only professional
+					profile.
 				</p>
 
 				{err ? (
