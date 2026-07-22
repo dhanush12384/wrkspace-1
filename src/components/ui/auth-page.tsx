@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
@@ -305,7 +305,7 @@ export function AuthPage() {
 	// Wait for session restore before rendering to avoid flash
 	if (!sessionRestored) return null;
 
-	// ─── GENDER GATE ───
+	// â”€â”€â”€ GENDER GATE â”€â”€â”€
 	const gender = String(loggedInEmployee?.gender || 'UNSPECIFIED').toUpperCase();
 	const needsGender = loggedInEmployee && (!gender || gender === 'UNSPECIFIED');
 
@@ -353,7 +353,7 @@ export function AuthPage() {
 		);
 	}
 
-	// ─── EMPLOYEE DASHBOARD VIEW ───
+	// â”€â”€â”€ EMPLOYEE DASHBOARD VIEW â”€â”€â”€
 	if (loggedInEmployee) {
 		return (
 			<EmployeeShell
@@ -371,513 +371,369 @@ export function AuthPage() {
 		);
 	}
 
-	// ─── AUTHENTICATION PORTAL VIEWS ───
+	// â”€â”€â”€ AUTHENTICATION PORTAL VIEWS (centered black, no split panel) â”€â”€â”€
 	return (
-		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-[3fr_5fr] bg-black font-sans">
-			{/* Left Side Panel (Brand/Quote) */}
-			<div className="relative hidden h-full flex-col border-r border-zinc-900 bg-black p-10 lg:flex overflow-hidden">
-				{/* Soft depth on black */}
-				<div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-black z-0" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.02),transparent_40%)] z-0" />
-				<div className="from-black absolute inset-0 z-10 bg-gradient-to-t to-transparent opacity-40" />
-
-				<div className="z-10 flex items-center gap-2">
-					<img src="/branding/wrkspace-logo-on-dark.png?v=20260717" alt="wrkspace" className="h-10 w-auto object-contain" />
-				</div>
-				<LoginAccessAnimation />
-				<div className="z-10 mt-auto">
-					<blockquote className="space-y-3">
-						<p className="text-xl text-zinc-100 font-light leading-relaxed">
-							“This platform helps employees and developers connect to the main servers of the company, deliver leads, and ensure fast client project delivery.”
-						</p>
-						<footer className="font-mono text-sm font-semibold text-zinc-400">
-							~ Rishi Rohan Kalapala
-						</footer>
-					</blockquote>
-				</div>
-				<div className="absolute inset-0 z-0">
-					<FloatingPaths position={1} />
-					<FloatingPaths position={-1} />
-				</div>
-			</div>
-
-			{/* Right Side Panel (Form) */}
-			<div className="relative flex min-h-screen flex-col justify-center bg-black p-8 lg:p-12 overflow-hidden">
-				{/* Soft accents on black */}
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.04),transparent_70%)] z-0" />
-				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.025),transparent_50%)] z-0" />
-
-				{/* Form wrapper */}
-				<div className="w-full max-w-[420px] mx-auto z-10">
-					<AnimatePresence mode="wait">
-						{/* ─── LOGIN VIEW ─── */}
-						{view === 'login' && (
-							<motion.div
-								key="login"
-								initial={{ opacity: 0, x: -20 }}
-								animate={{ opacity: 1, x: 0 }}
-								exit={{ opacity: 0, x: 20 }}
-								transition={{ duration: 0.2 }}
-								className="space-y-6"
-							>
-								<div className="flex flex-col space-y-2">
-									<img src="/branding/wrkspace-logo-on-dark.png?v=20260717" alt="wrkspace" className="h-10 w-auto object-contain self-start mb-2" />
-									<p className="text-zinc-400 text-sm leading-relaxed font-medium">
-										Employee Portal directory console. Sign in with email or continue with Google.
-									</p>
-								</div>
-
-								{message && (
-									<div className={cn(
-										"p-3 rounded-none text-xs border font-mono font-bold",
-										message.type === 'success' 
-											? "bg-emerald-950/30 border-emerald-850 text-emerald-400" 
-											: "bg-red-950/30 border-red-850 text-red-400"
-									)}>
-										{message.text}
-									</div>
-								)}
-
-								<form onSubmit={handleLogin} className="space-y-4">
-									{/* Email Field */}
-									<div className="space-y-2">
-										<p className="text-zinc-300 text-start text-xs font-bold">
-											Enter your email address to sign in or create an account
-										</p>
-										<div className="relative h-max">
-											<Input
-												placeholder="your.email@example.com"
-												className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-550 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 transition-colors"
-												type="email"
-												required
-												value={email}
-												onChange={(e) => setEmail(e.target.value)}
-											/>
-											<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
-												<AtSignIcon className="size-4" aria-hidden="true" />
-											</div>
-										</div>
-									</div>
-
-									{/* Password Field */}
-									<div className="space-y-2">
-										<div className="flex items-center justify-between">
-											<p className="text-zinc-300 text-start text-xs font-bold">
-												Password (Your custom password or 6-Digit ID)
-											</p>
-											<Button
-												type="button"
-												variant="link"
-												onClick={() => { setView('forgot'); setMessage(null); setForgotMessage(null); }}
-												className="p-0 h-auto text-xs text-zinc-400 hover:text-indigo-400 transition-colors font-bold hover:no-underline cursor-pointer"
-											>
-												Forgot password?
-											</Button>
-										</div>
-										<div className="relative h-max">
-											<Input
-												placeholder="••••••"
-												className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-555 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 transition-colors"
-												type="password"
-												required
-												value={password}
-												onChange={(e) => setPassword(e.target.value)}
-											/>
-											<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
-												<LockIcon className="size-4" aria-hidden="true" />
-											</div>
-										</div>
-									</div>
-
-									<Button 
-										type="submit" 
-										disabled={isLoading}
-										className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
-									>
-										<span>{isLoading ? 'Processing...' : 'Continue With Email'}</span>
-									</Button>
-								</form>
-
-								<div className="relative my-5">
-									<div className="absolute inset-0 flex items-center">
-										<div className="w-full border-t border-zinc-800" />
-									</div>
-									<div className="relative flex justify-center text-[11px] uppercase tracking-widest">
-										<span className="bg-black px-3 text-zinc-500 font-mono font-bold">or</span>
-									</div>
-								</div>
-
-								<GoogleSignInButton
-									onClick={handleGoogleLogin}
-									disabled={isLoading}
-									loading={isLoading}
-									label="Continue with Google"
+		<main className="relative flex min-h-screen items-center justify-center bg-black px-6 py-12 font-sans">
+			<div className="w-full max-w-[420px] z-10">
+				<AnimatePresence mode="wait">
+					{/* â”€â”€â”€ LOGIN VIEW â”€â”€â”€ */}
+					{view === 'login' && (
+						<motion.div
+							key="login"
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={{ duration: 0.2 }}
+							className="space-y-6"
+						>
+							<div className="flex flex-col items-center space-y-3 text-center">
+								<img
+									src="/branding/wrkspace-logo-on-dark.png?v=20260717"
+									alt="wrkspace"
+									className="h-11 w-auto object-contain"
 								/>
-
-								<p className="text-zinc-555 mt-8 text-xs leading-relaxed">
-									By clicking continue, you agree to our{' '}
-									<a
-										href="#"
-										className="text-zinc-450 hover:text-indigo-400 underline underline-offset-4 transition-colors"
-									>
-										Terms of Service
-									</a>{' '}
-									and{' '}
-									<a
-										href="#"
-										className="text-zinc-450 hover:text-indigo-400 underline underline-offset-4 transition-colors"
-									>
-										Privacy Policy
-									</a>
-									.
+								<p className="text-zinc-400 text-sm leading-relaxed font-medium max-w-sm">
+									Employee Portal directory console. Sign in with email or continue with Google.
 								</p>
-							</motion.div>
-						)}
+							</div>
 
-						{/* ─── FORGOT PASSWORD: REQUEST OTP VIEW ─── */}
-						{view === 'forgot' && (
-							<motion.div
-								key="forgot"
-								initial={{ opacity: 0, x: 20 }}
-								animate={{ opacity: 1, x: 0 }}
-								exit={{ opacity: 0, x: -20 }}
-								transition={{ duration: 0.2 }}
-								className="space-y-6"
-							>
-								{/* Breadcrumbs instead of Back button */}
-								<nav className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
-									<button 
-										type="button" 
-										onClick={goBackToLogin}
-										className="text-zinc-400 hover:text-indigo-400 transition-colors hover:underline cursor-pointer font-normal"
-									>
-										Sign In
-									</button>
-									<span>/</span>
-									<span className="text-zinc-300">Forgot Password</span>
-								</nav>
-
-								<div className="flex flex-col space-y-2">
-									<div className="w-10 h-10 rounded-none bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center mb-2">
-										<MailIcon className="size-5 text-indigo-400" />
-									</div>
-									<h1 className="font-heading text-3xl font-extrabold tracking-tight text-white">
-										Forgot your password?
-									</h1>
-									<p className="text-zinc-400 text-sm leading-relaxed font-medium">
-										No worries. Enter your registered email address and we&apos;ll send an OTP reset code to your inbox.
-									</p>
+							{message && (
+								<div
+									className={cn(
+										'p-3 rounded-none text-xs border font-mono font-bold',
+										message.type === 'success'
+											? 'bg-emerald-950/30 border-emerald-850 text-emerald-400'
+											: 'bg-red-950/30 border-red-850 text-red-400',
+									)}
+								>
+									{message.text}
 								</div>
+							)}
 
-								{forgotMessage && (
-									<div className={cn(
-										"p-3 rounded-none text-xs border font-mono",
-										forgotMessage.type === 'success' 
-											? "bg-emerald-950/30 border-emerald-800 text-emerald-450" 
-											: "bg-red-950/30 border-red-800 text-red-440"
-									)}>
-										{forgotMessage.text}
-									</div>
-								)}
-
-								<form onSubmit={handleSendOtp} className="space-y-4">
-									<div className="space-y-2">
-										<p className="text-zinc-300 text-xs font-bold">Registered Email Address</p>
-										<div className="relative h-max">
-											<Input
-												placeholder="your.email@example.com"
-												className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-550 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 transition-colors"
-												type="email"
-												required
-												value={forgotEmail}
-												onChange={(e) => setForgotEmail(e.target.value)}
-											/>
-											<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
-												<AtSignIcon className="size-4" aria-hidden="true" />
-											</div>
-										</div>
-									</div>
-
-									<Button 
-										type="submit" 
-										disabled={isSending}
-										className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
-									>
-										{isSending ? (
-											<span className="flex items-center gap-2 justify-center">
-												<span className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-												Sending...
-											</span>
-										) : 'Send Reset Code'}
-									</Button>
-								</form>
-							</motion.div>
-						)}
-
-						{/* ─── FORGOT PASSWORD: VERIFY OTP AND UPDATE VIEW ─── */}
-						{view === 'forgot_verify' && (
-							<motion.div
-								key="forgot_verify"
-								initial={{ opacity: 0, x: 20 }}
-								animate={{ opacity: 1, x: 0 }}
-								exit={{ opacity: 0, x: -20 }}
-								transition={{ duration: 0.2 }}
-								className="space-y-6"
-							>
-								{/* Breadcrumbs */}
-								<nav className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
-									<button 
-										type="button" 
-										onClick={goBackToLogin}
-										className="text-zinc-400 hover:text-indigo-400 transition-colors hover:underline cursor-pointer font-normal"
-									>
-										Sign In
-									</button>
-									<span>/</span>
-									<button 
-										type="button" 
-										onClick={() => setView('forgot')}
-										className="text-zinc-400 hover:text-indigo-400 transition-colors hover:underline cursor-pointer font-normal"
-									>
-										Forgot Password
-									</button>
-									<span>/</span>
-									<span className="text-zinc-300">Verify OTP</span>
-								</nav>
-
-								<div className="flex flex-col space-y-2">
-									<div className="w-10 h-10 rounded-none bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center mb-2">
-										<KeyIcon className="size-5 text-indigo-400" />
-									</div>
-									<h1 className="font-heading text-3xl font-extrabold tracking-tight text-white">
-										Verify OTP Code
-									</h1>
-									<p className="text-zinc-400 text-sm leading-relaxed font-medium">
-										We sent a 6-digit verification code to <span className="text-indigo-400 font-semibold">{forgotEmail}</span>. Enter the code and set your new account password below.
-									</p>
-								</div>
-
-								{forgotMessage && (
-									<div className={cn(
-										"p-3 rounded-none text-xs border font-mono",
-										forgotMessage.type === 'success' 
-											? "bg-emerald-950/30 border-emerald-800 text-emerald-450" 
-											: "bg-red-950/30 border-red-800 text-red-440"
-									)}>
-										{forgotMessage.text}
-									</div>
-								)}
-
-								<form onSubmit={handleVerifyAndReset} className="space-y-4">
-									<div className="space-y-2">
-										<p className="text-zinc-300 text-xs font-bold">6-Digit Verification Code</p>
-										<div className="relative h-max">
-											<Input
-												placeholder="123456"
-												maxLength={6}
-												className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-550 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 transition-colors font-mono tracking-widest text-center text-sm"
-												type="text"
-												required
-												value={otpCode}
-												onChange={(e) => setOtpCode(e.target.value)}
-											/>
-											<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
-												<TerminalIcon className="size-4" aria-hidden="true" />
-											</div>
-										</div>
-									</div>
-
-									<div className="space-y-2">
-										<p className="text-zinc-300 text-xs font-bold">New Password</p>
-										<div className="relative h-max">
-											<Input
-												placeholder="••••••"
-												className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-555 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 transition-colors"
-												type="password"
-												required
-												value={newPassword}
-												onChange={(e) => setNewPassword(e.target.value)}
-											/>
-											<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
-												<LockIcon className="size-4" aria-hidden="true" />
-											</div>
-										</div>
-									</div>
-
-									<div className="space-y-2">
-										<p className="text-zinc-300 text-xs font-bold">Confirm New Password</p>
-										<div className="relative h-max">
-											<Input
-												placeholder="••••••"
-												className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-555 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 transition-colors"
-												type="password"
-												required
-												value={confirmPassword}
-												onChange={(e) => setConfirmPassword(e.target.value)}
-											/>
-											<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
-												<LockIcon className="size-4" aria-hidden="true" />
-											</div>
-										</div>
-									</div>
-
-									<Button 
-										type="submit" 
-										disabled={isSending}
-										className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
-									>
-										{isSending ? 'Updating Password...' : 'Verify & Set Password'}
-									</Button>
-								</form>
-							</motion.div>
-						)}
-
-						{/* ─── FORGOT PASSWORD: SUCCESS FLOW VIEW ─── */}
-						{view === 'forgot_sent' && (
-							<motion.div
-								key="forgot_sent"
-								initial={{ opacity: 0, scale: 0.95 }}
-								animate={{ opacity: 1, scale: 1 }}
-								exit={{ opacity: 0 }}
-								className="text-center space-y-6 py-4"
-							>
-								<div className="mx-auto size-12 bg-emerald-950/30 border border-emerald-900/50 flex items-center justify-center rounded-none mb-2">
-									<CheckCircle2Icon className="size-6 text-emerald-400" />
-								</div>
-								
+							<form onSubmit={handleLogin} className="space-y-4">
 								<div className="space-y-2">
-									<h2 className="text-2xl font-bold tracking-tight text-white">Password Updated</h2>
-									<p className="text-zinc-400 text-xs leading-relaxed max-w-sm mx-auto">
-										Your password has been successfully reset. You can now use your custom email credentials to log in.
+									<p className="text-zinc-400 text-start text-xs font-medium">
+										Enter your email address to sign in or create an account
 									</p>
+									<div className="relative h-max">
+										<Input
+											placeholder="your.email@example.com"
+											className="peer ps-9 bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-600 transition-colors"
+											type="email"
+											required
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+										/>
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+											<AtSignIcon className="size-4" aria-hidden="true" />
+										</div>
+									</div>
+								</div>
+
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<p className="text-zinc-400 text-start text-xs font-medium">
+											Password (Your custom password or 6-Digit ID)
+										</p>
+										<Button
+											type="button"
+											variant="link"
+											onClick={() => {
+												setView('forgot');
+												setMessage(null);
+												setForgotMessage(null);
+											}}
+											className="p-0 h-auto text-xs text-zinc-500 hover:text-indigo-400 transition-colors font-medium hover:no-underline cursor-pointer"
+										>
+											Forgot password?
+										</Button>
+									</div>
+									<div className="relative h-max">
+										<Input
+											placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
+											className="peer ps-9 bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-600 transition-colors"
+											type="password"
+											required
+											value={password}
+											onChange={(e) => setPassword(e.target.value)}
+										/>
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+											<LockIcon className="size-4" aria-hidden="true" />
+										</div>
+									</div>
 								</div>
 
 								<Button
-									onClick={goBackToLogin}
-									className="w-full bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer"
+									type="submit"
+									disabled={isLoading}
+									className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold transition-all duration-200 cursor-pointer"
 								>
-									Back to login
+									<span>{isLoading ? 'Processing...' : 'Continue With Email'}</span>
 								</Button>
-							</motion.div>
-						)}
-					</AnimatePresence>
-				</div>
+							</form>
+
+							<div className="relative my-5">
+								<div className="absolute inset-0 flex items-center">
+									<div className="w-full border-t border-zinc-800" />
+								</div>
+								<div className="relative flex justify-center text-[11px] uppercase tracking-widest">
+									<span className="bg-black px-3 text-zinc-500 font-mono font-bold">or</span>
+								</div>
+							</div>
+
+							<GoogleSignInButton
+								onClick={handleGoogleLogin}
+								disabled={isLoading}
+								loading={isLoading}
+								label="Continue with Google"
+							/>
+
+							<p className="text-zinc-500 mt-8 text-xs leading-relaxed text-center">
+								By clicking continue, you agree to our{' '}
+								<a
+									href="#"
+									className="text-zinc-400 hover:text-indigo-400 underline underline-offset-4 transition-colors"
+								>
+									Terms of Service
+								</a>{' '}
+								and{' '}
+								<a
+									href="#"
+									className="text-zinc-400 hover:text-indigo-400 underline underline-offset-4 transition-colors"
+								>
+									Privacy Policy
+								</a>
+								.
+							</p>
+						</motion.div>
+					)}
+
+					{/* â”€â”€â”€ FORGOT PASSWORD: REQUEST OTP VIEW â”€â”€â”€ */}
+					{view === 'forgot' && (
+						<motion.div
+							key="forgot"
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={{ duration: 0.2 }}
+							className="space-y-6"
+						>
+							<nav className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
+								<button
+									type="button"
+									onClick={goBackToLogin}
+									className="text-zinc-400 hover:text-indigo-400 transition-colors hover:underline cursor-pointer font-normal"
+								>
+									Sign In
+								</button>
+								<span>/</span>
+								<span className="text-zinc-300">Forgot Password</span>
+							</nav>
+
+							<div className="flex flex-col space-y-2">
+								<div className="w-10 h-10 rounded-none bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center mb-2">
+									<MailIcon className="size-5 text-indigo-400" />
+								</div>
+								<h1 className="font-heading text-3xl font-extrabold tracking-tight text-white">
+									Forgot your password?
+								</h1>
+								<p className="text-zinc-400 text-sm leading-relaxed font-medium">
+									No worries. Enter your registered email address and we&apos;ll send an OTP reset code
+									to your inbox.
+								</p>
+							</div>
+
+							{forgotMessage && (
+								<div
+									className={cn(
+										'p-3 rounded-none text-xs border font-mono',
+										forgotMessage.type === 'success'
+											? 'bg-emerald-950/30 border-emerald-800 text-emerald-450'
+											: 'bg-red-950/30 border-red-800 text-red-440',
+									)}
+								>
+									{forgotMessage.text}
+								</div>
+							)}
+
+							<form onSubmit={handleSendOtp} className="space-y-4">
+								<div className="space-y-2">
+									<p className="text-zinc-300 text-xs font-bold">Registered Email Address</p>
+									<div className="relative h-max">
+										<Input
+											placeholder="your.email@example.com"
+											className="peer ps-9 bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-600 transition-colors"
+											type="email"
+											required
+											value={forgotEmail}
+											onChange={(e) => setForgotEmail(e.target.value)}
+										/>
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+											<AtSignIcon className="size-4" aria-hidden="true" />
+										</div>
+									</div>
+								</div>
+
+								<Button
+									type="submit"
+									disabled={isSending}
+									className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold transition-all duration-200 cursor-pointer"
+								>
+									{isSending ? (
+										<span className="flex items-center gap-2 justify-center">
+											<span className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+											Sending...
+										</span>
+									) : (
+										'Send Reset Code'
+									)}
+								</Button>
+							</form>
+						</motion.div>
+					)}
+
+					{/* â”€â”€â”€ FORGOT PASSWORD: VERIFY OTP AND UPDATE VIEW â”€â”€â”€ */}
+					{view === 'forgot_verify' && (
+						<motion.div
+							key="forgot_verify"
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={{ duration: 0.2 }}
+							className="space-y-6"
+						>
+							<nav className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
+								<button
+									type="button"
+									onClick={goBackToLogin}
+									className="text-zinc-400 hover:text-indigo-400 transition-colors hover:underline cursor-pointer font-normal"
+								>
+									Sign In
+								</button>
+								<span>/</span>
+								<span className="text-zinc-300">Reset Password</span>
+							</nav>
+
+							<div className="flex flex-col space-y-2">
+								<div className="w-10 h-10 rounded-none bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center mb-2">
+									<KeyIcon className="size-5 text-indigo-400" />
+								</div>
+								<h1 className="font-heading text-3xl font-extrabold tracking-tight text-white">
+									Enter reset code
+								</h1>
+								<p className="text-zinc-400 text-sm leading-relaxed font-medium">
+									We sent a 6-digit code to your email. Enter it below with your new password.
+								</p>
+							</div>
+
+							{forgotMessage && (
+								<div
+									className={cn(
+										'p-3 rounded-none text-xs border font-mono',
+										forgotMessage.type === 'success'
+											? 'bg-emerald-950/30 border-emerald-800 text-emerald-450'
+											: 'bg-red-950/30 border-red-800 text-red-440',
+									)}
+								>
+									{forgotMessage.text}
+								</div>
+							)}
+
+							<form onSubmit={handleVerifyAndReset} className="space-y-4">
+								<div className="space-y-2">
+									<p className="text-zinc-300 text-xs font-bold">OTP Code</p>
+									<div className="relative h-max">
+										<Input
+											placeholder="6-digit code"
+											className="peer ps-9 bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-600 transition-colors"
+											type="text"
+											inputMode="numeric"
+											required
+											value={otpCode}
+											onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+										/>
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+											<TerminalIcon className="size-4" aria-hidden="true" />
+										</div>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<p className="text-zinc-300 text-xs font-bold">New password</p>
+									<div className="relative h-max">
+										<Input
+											placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
+											className="peer ps-9 bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-600 transition-colors"
+											type="password"
+											required
+											value={newPassword}
+											onChange={(e) => setNewPassword(e.target.value)}
+										/>
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+											<LockIcon className="size-4" aria-hidden="true" />
+										</div>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<p className="text-zinc-300 text-xs font-bold">Confirm password</p>
+									<div className="relative h-max">
+										<Input
+											placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
+											className="peer ps-9 bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-600 transition-colors"
+											type="password"
+											required
+											value={confirmPassword}
+											onChange={(e) => setConfirmPassword(e.target.value)}
+										/>
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+											<LockIcon className="size-4" aria-hidden="true" />
+										</div>
+									</div>
+								</div>
+
+								<Button
+									type="submit"
+									disabled={isSending}
+									className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold transition-all duration-200 cursor-pointer"
+								>
+									{isSending ? 'Updating...' : 'Update password'}
+								</Button>
+							</form>
+						</motion.div>
+					)}
+
+					{/* â”€â”€â”€ FORGOT PASSWORD: SUCCESS VIEW â”€â”€â”€ */}
+					{view === 'forgot_sent' && (
+						<motion.div
+							key="forgot_sent"
+							initial={{ opacity: 0, y: 8 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -8 }}
+							transition={{ duration: 0.2 }}
+							className="space-y-6 text-center"
+						>
+							<div className="flex flex-col items-center space-y-3">
+								<div className="w-12 h-12 rounded-full bg-emerald-600/15 border border-emerald-500/30 flex items-center justify-center">
+									<CheckCircle2Icon className="size-6 text-emerald-400" />
+								</div>
+								<h1 className="font-heading text-2xl font-extrabold tracking-tight text-white">
+									Password updated
+								</h1>
+								<p className="text-zinc-400 text-xs leading-relaxed max-w-sm mx-auto">
+									Your password has been successfully reset. You can now use your custom email
+									credentials to log in.
+								</p>
+							</div>
+
+							<Button
+								onClick={goBackToLogin}
+								className="w-full bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer"
+							>
+								Back to login
+							</Button>
+						</motion.div>
+					)}
+				</AnimatePresence>
 			</div>
 		</main>
-	);
-}
-
-// ─── BACKGROUND VECTOR PATHS (LEFT PANEL) ───
-function LoginAccessAnimation() {
-	return (
-		<div className="z-10 flex flex-1 items-center justify-center py-8">
-			<div className="relative">
-				{/* Ambient glow */}
-				<motion.div
-					className="absolute -inset-8 rounded-full bg-brand-500/10 blur-2xl"
-					animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.9, 0.5] }}
-					transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-				/>
-
-				{/* Secure sign-in card */}
-				<motion.div
-					className="relative w-60 rounded-2xl border border-zinc-700/60 bg-zinc-900/80 p-5 shadow-2xl backdrop-blur"
-					animate={{ y: [-6, 6, -6] }}
-					transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-				>
-					<div className="flex items-center gap-3">
-						<motion.div
-							className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-600/20 text-brand-400"
-							animate={{ scale: [1, 1.15, 1] }}
-							transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-						>
-							<LockIcon className="size-4" />
-						</motion.div>
-						<div>
-							<p className="text-xs font-semibold text-zinc-200">Secure sign-in</p>
-							<p className="text-[10px] text-zinc-500">Encrypted session</p>
-						</div>
-					</div>
-					<div className="mt-4 space-y-2">
-						<div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
-							<motion.div
-								className="h-1.5 rounded-full bg-brand-500"
-								animate={{ width: ['10%', '90%', '10%'] }}
-								transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-							/>
-						</div>
-						<div className="h-1.5 w-3/5 rounded-full bg-zinc-800" />
-					</div>
-				</motion.div>
-
-				{/* Floating "access verified" badge */}
-				<motion.div
-					className="absolute -bottom-5 -right-6 flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-zinc-900/90 px-3 py-1.5 shadow-xl"
-					animate={{ opacity: [0, 1, 1, 0], y: [8, 0, 0, -6] }}
-					transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', times: [0, 0.25, 0.8, 1] }}
-				>
-					<CheckCircle2Icon className="size-3.5 text-emerald-400" />
-					<span className="text-[10px] font-semibold text-emerald-300">Access verified</span>
-				</motion.div>
-
-				{/* Floating particles */}
-				{[0, 1, 2].map((i) => (
-					<motion.span
-						key={i}
-						className="absolute size-1.5 rounded-full bg-brand-400/70"
-						style={{ left: `${20 + i * 30}%`, top: `${-6 - i * 6}%` }}
-						animate={{ y: [0, -14, 0], opacity: [0.3, 1, 0.3] }}
-						transition={{ duration: 2.4 + i * 0.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
-					/>
-				))}
-			</div>
-		</div>
-	);
-}
-
-function FloatingPaths({ position }: { position: number }) {
-	const paths = Array.from({ length: 36 }, (_, i) => ({
-		id: i,
-		d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
-			380 - i * 5 * position
-		} -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${
-			152 - i * 5 * position
-		} ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
-			684 - i * 5 * position
-		} ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-		color: `rgba(255,255,255,${0.08 + i * 0.02})`,
-		width: 0.5 + i * 0.02,
-	}));
-
-	return (
-		<div className="pointer-events-none absolute inset-0">
-			<svg
-				className="h-full w-full text-white"
-				viewBox="0 0 696 316"
-				fill="none"
-			>
-				<title>Background Paths</title>
-				{paths.map((path) => (
-					<motion.path
-						key={path.id}
-						d={path.d}
-						stroke="currentColor"
-						strokeWidth={path.width}
-						strokeOpacity={0.06 + path.id * 0.015}
-						initial={{ pathLength: 0.3, opacity: 0.5 }}
-						animate={{
-							pathLength: 1,
-							opacity: [0.2, 0.5, 0.2],
-							pathOffset: [0, 1, 0],
-						}}
-						transition={{
-							duration: 20 + Math.random() * 10,
-							repeat: Number.POSITIVE_INFINITY,
-							ease: 'linear',
-						}}
-					/>
-				))}
-			</svg>
-		</div>
 	);
 }
