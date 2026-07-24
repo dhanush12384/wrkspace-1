@@ -10,6 +10,7 @@ export function connectRealtime(opts: {
 	token: string;
 	onAttendance?: Handler;
 	onSafety?: Handler;
+	onMessage?: Handler;
 	backendUrl?: string;
 }): () => void {
 	const base = (opts.backendUrl || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://wrkspace-api.onrender.com').replace(
@@ -31,6 +32,7 @@ export function connectRealtime(opts: {
 			});
 			socket.on('attendance:update', (p: Record<string, unknown>) => opts.onAttendance?.(p));
 			socket.on('safety:update', (p: Record<string, unknown>) => opts.onSafety?.(p));
+			socket.on('message:update', (p: Record<string, unknown>) => opts.onMessage?.(p));
 		} catch (e) {
 			console.warn('[realtime] connect failed', e);
 		}

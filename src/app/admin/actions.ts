@@ -1613,7 +1613,8 @@ export async function toggleMessageReaction(
 
 export async function postMessage(channel: string, senderId: string, senderName: string, content: string, senderRole: string) {
   try {
-    if (!content.trim()) {
+    const text = content.trim();
+    if (!text) {
       return { success: false, error: 'Message content cannot be empty' };
     }
 
@@ -1641,7 +1642,7 @@ export async function postMessage(channel: string, senderId: string, senderName:
         channel,
         senderId,
         senderName,
-        content: content.trim()
+        content: text
       }
     });
 
@@ -1650,13 +1651,99 @@ export async function postMessage(channel: string, senderId: string, senderName:
       channel,
       senderId,
       senderName,
-      content: content.trim(),
+      content: text,
     }).catch((e) => console.error('[postMessage] push failed', e));
 
     return { success: true, message };
   } catch (error: any) {
     console.error('Error posting message:', error);
     return { success: false, error: 'Failed to send message' };
+  }
+}
+
+export async function postMessageWithAttachment(
+  channel: string,
+  senderId: string,
+  senderName: string,
+  content: string,
+  senderRole: string,
+  attachment?: {
+    attachmentUrl?: string | null;
+    attachmentType?: 'image' | 'video' | 'file' | null;
+    attachmentName?: string | null;
+  },
+) {
+  try {
+    const text = content.trim();
+    const attachmentUrl = String(attachment?.attachmentUrl || '').trim() || null;
+    const attachmentType = attachment?.attachmentType || null;
+    const attachmentName = String(attachment?.attachmentName || '').trim() || null;
+    if (!text && !attachmentUrl) {
+      return { success: false, error: 'Message content cannot be empty' };
+    }
+    if (attachmentType && !['image', 'video', 'file'].includes(attachmentType)) {
+      return { success: false, error: 'Invalid attachment type' };
+    }
+    if (attachmentUrl && attachmentUrl.length > 1_800_000) {
+      return { success: false, error: 'Attachment too large for this endpoint' };
+    }
+
+    // RBAC validation
+    if (senderRole !== 'Admin') {
+      if (channel.startsWith('dm:')) {
+        const parts = channel.split(':');
+        if (parts[1] !== senderId && parts[2] !== senderId) {
+          return { success: false, error: 'Unauthorized channel access' };
+        }
+      } else if (channel === 'marketing' || channel === 'technical' || channel === 'core') {
+        const access = await db.channelAccessRequest.findUnique({
+          where: {
+            employeeId_channel: { employeeId: senderId, channel }
+          }
+        });
+        if (!access || access.status !== 'Approved') {
+          return { success: false, error: 'Access to this channel is restricted' };
+        }
+      }
+    }
+
+    const message = await db.message.create({
+      data: {
+        channel,
+        senderId,
+        senderName,
+        content: text || (attachmentType === 'image' ? '📷 Photo' : attachmentType === 'video' ? '🎬 Video' : attachmentType ? '📎 File' : ''),
+        attachmentUrl,
+        attachmentType,
+        attachmentName,
+      },
+      include: { reactions: true },
+    });
+
+    void notifyMessagePush({
+      channel,
+      senderId,
+      senderName,
+      content: message.content,
+    }).catch((e) => console.error('[postMessageWithAttachment] push failed', e));
+
+    return { success: true, message };
+  } catch (error: any) {
+    console.error('Error posting message with attachment:', error);
+    return { success: false, error: 'Failed to send message' };
+  }
+}
+
+export async function deleteMessage(messageId: string, senderId: string) {
+  try {
+    const existing = await db.message.findUnique({ where: { id: messageId } });
+    if (!existing) return { success: false, error: 'Message not found' };
+    if (existing.senderId !== senderId) return { success: false, error: 'You can only delete your own messages' };
+    await db.message.delete({ where: { id: messageId } });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting message:', error);
+    return { success: false, error: error.message || 'Failed to delete message' };
   }
 }
 
@@ -1919,15 +2006,33 @@ export async function createWorkSubmission(data: {
   hoursSpent: number;
 }) {
   try {
+    const title = data.title.trim();
+    const description = data.description.trim();
+    const hoursSpent = Number(data.hoursSpent);
+    const dedupeSince = new Date(Date.now() - 90 * 1000);
+    const recentDuplicate = await db.workSubmission.findFirst({
+      where: {
+        employeeId: data.employeeId,
+        title,
+        description,
+        hoursSpent,
+        submittedAt: { gte: dedupeSince },
+      },
+      orderBy: { submittedAt: 'desc' },
+    });
+    if (recentDuplicate) {
+      return { success: false, error: 'Submission already sent a moment ago', duplicate: true };
+    }
+
     const submission = await db.workSubmission.create({
       data: {
         employeeId: data.employeeId,
         employeeName: data.employeeName,
-        title: data.title,
-        description: data.description,
+        title,
+        description,
         taskId: data.taskId || null,
         taskTitle: data.taskTitle || null,
-        hoursSpent: data.hoursSpent,
+        hoursSpent,
         status: 'Submitted',
       }
     });
@@ -1944,6 +2049,61 @@ export async function createWorkSubmission(data: {
   } catch (error: any) {
     console.error('Error creating work submission:', error);
     return { success: false, error: error.message || 'Failed to submit work' };
+  }
+}
+
+export async function deleteEmployeeWorkSubmission(submissionId: string, employeeId: string) {
+  try {
+    const id = String(submissionId || '').trim();
+    if (!id) return { success: false, error: 'Submission id is required' };
+    const submission = await db.workSubmission.findUnique({ where: { id } });
+    if (!submission) return { success: false, error: 'Submission not found' };
+    if (submission.employeeId !== employeeId) {
+      return { success: false, error: 'You can delete only your own submission' };
+    }
+    const withinDeleteWindow = Date.now() - new Date(submission.submittedAt).getTime() <= 10 * 60 * 1000;
+    if (!withinDeleteWindow) {
+      return { success: false, error: 'Delete window expired (10 minutes)' };
+    }
+    await db.workSubmission.delete({ where: { id } });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting employee submission:', error);
+    return { success: false, error: error.message || 'Failed to delete submission' };
+  }
+}
+
+export async function editEmployeeWorkSubmission(
+  submissionId: string,
+  employeeId: string,
+  updates: { title: string; description: string; hoursSpent: number },
+) {
+  try {
+    const id = String(submissionId || '').trim();
+    if (!id) return { success: false, error: 'Submission id is required' };
+    const submission = await db.workSubmission.findUnique({ where: { id } });
+    if (!submission) return { success: false, error: 'Submission not found' };
+    if (submission.employeeId !== employeeId) {
+      return { success: false, error: 'You can edit only your own submission' };
+    }
+    const withinEditWindow = Date.now() - new Date(submission.submittedAt).getTime() <= 10 * 60 * 1000;
+    if (!withinEditWindow) {
+      return { success: false, error: 'Edit window expired (10 minutes)' };
+    }
+    const title = String(updates.title || '').trim();
+    const description = String(updates.description || '').trim();
+    const hoursSpent = Number(updates.hoursSpent);
+    if (!title || !description || !Number.isFinite(hoursSpent)) {
+      return { success: false, error: 'Please provide valid title, description and hours.' };
+    }
+    const updated = await db.workSubmission.update({
+      where: { id },
+      data: { title, description, hoursSpent },
+    });
+    return { success: true, submission: updated };
+  } catch (error: any) {
+    console.error('Error editing employee submission:', error);
+    return { success: false, error: error.message || 'Failed to edit submission' };
   }
 }
 

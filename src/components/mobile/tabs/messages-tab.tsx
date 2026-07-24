@@ -19,6 +19,7 @@ import {
 	X,
 } from 'lucide-react';
 import { ChatAvatar } from '@/components/ui/chat-avatar';
+import { connectRealtime } from '@/lib/realtime-client';
 import {
 	apiDelete,
 	apiGet,
@@ -93,6 +94,11 @@ function formatTime(iso?: string) {
 	}
 }
 
+function dmChannelId(a: string, b: string) {
+	const ids = [String(a || ''), String(b || '')].sort();
+	return `dm:${ids[0]}:${ids[1]}`;
+}
+
 function fileToDataUrl(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
@@ -140,6 +146,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 	const fileAccept = useRef('image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt');
 	const inDm = Boolean(dmPeerId);
 	const inChat = inChannelChat || inDm;
+	const activeChatChannel = inDm && dmPeerId ? dmChannelId(myId, dmPeerId) : inChannelChat ? channel : '';
 
 	const setChatOpen = useCallback(
 		(open: boolean) => onChatOpenChange?.(open),
@@ -245,6 +252,24 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 			window.clearInterval(id);
 		};
 	}, [inChat, reloadChat]);
+
+	useEffect(() => {
+		const token =
+			(typeof window !== 'undefined' &&
+				(localStorage.getItem('wrkspace_employee_token') ||
+					(JSON.parse(localStorage.getItem('wrkspace_employee_session') || '{}') as any)?.token)) ||
+			'';
+		if (!token || !inChat || !activeChatChannel) return;
+		const stop = connectRealtime({
+			token,
+			onMessage: (p) => {
+				const targetChannel = String(p.channel || '');
+				if (!targetChannel || targetChannel !== activeChatChannel) return;
+				void reloadChat();
+			},
+		});
+		return stop;
+	}, [inChat, activeChatChannel, reloadChat]);
 
 	const closeChat = () => {
 		setInChannelChat(false);

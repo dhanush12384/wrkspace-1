@@ -13,7 +13,10 @@ import {
 	CheckIcon,
 	XIcon,
 	ChevronDownIcon,
-	PencilIcon
+	PencilIcon,
+	PaperclipIcon,
+	CopyIcon,
+	Trash2Icon,
 } from 'lucide-react';
 import { Button } from './button';
 import { Input } from './input';
@@ -24,7 +27,9 @@ import { connectRealtime } from '@/lib/realtime-client';
 import { 
 	getMessages, 
 	postMessage, 
+	postMessageWithAttachment,
 	editMessage,
+	deleteMessage,
 	toggleMessageReaction,
 	getChatMembers,
 	requestChannelAccess,
@@ -91,6 +96,9 @@ interface MessageType {
 	editedAt?: Date | string | null;
 	reactions?: ReactionType[];
 	senderPhotoUrl?: string | null;
+	attachmentType?: 'image' | 'video' | 'file' | null;
+	attachmentName?: string | null;
+	attachmentUrl?: string | null;
 }
 
 interface MessagesViewProps {
@@ -130,9 +138,22 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 	const [reactBusyId, setReactBusyId] = useState<string | null>(null);
 	
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const attachInputRef = useRef<HTMLInputElement>(null);
+	const normalizeUserId = (value: string | null | undefined) => String(value || '').trim().toLowerCase();
+	const isCurrentUserMessage = (senderId: string | null | undefined) =>
+		normalizeUserId(senderId) === normalizeUserId(currentUser.id);
+	const maxAttachBytes = 10 * 1024 * 1024;
+
+	const fileToDataUrl = (file: File): Promise<string> =>
+		new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(String(reader.result || ''));
+			reader.onerror = () => reject(new Error('Could not read file'));
+			reader.readAsDataURL(file);
+		});
 
 	const canEditMessage = (msg: MessageType) => {
-		if (msg.senderId !== currentUser.id) return false;
+		if (!isCurrentUserMessage(msg.senderId)) return false;
 		const created = new Date(msg.createdAt).getTime();
 		return Date.now() - created <= EDIT_WINDOW_MS;
 	};
@@ -162,6 +183,67 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		}
 	};
 
+	const handleDeleteMessage = async (msg: MessageType) => {
+		const ok = window.confirm('Delete this message for everyone?');
+		if (!ok) return;
+		const res = await deleteMessage(msg.id, currentUser.id);
+		if (res.success) {
+			setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+			setMenuMsgId(null);
+			return;
+		}
+		alert(res.error || 'Could not delete message');
+	};
+
+	const handleCopyMessage = async (content: string) => {
+		try {
+			await navigator.clipboard.writeText(content || '');
+		} catch {
+			alert('Could not copy message');
+		} finally {
+			setMenuMsgId(null);
+		}
+	};
+
+	const handleFilePick = async (file: File | null) => {
+		if (!file || isSending) return;
+		if (file.size > maxAttachBytes) {
+			alert('File too large. Keep under 10 MB.');
+			return;
+		}
+		setIsSending(true);
+		try {
+			const dataUrl = await fileToDataUrl(file);
+			const mime = file.type || 'application/octet-stream';
+			const type: 'image' | 'video' | 'file' =
+				mime.startsWith('image/') ? 'image' : mime.startsWith('video/') ? 'video' : 'file';
+			const res = await postMessageWithAttachment(
+				activeChannel,
+				currentUser.id,
+				currentUser.role === 'Admin' ? 'Admin' : currentUser.name,
+				'',
+				currentUser.role,
+				{
+					attachmentUrl: dataUrl,
+					attachmentType: type,
+					attachmentName: file.name,
+				},
+			);
+			if (res.success && res.message) {
+				const createdMessage = res.message as MessageType;
+				setMessages((prev) => (prev.some((item) => item.id === createdMessage.id) ? prev : [...prev, createdMessage]));
+				requestAnimationFrame(scrollMessagesToBottom);
+			} else if (!res.success) {
+				alert(res.error || 'Could not send attachment');
+			}
+		} catch (err) {
+			console.error(err);
+			alert('Could not send attachment');
+		} finally {
+			setIsSending(false);
+		}
+	};
+
 	// Load members
 	useEffect(() => {
 		const loadMembers = async () => {
@@ -174,6 +256,21 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		};
 		loadMembers();
 	}, [currentUser.id]);
+
+	useEffect(() => {
+		const closeMenu = (event: MouseEvent | TouchEvent) => {
+			const target = event.target as HTMLElement | null;
+			if (!target) return;
+			if (target.closest('[data-msg-menu]') || target.closest('[data-msg-menu-trigger]')) return;
+			setMenuMsgId(null);
+		};
+		document.addEventListener('mousedown', closeMenu);
+		document.addEventListener('touchstart', closeMenu);
+		return () => {
+			document.removeEventListener('mousedown', closeMenu);
+			document.removeEventListener('touchstart', closeMenu);
+		};
+	}, []);
 
 	// Live profile photo updates → refresh avatars on all open Messages screens
 	useEffect(() => {
@@ -204,9 +301,19 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				// Force remount-ish refresh of message list avatars
 				setMessages((prev) => [...prev]);
 			},
+			onMessage: (p) => {
+				const targetChannel = String(p.channel || '');
+				if (!targetChannel || targetChannel !== activeChannel) return;
+				const shouldStickToBottom = isNearBottom();
+				void fetchMessages(false).then(() => {
+					if (shouldStickToBottom) {
+						requestAnimationFrame(scrollMessagesToBottom);
+					}
+				});
+			},
 		});
 		return stop;
-	}, []);
+	}, [activeChannel, currentUser.id, currentUser.role]);
 
 	// Check access to target channel
 	const checkAccess = async (channelId: string) => {
@@ -256,6 +363,9 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 			const res = await getMessages(activeChannel, currentUser.id, currentUser.role);
 			if (res.success && res.messages) {
 				setMessages(res.messages as any);
+				if (showLoading) {
+					requestAnimationFrame(scrollMessagesToBottom);
+				}
 			}
 		} catch (err) {
 			console.error(err);
@@ -286,15 +396,20 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					}
 				});
 			}
-		}, 1000);
+		}, 4000);
 
 		return () => clearInterval(interval);
-	}, [activeChannel, accessStatus]);
+	}, [activeChannel, accessStatus, currentUser.id, currentUser.role]);
 
 	const scrollMessagesToBottom = () => {
 		// Scroll only the chat pane — never the whole page
 		const el = messagesEndRef.current?.parentElement;
 		if (el) el.scrollTop = el.scrollHeight;
+	};
+	const isNearBottom = () => {
+		const el = messagesEndRef.current?.parentElement;
+		if (!el) return true;
+		return el.scrollHeight - el.scrollTop - el.clientHeight < 120;
 	};
 
 	const handleSendMessage = async (e: React.FormEvent) => {
@@ -314,6 +429,12 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				currentUser.role
 			);
 			if (res.success) {
+				if (res.message) {
+					const createdMessage = res.message as MessageType;
+					setMessages((prev) =>
+						prev.some((item) => item.id === createdMessage.id) ? prev : [...prev, createdMessage],
+					);
+				}
 				await fetchMessages(false);
 				// Only jump down when the user just sent — never on poll refresh
 				requestAnimationFrame(scrollMessagesToBottom);
@@ -385,7 +506,18 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 	);
 
 	return (
-		<div className="w-full h-full border-t border-zinc-800 bg-zinc-950 flex overflow-hidden">
+		<div className="w-full h-full min-w-0 border-t border-zinc-800 bg-zinc-950 flex overflow-hidden">
+			<input
+				ref={attachInputRef}
+				type="file"
+				className="hidden"
+				accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+				onChange={(e) => {
+					const file = e.target.files?.[0] || null;
+					e.target.value = '';
+					void handleFilePick(file);
+				}}
+			/>
 			{/* Left Sidebar (Channels / Users) */}
 			<div className={cn(
 				"w-full md:w-80 border-r border-zinc-800 flex flex-col bg-zinc-950/80 shrink-0",
@@ -554,7 +686,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 
 			{/* Right Section (Messages Container) */}
 			<div className={cn(
-				"flex-1 flex flex-col bg-zinc-950",
+				"flex-1 min-w-0 flex flex-col bg-zinc-950",
 				mobileView === 'sidebar' ? "hidden md:flex" : "flex"
 			)}>
 				{/* Compact title row (no tall navbar) */}
@@ -609,7 +741,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				)}
 
 				{/* Messages Scroll Area */}
-				<div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-zinc-800 bg-zinc-950 flex flex-col justify-start">
+				<div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-4 scrollbar-thin scrollbar-thumb-zinc-800 bg-zinc-950 flex flex-col justify-start">
 					{isCheckingAccess ? (
 						<div className="h-full flex items-center justify-center">
 							<span className="text-xs text-zinc-550 font-mono flex items-center gap-2">
@@ -689,10 +821,18 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 								</div>
 							) : (
 								messages.map((msg) => {
-									const isSelf = msg.senderId === currentUser.id;
+									const isSelf = isCurrentUserMessage(msg.senderId);
 									const timeStr = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 									const color = memberChatColor(msg.senderId || msg.senderName);
 									const reactions = msg.reactions || [];
+									const attachmentType = msg.attachmentType || null;
+									const attachmentUrl = msg.attachmentUrl || '';
+									const attachmentName = msg.attachmentName || 'Attachment';
+									const hasAttachment = Boolean(attachmentType && attachmentUrl);
+									const textOnlyContent = hasAttachment && msg.content && msg.content.length <= 12 &&
+										(msg.content.includes('Photo') || msg.content.includes('Video') || msg.content.includes('File'))
+										? ''
+										: msg.content;
 									const byEmoji = QUICK_EMOJIS.map((emoji) => ({
 										emoji,
 										count: reactions.filter((r) => r.emoji === emoji).length,
@@ -705,7 +845,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 										<div 
 											key={msg.id} 
 											className={cn(
-												"flex gap-2 max-w-[85%] sm:max-w-[75%] first:mt-auto group",
+												"flex gap-2 max-w-full sm:max-w-[85%] lg:max-w-[75%] first:mt-auto group",
 												isSelf ? "ml-auto flex-row-reverse" : "mr-auto flex-row"
 											)}
 										>
@@ -723,7 +863,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 													size={32}
 												/>
 											</div>
-											<div className={cn("flex flex-col min-w-0 relative", isSelf ? "items-end" : "items-start")}>
+											<div className={cn("flex flex-col min-w-0 max-w-full relative", isSelf ? "items-end" : "items-start")}>
 												<div className="flex items-center gap-2 mb-1">
 													<span
 														className="text-[10px] font-bold font-mono"
@@ -741,6 +881,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 													<button
 														type="button"
 														onClick={() => setMenuMsgId(menuOpen ? null : msg.id)}
+														data-msg-menu-trigger
 														className={cn(
 															"absolute -top-1 z-10 size-6 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer",
 															isSelf ? "-left-8" : "-right-8",
@@ -753,6 +894,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 
 													{menuOpen && (
 														<div
+															data-msg-menu
 															className={cn(
 																"absolute z-20 top-0 mb-1 p-2 rounded-xl bg-zinc-900 border border-zinc-700 shadow-xl min-w-[200px]",
 																isSelf ? "right-0" : "left-0"
@@ -785,6 +927,24 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 																	Edit
 																</button>
 															)}
+															<button
+																type="button"
+																onClick={() => handleCopyMessage(msg.content || '')}
+																className="w-full flex items-center gap-2 text-xs text-zinc-200 hover:bg-zinc-800 px-2 py-1.5 rounded-md cursor-pointer"
+															>
+																<CopyIcon className="size-3.5" />
+																Copy
+															</button>
+															{isSelf && (
+																<button
+																	type="button"
+																	onClick={() => void handleDeleteMessage(msg)}
+																	className="w-full flex items-center gap-2 text-xs text-red-300 hover:bg-red-950/30 px-2 py-1.5 rounded-md cursor-pointer"
+																>
+																	<Trash2Icon className="size-3.5" />
+																	Delete
+																</button>
+															)}
 														</div>
 													)}
 
@@ -815,14 +975,39 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 														</div>
 													) : (
 														<div
-															className="px-4 py-2.5 text-sm rounded-xl border leading-relaxed break-words text-start w-full"
+															className="px-4 py-2.5 text-sm rounded-xl border leading-relaxed break-words text-start w-full max-w-full"
 															style={{
 																backgroundColor: color.bg,
 																color: color.fg,
 																borderColor: color.soft,
 															}}
 														>
-															{msg.content}
+															{hasAttachment && attachmentType === 'image' && (
+																<img
+																	src={attachmentUrl}
+																	alt={attachmentName}
+																	className="mb-2 max-h-72 w-auto rounded-lg object-contain"
+																/>
+															)}
+															{hasAttachment && attachmentType === 'video' && (
+																<video
+																	src={attachmentUrl}
+																	controls
+																	className="mb-2 max-h-72 w-full rounded-lg"
+																/>
+															)}
+															{hasAttachment && attachmentType === 'file' && (
+																<a
+																	href={attachmentUrl}
+																	download={attachmentName}
+																	target="_blank"
+																	rel="noreferrer"
+																	className="mb-2 inline-flex text-xs underline opacity-90"
+																>
+																	{attachmentName}
+																</a>
+															)}
+															{textOnlyContent}
 														</div>
 													)}
 												</div>
@@ -858,6 +1043,14 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				{/* Input box (only visible if approved) */}
 				{accessStatus === 'Approved' && (
 					<form onSubmit={handleSendMessage} className="p-4 border-t border-zinc-800 bg-zinc-950 flex gap-3">
+						<Button
+							type="button"
+							disabled={isSending}
+							onClick={() => attachInputRef.current?.click()}
+							className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-200 size-11 flex items-center justify-center shrink-0 cursor-pointer"
+						>
+							<PaperclipIcon className="size-4" />
+						</Button>
 						<Input
 							type="text"
 							placeholder={`Message ${channelTitle}...`}

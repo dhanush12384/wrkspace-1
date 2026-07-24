@@ -23,6 +23,25 @@ export async function emitSafetyUpdate(kind: string, payload: Record<string, unk
 	});
 }
 
+export async function emitMessageUpdate(payload: {
+	targetChannel: string;
+	action: 'new' | 'edit' | 'delete' | 'reaction';
+	messageId?: string;
+	senderId?: string;
+	recipientEmployeeIds?: string[];
+	peerId?: string | null;
+}) {
+	return emitRealtime({
+		channel: 'message',
+		targetChannel: payload.targetChannel,
+		action: payload.action,
+		messageId: payload.messageId || '',
+		senderId: payload.senderId || '',
+		recipientEmployeeIds: payload.recipientEmployeeIds || [],
+		peerId: payload.peerId || null,
+	});
+}
+
 async function emitRealtime(body: Record<string, unknown>) {
 	const base = (
 		process.env.NEXT_PUBLIC_BACKEND_URL ||

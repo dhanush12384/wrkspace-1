@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
-import { notifyMessagePush } from '@/lib/message-push';
+import { notifyMessagePush, resolveMessageRecipients } from '@/lib/message-push';
 import { enrichMessagesWithPhotos } from '@/lib/message-enrich';
+import { emitMessageUpdate } from '@/lib/realtime-emit';
 
 const MAX_ATTACH_CHARS = 1_800_000; // ~1.3MB binary — stay under Vercel body limits
 
@@ -155,6 +156,18 @@ export async function POST(req: NextRequest) {
 			content: message.content,
 			peerId,
 		}).catch((e) => console.error('[api/messages] push failed', e));
+		void resolveMessageRecipients(channel, emp.id, peerId)
+			.then((resolved) =>
+				emitMessageUpdate({
+					targetChannel: channel,
+					action: 'new',
+					messageId: message.id,
+					senderId: emp.id,
+					recipientEmployeeIds: resolved.all ? [] : resolved.employeeIds,
+					peerId: resolved.peerId,
+				}),
+			)
+			.catch((e) => console.error('[api/messages] realtime emit failed', e));
 
 		const [enriched] = await enrichMessagesWithPhotos([message]);
 		return Response.json({

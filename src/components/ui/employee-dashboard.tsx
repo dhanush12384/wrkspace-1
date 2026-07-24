@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './button';
 import { 
 	CalendarIcon, 
@@ -12,7 +12,9 @@ import {
 	RefreshCwIcon,
 	BarChart2Icon,
 	UploadIcon,
-	UserCheckIcon
+	UserCheckIcon,
+	Trash2Icon,
+	PencilIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
@@ -29,6 +31,8 @@ import {
 	getEventsForEmployee,
 	createWorkSubmission,
 	getEmployeeWorkSubmissions,
+	deleteEmployeeWorkSubmission,
+	editEmployeeWorkSubmission,
 	getLeads,
 	updateLeadStatus,
 	bulkImportLeads,
@@ -125,6 +129,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 	const [subTaskId, setSubTaskId] = useState('');
 	const [subHours, setSubHours] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const submitInFlightRef = useRef(false);
 	const [subMessage, setSubMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	const loadMySubmissions = async () => {
@@ -138,29 +143,86 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 	const handleWorkSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (submitInFlightRef.current) return;
+		submitInFlightRef.current = true;
 		setIsSubmitting(true);
 		setSubMessage(null);
-		const linkedTask = empTasks.find(t => t.id === subTaskId);
-		const result = await createWorkSubmission({
-			employeeId: employee.id,
-			employeeName: `${employee.firstName} ${employee.lastName}`,
-			title: subTitle,
-			description: subDescription,
-			taskId: linkedTask?.id || undefined,
-			taskTitle: linkedTask?.title || undefined,
-			hoursSpent: parseFloat(subHours) || 0,
+		try {
+			const linkedTask = empTasks.find(t => t.id === subTaskId);
+			const result = await createWorkSubmission({
+				employeeId: employee.id,
+				employeeName: `${employee.firstName} ${employee.lastName}`,
+				title: subTitle,
+				description: subDescription,
+				taskId: linkedTask?.id || undefined,
+				taskTitle: linkedTask?.title || undefined,
+				hoursSpent: parseFloat(subHours) || 0,
+			});
+			if (result.success) {
+				setSubMessage({ type: 'success', text: 'Work submitted successfully! The admin will review it shortly.' });
+				setSubTitle('');
+				setSubDescription('');
+				setSubTaskId('');
+				setSubHours('');
+				await loadMySubmissions();
+			} else {
+				setSubMessage({ type: 'error', text: result.error || 'Failed to submit work.' });
+			}
+		} finally {
+			setIsSubmitting(false);
+			submitInFlightRef.current = false;
+		}
+	};
+
+	const canDeleteSubmission = (sub: any) => {
+		try {
+			const submittedAt = new Date(sub.submittedAt).getTime();
+			return Date.now() - submittedAt <= 10 * 60 * 1000;
+		} catch {
+			return false;
+		}
+	};
+
+	const canEditSubmission = (sub: any) => {
+		try {
+			const submittedAt = new Date(sub.submittedAt).getTime();
+			return Date.now() - submittedAt <= 10 * 60 * 1000;
+		} catch {
+			return false;
+		}
+	};
+
+	const handleDeleteMySubmission = async (submissionId: string) => {
+		const ok = window.confirm('Delete this submission? Allowed only within 10 minutes after submit.');
+		if (!ok) return;
+		const result = await deleteEmployeeWorkSubmission(submissionId, employee.id);
+		if (result.success) {
+			setSubMessage({ type: 'success', text: 'Submission deleted.' });
+			await loadMySubmissions();
+			return;
+		}
+		setSubMessage({ type: 'error', text: result.error || 'Could not delete submission.' });
+	};
+
+	const handleEditMySubmission = async (sub: any) => {
+		const title = window.prompt('Edit title', String(sub.title || ''));
+		if (title == null) return;
+		const description = window.prompt('Edit description', String(sub.description || ''));
+		if (description == null) return;
+		const hoursText = window.prompt('Edit hours spent', String(sub.hoursSpent ?? ''));
+		if (hoursText == null) return;
+		const hoursSpent = Number(hoursText);
+		const result = await editEmployeeWorkSubmission(sub.id, employee.id, {
+			title,
+			description,
+			hoursSpent,
 		});
 		if (result.success) {
-			setSubMessage({ type: 'success', text: 'Work submitted successfully! The admin will review it shortly.' });
-			setSubTitle('');
-			setSubDescription('');
-			setSubTaskId('');
-			setSubHours('');
+			setSubMessage({ type: 'success', text: 'Submission updated.' });
 			await loadMySubmissions();
-		} else {
-			setSubMessage({ type: 'error', text: result.error || 'Failed to submit work.' });
+			return;
 		}
-		setIsSubmitting(false);
+		setSubMessage({ type: 'error', text: result.error || 'Could not edit submission.' });
 	};
 
 	// Leads state
@@ -1374,6 +1436,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 											value={subTitle}
 											onChange={e => setSubTitle(e.target.value)}
 											required
+											disabled={isSubmitting}
 											placeholder="e.g. Completed landing page redesign"
 											className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 focus:outline-none focus:ring-1 focus:ring-brand-600"
 										/>
@@ -1385,6 +1448,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 											value={subHours}
 											onChange={e => setSubHours(e.target.value)}
 											required
+											disabled={isSubmitting}
 											min="0.5"
 											step="0.5"
 											placeholder="e.g. 3.5"
@@ -1399,6 +1463,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 										value={subDescription}
 										onChange={e => setSubDescription(e.target.value)}
 										required
+											disabled={isSubmitting}
 										rows={4}
 										placeholder="Describe what you accomplished, challenges overcome, and deliverables produced..."
 										className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
@@ -1411,6 +1476,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 										<select
 											value={subTaskId}
 											onChange={e => setSubTaskId(e.target.value)}
+											disabled={isSubmitting}
 											className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-none text-sm p-3 focus:outline-none focus:ring-1 focus:ring-brand-600 cursor-pointer"
 										>
 											<option value="">— No linked task —</option>
@@ -1454,6 +1520,8 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 											'Approved': 'bg-emerald-950/30 border-emerald-900/40 text-emerald-300',
 											'Needs Revision': 'bg-red-950/30 border-red-900/40 text-red-300',
 										};
+										const canDelete = canDeleteSubmission(sub);
+										const canEdit = canEditSubmission(sub);
 										return (
 											<div key={sub.id} className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-2">
 												<div className="flex items-start justify-between gap-3 flex-wrap">
@@ -1471,6 +1539,28 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 													</span>
 												</div>
 												<p className="text-xs text-zinc-500 leading-relaxed">{sub.description}</p>
+												{(canDelete || canEdit) && (
+													<div className="flex justify-end">
+														{canEdit && (
+															<button
+																type="button"
+																onClick={() => void handleEditMySubmission(sub)}
+																className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 border border-indigo-900/50 text-indigo-300 hover:bg-indigo-950/30 cursor-pointer me-2"
+															>
+																<PencilIcon className="size-3.5" />
+																Edit (10m)
+															</button>
+														)}
+														<button
+															type="button"
+															onClick={() => handleDeleteMySubmission(sub.id)}
+															className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 border border-red-900/50 text-red-300 hover:bg-red-950/30 cursor-pointer"
+														>
+															<Trash2Icon className="size-3.5" />
+															Delete (10m)
+														</button>
+													</div>
+												)}
 												{sub.adminNote && (
 													<div className="bg-zinc-900/60 border border-zinc-800 px-3 py-2 text-xs text-zinc-400 italic mt-1">
 														<span className="text-zinc-500 not-italic font-semibold">Admin: </span>{sub.adminNote}
