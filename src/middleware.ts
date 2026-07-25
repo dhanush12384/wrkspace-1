@@ -81,7 +81,11 @@ async function fetchMaintenanceState(req: NextRequest) {
     return state;
   } catch (error) {
     console.warn('[maintenance-guard] failed, allowing live traffic', error);
-    if (maintenanceCache.state) return maintenanceCache.state;
+    // Fail open on bridge errors so production traffic stays live.
+    // We intentionally avoid reusing stale cache here because stale=true
+    // could keep maintenance mode stuck after an outage.
+    maintenanceCache.state = null;
+    maintenanceCache.expiresAt = 0;
     return { maintenance_enabled: false, source: 'safe-live-fallback', degraded: true };
   } finally {
     clearTimeout(timeoutId);
