@@ -26,17 +26,6 @@ function normalizeEnvValue(value: string | undefined | null) {
     .trim();
 }
 
-function withMaintDebugHeaders(
-  res: NextResponse,
-  info: { source: string; enabled: boolean; reason: string; error?: string },
-) {
-  res.headers.set('x-maint-source', info.source);
-  res.headers.set('x-maint-enabled', info.enabled ? 'true' : 'false');
-  res.headers.set('x-maint-reason', info.reason);
-  res.headers.set('x-maint-error', info.error || 'none');
-  return res;
-}
-
 const maintenanceCache: {
   expiresAt: number;
   state: null | {
@@ -207,7 +196,7 @@ export async function middleware(req: NextRequest) {
 
   if (pathname.startsWith('/api/')) {
     if (req.method === 'OPTIONS') {
-      const res = new NextResponse(null, {
+      return new NextResponse(null, {
         status: 204,
         headers: {
           'Access-Control-Allow-Origin': '*',
@@ -215,57 +204,28 @@ export async function middleware(req: NextRequest) {
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       });
-      return withMaintDebugHeaders(res, {
-        source: 'api',
-        enabled: false,
-        reason: 'api_options_bypass',
-        error: 'none',
-      });
     }
 
     const res = NextResponse.next();
     res.headers.set('Access-Control-Allow-Origin', '*');
     res.headers.set('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
     res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return withMaintDebugHeaders(res, {
-      source: 'api',
-      enabled: false,
-      reason: 'api_bypass',
-      error: 'none',
-    });
+    return res;
   }
 
   if (isAllowedDuringMaintenance(pathname)) {
-    const res = NextResponse.next();
-    return withMaintDebugHeaders(res, {
-      source: 'allowed',
-      enabled: false,
-      reason: 'allowed_path_bypass',
-      error: 'none',
-    });
+    return NextResponse.next();
   }
 
   const state = await fetchMaintenanceState(req);
   if (!state.maintenance_enabled) {
-    const res = NextResponse.next();
-    return withMaintDebugHeaders(res, {
-      source: String(state.source || 'unknown'),
-      enabled: false,
-      reason: String(state.reason || 'maintenance_disabled'),
-      error: String(state.error || 'none'),
-    });
+    return NextResponse.next();
   }
 
   const url = req.nextUrl.clone();
   url.pathname = '/maintenance';
   url.searchParams.set('from', pathname);
-  const res = NextResponse.rewrite(url);
-  return withMaintDebugHeaders(res, {
-    source: String(state.source || 'unknown'),
-    enabled: true,
-    reason: String(state.reason || 'maintenance_enabled_rewrite'),
-    error: String(state.error || 'none'),
-  });
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
