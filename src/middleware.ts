@@ -53,7 +53,8 @@ async function fetchMaintenanceState(req: NextRequest) {
   }
 
   const url = `${backendBase}/internal/maintenance-state`;
-  const secret = process.env.INTERNAL_PUSH_SECRET || process.env.JWT_SECRET || '';
+  const rawSecret = process.env.INTERNAL_PUSH_SECRET || process.env.JWT_SECRET || '';
+  const secret = rawSecret.replace(/^['"]|['"]$/g, '');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), MAINTENANCE_TIMEOUT_MS);
 
