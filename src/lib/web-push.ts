@@ -7,6 +7,21 @@ import { getFirebasePublicConfig } from '@/lib/firebase-public-config';
 
 let officeExitUnsub: (() => void) | null = null;
 
+function isIosSafari(): boolean {
+	if (typeof navigator === 'undefined') return false;
+	const ua = navigator.userAgent || '';
+	const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+	const webkit = /WebKit/i.test(ua);
+	const chromeIos = /CriOS/i.test(ua);
+	return iOS && webkit && !chromeIos;
+}
+
+export function isStandalonePwa(): boolean {
+	if (typeof window === 'undefined') return false;
+	const nav = window.navigator as Navigator & { standalone?: boolean };
+	return nav.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+}
+
 /** Foreground push: open leave-office dialog when type=office_exit. */
 export async function subscribeOfficeExitPush(onOfficeExit: () => void) {
 	if (typeof window === 'undefined') return;
@@ -30,18 +45,32 @@ export async function subscribeOfficeExitPush(onOfficeExit: () => void) {
 /**
  * Register FCM web push after login.
  * Uses a narrow SW scope (no root claim) so Android Chrome navigations stay stable.
+ * iOS: only works for installed Home Screen PWA (iOS 16.4+); Safari tabs cannot receive push.
  */
-export async function registerWebPush(_employeeId?: string) {
-	if (typeof window === 'undefined') return;
+export async function registerWebPush(_employeeId?: string): Promise<{
+	ok: boolean;
+	reason?: string;
+}> {
+	if (typeof window === 'undefined') return { ok: false, reason: 'ssr' };
 	try {
 		const config = getFirebasePublicConfig();
 		if (!config) {
 			console.warn('[web-push] Firebase public config missing');
-			return;
+			return { ok: false, reason: 'firebase_config' };
 		}
 
 		const ok = await isSupported();
-		if (!ok) return;
+		if (!ok) {
+			console.info('[web-push] Messaging not supported in this browser');
+			return { ok: false, reason: 'unsupported' };
+		}
+
+		if (isIosSafari() && !isStandalonePwa()) {
+			console.info(
+				'[web-push] iOS Safari tab cannot receive push — install Add to Home Screen (PWA) first',
+			);
+			return { ok: false, reason: 'ios_not_standalone' };
+		}
 
 		// Drop only broken placeholder / root-scope messaging SWs — keep a healthy narrow-scope SW.
 		if ('serviceWorker' in navigator) {
@@ -65,17 +94,21 @@ export async function registerWebPush(_employeeId?: string) {
 			);
 		}
 
-		const permission = await Notification.requestPermission();
+		let permission = Notification.permission;
+		if (permission === 'default') {
+			permission = await Notification.requestPermission();
+		}
 		if (permission !== 'granted') {
 			console.info('[web-push] notification permission:', permission);
-			return;
+			return { ok: false, reason: 'permission_denied' };
 		}
 
 		const vapid = (process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '').trim();
 		if (!vapid) {
 			console.warn(
-				'[web-push] NEXT_PUBLIC_FIREBASE_VAPID_KEY is not set — trying getToken without it (may fail)',
+				'[web-push] NEXT_PUBLIC_FIREBASE_VAPID_KEY is not set — getToken will likely fail',
 			);
+			return { ok: false, reason: 'vapid_missing' };
 		}
 
 		// Scope under /api/firebase-messaging-sw/ only — never claim the whole origin.
@@ -84,22 +117,26 @@ export async function registerWebPush(_employeeId?: string) {
 			updateViaCache: 'none',
 		});
 		await navigator.serviceWorker.ready;
+		// iOS sometimes needs a beat after SW activate before getToken
+		if (isIosSafari()) {
+			await new Promise((r) => setTimeout(r, 400));
+		}
 
 		const app = getApps().length ? getApp() : initializeApp(config);
 		const messaging = getMessaging(app);
 		const token = await getToken(messaging, {
-			...(vapid ? { vapidKey: vapid } : {}),
+			vapidKey: vapid,
 			serviceWorkerRegistration: registration,
 		}).catch((e) => {
 			console.warn('[web-push] getToken failed', e);
 			return null;
 		});
-		if (!token) return;
+		if (!token) return { ok: false, reason: 'token_failed' };
 
 		const auth = employeeToken();
 		if (!auth) {
 			console.warn('[web-push] no employee JWT — token not saved');
-			return;
+			return { ok: false, reason: 'no_auth' };
 		}
 
 		const res = await fetch('/api/devices/fcm-token', {
@@ -108,12 +145,18 @@ export async function registerWebPush(_employeeId?: string) {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${auth}`,
 			},
-			body: JSON.stringify({ token, platform: 'web' }),
+			body: JSON.stringify({
+				token,
+				platform: isIosSafari() ? 'ios-web' : 'web',
+			}),
 		});
 		if (!res.ok) {
 			console.warn('[web-push] save failed', res.status);
+			return { ok: false, reason: 'save_failed' };
 		}
+		return { ok: true };
 	} catch (e) {
 		console.warn('[web-push] register failed', e);
+		return { ok: false, reason: 'exception' };
 	}
 }

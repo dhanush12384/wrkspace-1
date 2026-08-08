@@ -20,6 +20,9 @@ import {
 import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup } from '@/app/admin/actions';
 import { AdminLiveSafetyPanel } from './safety-panel';
 import { AdminLiveTrackingPanel } from './live-tracking-panel';
+import { AdminShiftTimingsPanel } from './admin-shift-timings-panel';
+import { AdminLateCheckinsPanel } from './admin-late-checkins-panel';
+import { AdminPayoutsPanel } from './admin-payouts-panel';
 import OfficesPanel from '@/components/ui/offices-panel';
 import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,7 +34,7 @@ interface AdminDashboardProps {
 	onLogout: () => void;
 }
 
-type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking';
+type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'shift_timings' | 'late_checkins' | 'payouts';
 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -43,7 +46,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [newAdminOrgName, setNewAdminOrgName] = useState('');
 	const [newAdminPassword, setNewAdminPassword] = useState('admin123');
 	const [newAdminPages, setNewAdminPages] = useState<string[]>([
-		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies'
+		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies', 'shift_timings', 'late_checkins', 'payouts'
 	]);
 	const [allocatedLink, setAllocatedLink] = useState<string | null>(null);
 	const [isAllocating, setIsAllocating] = useState(false);
@@ -53,6 +56,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [organizationName, setOrganizationName] = useState('WrkSpace Headquarters');
 	const [loadingProfile, setLoadingProfile] = useState(true);
 	const [isAdminTeamLead, setIsAdminTeamLead] = useState(false);
+	const [adminEmployeeId, setAdminEmployeeId] = useState<string | null>(null);
+	const [adminDisplayName, setAdminDisplayName] = useState('Admin');
 	const [allocatorName, setAllocatorName] = useState('Admin');
 	const [allocatorRole, setAllocatorRole] = useState('Admin');
 
@@ -62,6 +67,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				const res = await getAdminProfile(email);
 				if (res.success && res.profile) {
 					setOrganizationName(res.profile.organizationName || 'WrkSpace Headquarters');
+					setAdminEmployeeId(res.profile.employeeId || null);
+					setAdminDisplayName(res.profile.employeeName || 'Admin');
 					const pages = res.profile.allowedPages || '';
 					const tabs = pages.split(',').map(t => t.trim()).filter(Boolean);
 					setAllowedTabs(tabs);
@@ -1541,6 +1548,30 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							Attendance
 						</button>
 					)}
+					{(isSuperAdmin || allowedTabs.includes('shift_timings')) && (
+						<button
+							onClick={() => setActiveTab('shift_timings')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'shift_timings' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Shift timings
+						</button>
+					)}
+					{(isSuperAdmin || allowedTabs.includes('late_checkins')) && (
+						<button
+							onClick={() => setActiveTab('late_checkins')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'late_checkins' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Late check-ins
+						</button>
+					)}
+					{(isSuperAdmin || allowedTabs.includes('payouts')) && (
+						<button
+							onClick={() => setActiveTab('payouts')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'payouts' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Payouts
+						</button>
+					)}
 					{(isSuperAdmin || allowedTabs.includes('offices')) && (
 						<button
 							onClick={() => setActiveTab('offices')}
@@ -1644,6 +1675,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				{/* Tab content: Overview */}
 				{activeTab === 'live_safety' && <AdminLiveSafetyPanel adminEmail={email} />}
 				{activeTab === 'live_tracking' && <AdminLiveTrackingPanel adminEmail={email} />}
+				{activeTab === 'shift_timings' && (isSuperAdmin || allowedTabs.includes('shift_timings')) && (
+					<AdminShiftTimingsPanel />
+				)}
+				{activeTab === 'late_checkins' && (isSuperAdmin || allowedTabs.includes('late_checkins')) && (
+					<AdminLateCheckinsPanel />
+				)}
+				{activeTab === 'payouts' && (isSuperAdmin || allowedTabs.includes('payouts')) && (
+					<AdminPayoutsPanel />
+				)}
 
 				{activeTab === 'overview' && (
 					<div className="space-y-6">
@@ -2025,7 +2065,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 										<div className="space-y-1">
 											<label className="text-[10px] text-zinc-400 uppercase font-medium">Check-Out Time (Optional)</label>
-											<Input type="text" name="checkOut" placeholder="e.g. 07:00 PM / 09:30 PM" className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
+											<Input type="text" name="checkOut" placeholder="e.g. 07:00 PM" className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
 										</div>
 									</div>
 									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
@@ -2297,8 +2337,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				{activeTab === 'messages' && (
 					<MessagesView 
 						currentUser={{
-							id: 'admin',
-							name: 'Admin',
+							id: adminEmployeeId || email,
+							name: adminDisplayName || 'Admin',
 							email: email,
 							role: 'Admin'
 						}}
@@ -2606,27 +2646,29 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										export data <span className="text-[9px]">▼</span>
 									</Button>
 									{showExportDropdown && (
-										<div className="absolute right-0 mt-1 w-40 bg-zinc-950 border border-zinc-850 shadow-xl z-50 py-1 font-mono text-[11px]">
-											<button
-												type="button"
-												onClick={() => {
-													setShowExportDropdown(false);
-													document.getElementById('employee-excel-import')?.click();
-												}}
-												className="w-full text-left px-4 py-2 text-zinc-350 hover:bg-zinc-900 hover:text-white transition-colors cursor-pointer"
-											>
-												import excel
-											</button>
-											<button
-												type="button"
-												onClick={() => {
-													setShowExportDropdown(false);
-													handleExportPdf();
-												}}
-												className="w-full text-left px-4 py-2 text-zinc-350 hover:bg-zinc-900 hover:text-white transition-colors cursor-pointer"
-											>
-												import into pdf
-											</button>
+										<div className="absolute right-0 top-full pt-1 w-40 z-50">
+											<div className="bg-zinc-950 border border-zinc-850 shadow-xl py-1 font-mono text-[11px]">
+												<button
+													type="button"
+													onClick={() => {
+														setShowExportDropdown(false);
+														document.getElementById('employee-excel-import')?.click();
+													}}
+													className="w-full text-left px-4 py-2 text-zinc-350 hover:bg-zinc-900 hover:text-white transition-colors cursor-pointer"
+												>
+													import excel
+												</button>
+												<button
+													type="button"
+													onClick={() => {
+														setShowExportDropdown(false);
+														handleExportPdf();
+													}}
+													className="w-full text-left px-4 py-2 text-zinc-350 hover:bg-zinc-900 hover:text-white transition-colors cursor-pointer"
+												>
+													import into pdf
+												</button>
+											</div>
 										</div>
 									)}
 								</div>
@@ -4693,6 +4735,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												{ id: 'employees', name: 'Employees Directory' },
 												{ id: 'task_allocation', name: 'Task Allocation' },
 												{ id: 'attendance', name: 'Attendance Logs' },
+												{ id: 'shift_timings', name: 'Shift Timings' },
+												{ id: 'late_checkins', name: 'Late Check-ins' },
+												{ id: 'payouts', name: 'Payouts' },
 												{ id: 'leaves', name: 'Leave Requests' },
 												{ id: 'clients', name: 'Clients Tab' },
 												{ id: 'messages', name: 'Chat Messages' },

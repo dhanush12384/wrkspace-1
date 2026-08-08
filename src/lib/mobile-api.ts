@@ -1,5 +1,21 @@
 /** Shared helpers for Flutter-parity mobile web app. */
 
+export class ApiError extends Error {
+	status?: number;
+	code?: string;
+	body?: Record<string, unknown>;
+	constructor(message: string, opts?: { status?: number; code?: string; body?: Record<string, unknown> }) {
+		super(message);
+		this.name = 'ApiError';
+		this.status = opts?.status;
+		this.code = opts?.code;
+		this.body = opts?.body;
+	}
+	get canRequestPermission() {
+		return this.body?.canRequestPermission === true || this.code === 'CHECKIN_WINDOW_CLOSED';
+	}
+}
+
 export function employeeToken(): string {
 	if (typeof window === 'undefined') return '';
 	try {
@@ -20,7 +36,13 @@ export async function apiGet<T = any>(path: string): Promise<T> {
 		cache: 'no-store',
 	});
 	const data = await res.json().catch(() => ({}));
-	if (!res.ok) throw new Error((data as any).error || `Request failed (${res.status})`);
+	if (!res.ok) {
+		throw new ApiError((data as any).error || `Request failed (${res.status})`, {
+			status: res.status,
+			code: (data as any).code,
+			body: data as Record<string, unknown>,
+		});
+	}
 	return data as T;
 }
 
@@ -35,7 +57,13 @@ export async function apiPost<T = any>(path: string, body: Record<string, unknow
 		body: JSON.stringify(body),
 	});
 	const data = await res.json().catch(() => ({}));
-	if (!res.ok) throw new Error((data as any).error || `Request failed (${res.status})`);
+	if (!res.ok) {
+		throw new ApiError((data as any).error || `Request failed (${res.status})`, {
+			status: res.status,
+			code: (data as any).code,
+			body: data as Record<string, unknown>,
+		});
+	}
 	return data as T;
 }
 

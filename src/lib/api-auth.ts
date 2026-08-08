@@ -32,7 +32,7 @@ export function signAdminToken(admin: { id: string; email: string; allowedPages?
       allowedPages: admin.allowedPages || undefined,
     } satisfies AdminJwt,
     secret(),
-    { expiresIn: '12h' }
+    { expiresIn: '30d' }
   );
 }
 

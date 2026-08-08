@@ -33,12 +33,26 @@ export function ChunkReloadGuard() {
 	useEffect(() => {
 		const onRejection = (ev: PromiseRejectionEvent) => {
 			if (isChunkFailure(ev.reason) && takeReloadSlot()) {
+				try {
+					(window as any).StudentForgeMonitor?.trackCustomMetric?.('chunk_failure_reload', 1, {
+						kind: 'unhandledrejection',
+					});
+				} catch {
+					/* no-op */
+				}
 				ev.preventDefault();
 				window.location.reload();
 			}
 		};
 		const onError = (ev: ErrorEvent) => {
 			if (isChunkFailure(ev.error ?? ev.message) && takeReloadSlot()) {
+				try {
+					(window as any).StudentForgeMonitor?.trackCustomMetric?.('chunk_failure_reload', 1, {
+						kind: 'window_error',
+					});
+				} catch {
+					/* no-op */
+				}
 				window.location.reload();
 			}
 		};

@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from 'react';
 import { apiGet, apiPost, getPosition, isFemaleEmployee } from '@/lib/mobile-api';
+import { shouldTrackLocationNow } from '@/lib/location-track-policy';
 
 const OFFICE_WATCH_MS = 60_000;
 const HOME_WATCH_MS = 25_000;
+const SCHEDULE_POLL_MS = 60_000;
 /** Exit fence fallback — indoor GPS often drifts 100–250m. */
 const EXIT_GEOFENCE_M = 500;
 const MAX_ACCURACY_M = 55;
@@ -92,6 +94,8 @@ type Opts = {
 	enabled: boolean;
 	onLeaveOffice?: () => void;
 	onBackInsideOffice?: () => void;
+	/** Fired once when employee is at office while checked out (scan QR reminder). */
+	onArriveOffice?: () => void;
 	onLocationError?: () => void;
 };
 
@@ -100,12 +104,14 @@ export function useMobileTracking({
 	enabled,
 	onLeaveOffice,
 	onBackInsideOffice,
+	onArriveOffice,
 	onLocationError,
 }: Opts) {
 	const leavePrompted = useRef(false);
+	const enterPrompted = useRef(false);
 	const wasInsideExit = useRef(false);
 	const outsideStreak = useRef(0);
-	const officesRef = useRef<{ lat: number; lng: number; geofenceM?: number }[]>([]);
+	const officesRef = useRef<{ lat: number; lng: number; geofenceM?: number; radiusMeters?: number }[]>([]);
 	const errorNotified = useRef(false);
 	const lastOfficesFetch = useRef(0);
 
@@ -135,6 +141,7 @@ export function useMobileTracking({
 						lat: Number(o.lat),
 						lng: Number(o.lng),
 						geofenceM: Number(o.geofenceM),
+						radiusMeters: Number(o.radiusMeters),
 					}))
 					.filter(
 						(o) =>
@@ -185,14 +192,20 @@ export function useMobileTracking({
 				const today = await apiGet<any>('/api/attendance/today');
 				const att = today.attendance || today;
 				const dateKey = String(att?.date || today?.date || '');
-				const onShift =
-					att?.checkIn && (!att?.checkOut || String(att.checkOut).trim() === '');
-				if (!onShift) {
+				const onShift = Boolean(
+					att?.checkIn && (!att?.checkOut || String(att.checkOut).trim() === ''),
+				);
+
+				// GPS: pre-check-in window OR full track while on shift (home trip uses tickHome).
+				const wantGps = shouldTrackLocationNow({
+					onShift,
+					shiftCheckIn: employee?.shiftCheckIn,
+					shiftCheckOut: employee?.shiftCheckOut,
+					hasOpenHomeTrip: false,
+				});
+				if (!wantGps) {
 					leavePrompted.current = false;
-					wasInsideExit.current = false;
 					outsideStreak.current = 0;
-					clearOfficeExitPending();
-					clearOfficeWorkAck();
 					return;
 				}
 
@@ -200,12 +213,6 @@ export function useMobileTracking({
 				errorNotified.current = false;
 				const { latitude: lat, longitude: lng, accuracy } = pos.coords;
 				await apiPost('/api/attendance/location', { lat, lng }).catch(() => {});
-
-				// Coarse indoor / Wi‑Fi fixes — never count as leaving.
-				if (typeof accuracy === 'number' && accuracy > MAX_ACCURACY_M) {
-					outsideStreak.current = 0;
-					return;
-				}
 
 				const offices = officesRef.current;
 				if (!offices.length) return;
@@ -215,10 +222,45 @@ export function useMobileTracking({
 						...o,
 						d: distM(lat, lng, o.lat, o.lng),
 						r: exitRadiusM(o),
+						checkInR:
+							Number.isFinite(o.radiusMeters) && (o.radiusMeters as number) > 0
+								? Math.max(o.radiusMeters as number, 150)
+								: 300,
 					}))
 					.sort((a, b) => a.d - b.d)[0];
 
 				if (!nearest) return;
+
+				const insideCheckIn = nearest.d <= nearest.checkInR;
+				const insideExit = nearest.d <= nearest.r + 80;
+
+				// Checked out + at office → remind to scan QR (parity with Flutter)
+				if (!onShift) {
+					leavePrompted.current = false;
+					outsideStreak.current = 0;
+					clearOfficeExitPending();
+					if (insideCheckIn) {
+						if (!enterPrompted.current) {
+							enterPrompted.current = true;
+							onArriveOffice?.();
+						}
+						wasInsideExit.current = true;
+						return;
+					}
+					if (wasInsideExit.current && !insideExit) {
+						enterPrompted.current = false;
+					}
+					wasInsideExit.current = insideExit;
+					return;
+				}
+
+				enterPrompted.current = false;
+
+				// Coarse indoor / Wi‑Fi fixes — never count as leaving.
+				if (typeof accuracy === 'number' && accuracy > MAX_ACCURACY_M) {
+					outsideStreak.current = 0;
+					return;
+				}
 
 				const acc = typeof accuracy === 'number' && accuracy > 0 ? accuracy : 40;
 				const outside = nearest.d > nearest.r + Math.min(acc, 80) + EXIT_HYSTERESIS_M;
@@ -265,12 +307,14 @@ export function useMobileTracking({
 		// Clear any stale leave prompt from a previous false positive on mount.
 		clearOfficeExitPending();
 		leavePrompted.current = false;
+		enterPrompted.current = false;
 
 		void loadOffices(true).then(() => {
 			void tickOffice();
 			void tickHome();
 		});
-		officeTimer = window.setInterval(() => void tickOffice(), OFFICE_WATCH_MS);
+		// Schedule poll: only runs GPS when pre-check-in window / policy allows.
+		officeTimer = window.setInterval(() => void tickOffice(), SCHEDULE_POLL_MS);
 		homeTimer = window.setInterval(() => void tickHome(), HOME_WATCH_MS);
 
 		return () => {
@@ -278,7 +322,7 @@ export function useMobileTracking({
 			if (officeTimer) window.clearInterval(officeTimer);
 			if (homeTimer) window.clearInterval(homeTimer);
 		};
-	}, [employee, enabled, onLeaveOffice, onBackInsideOffice, onLocationError]);
+	}, [employee, enabled, onLeaveOffice, onBackInsideOffice, onArriveOffice, onLocationError]);
 
 	useEffect(() => {
 		if (!employee?.id) return;

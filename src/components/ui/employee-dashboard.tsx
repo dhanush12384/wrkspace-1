@@ -43,6 +43,7 @@ import {
 import { MessagesView } from './messages-view';
 import { EmployeeSafetyPanel } from './safety-panel';
 import { ProfilePhotoEditor } from './profile-photo';
+import { StipendCard } from '@/components/mobile/stipend-card';
 
 type EmpTabType = 'overview' | 'tasks' | 'attendance' | 'leaves' | 'messages' | 'events' | 'work_submission' | 'leads' | 'hr_companies' | 'profile' | 'id_card' | 'safety';
 
@@ -76,7 +77,12 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 	const [leaveType, setLeaveType] = useState('Annual Leave');
 	const [leaveReason, setLeaveReason] = useState('');
 	const [leaveMsg, setLeaveMsg] = useState<string | null>(null);
+	const [isLeaveSubmitting, setIsLeaveSubmitting] = useState(false);
+	const leaveInFlightRef = useRef(false);
 	const [geofenceError, setGeofenceError] = useState<string | null>(null);
+	const [canRequestLatePermission, setCanRequestLatePermission] = useState(false);
+	const [latePermissionBusy, setLatePermissionBusy] = useState(false);
+	const [latePermissionNote, setLatePermissionNote] = useState<string | null>(null);
 	const [bypassGeofence, setBypassGeofence] = useState(false);
 	const [leaveChoiceOpen, setLeaveChoiceOpen] = useState(false);
 	const [leaveChoiceBusy, setLeaveChoiceBusy] = useState(false);
@@ -461,19 +467,48 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 		}
 	};
 
+	const applyClockInResult = (res: {
+		success: boolean;
+		error?: string;
+		code?: string;
+		canRequestPermission?: boolean;
+	}) => {
+		if (res.success) {
+			setAttendanceStatus('checked_in');
+			setCanRequestLatePermission(false);
+			setLatePermissionNote(null);
+			loadEmployeeAttendance(employee!.id);
+			return;
+		}
+		setGeofenceError(res.error || 'Failed to clock in');
+		setCanRequestLatePermission(Boolean(res.canRequestPermission) || res.code === 'CHECKIN_WINDOW_CLOSED');
+	};
+
+	const requestLatePermission = async () => {
+		if (!employee || latePermissionBusy) return;
+		setLatePermissionBusy(true);
+		try {
+			const { apiPost } = await import('@/lib/mobile-api');
+			await apiPost('/api/attendance/late-permission', {});
+			setCanRequestLatePermission(false);
+			setLatePermissionNote('Request sent. Waiting for admin approval…');
+		} catch (e: any) {
+			setLatePermissionNote(e?.message || 'Could not send request');
+		} finally {
+			setLatePermissionBusy(false);
+		}
+	};
+
 	const handleCheckIn = async () => {
 		if (!employee) return;
 		setGeofenceError(null);
+		setCanRequestLatePermission(false);
+		setLatePermissionNote(null);
 
 		if (bypassGeofence) {
 			try {
 				const res = await clockIn(employee.id, `${employee.firstName} ${employee.lastName}`);
-				if (res.success) {
-					setAttendanceStatus('checked_in');
-					loadEmployeeAttendance(employee.id);
-				} else {
-					setGeofenceError(res.error || 'Failed to clock in');
-				}
+				applyClockInResult(res as any);
 			} catch (error) {
 				console.error("Failed to clock in:", error);
 				setGeofenceError("A server error occurred during Clock In.");
@@ -497,12 +532,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 				try {
 					const res = await clockIn(employee.id, `${employee.firstName} ${employee.lastName}`);
-					if (res.success) {
-						setAttendanceStatus('checked_in');
-						loadEmployeeAttendance(employee.id);
-					} else {
-						setGeofenceError(res.error || 'Failed to clock in');
-					}
+					applyClockInResult(res as any);
 				} catch (error) {
 					console.error("Failed to clock in:", error);
 					setGeofenceError("A server error occurred during Clock In.");
@@ -577,11 +607,15 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 	const handleRequestLeave = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (leaveInFlightRef.current) return;
 		if (!leaveStart || !leaveEnd || !leaveReason) {
 			setLeaveMsg('Please fill out all request fields.');
 			return;
 		}
-		
+
+		leaveInFlightRef.current = true;
+		setIsLeaveSubmitting(true);
+		setLeaveMsg(null);
 		try {
 			const res = await requestLeave({
 				employeeId: employee.id,
@@ -604,6 +638,9 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 			}
 		} catch (err: any) {
 			setLeaveMsg('An unexpected error occurred while submitting.');
+		} finally {
+			leaveInFlightRef.current = false;
+			setIsLeaveSubmitting(false);
 		}
 	};
 
@@ -853,6 +890,12 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 							</div>
 						</div>
 
+						<StipendCard
+							variant="dashboard"
+							employee={employee}
+							onEmployeeUpdate={onEmployeeUpdate}
+						/>
+
 						{/* Stats grids */}
 						<div className="grid grid-cols-2 md:grid-cols-6 gap-4">
 							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
@@ -1075,10 +1118,33 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								</div>
 							</div>
 						)}
+						{!(mobilePanelTab && mobileLogsOnly) ? (
+							<StipendCard
+								variant="dashboard"
+								employee={employee}
+								onEmployeeUpdate={onEmployeeUpdate}
+							/>
+						) : null}
+
 						{geofenceError && !(mobilePanelTab && mobileLogsOnly) && (
-							<div className="bg-red-600/10 border border-red-600/25 p-4 rounded-none text-xs text-red-400 font-mono flex items-start gap-2.5 transition-all">
-								<span className="font-bold uppercase bg-red-600 text-white px-1.5 py-0.5 text-[9px] tracking-wider shrink-0">Geofence Alert</span>
-								<span>{geofenceError}</span>
+							<div className="bg-red-600/10 border border-red-600/25 p-4 rounded-none text-xs text-red-400 font-mono flex flex-col gap-2 transition-all">
+								<div className="flex items-start gap-2.5">
+									<span className="font-bold uppercase bg-red-600 text-white px-1.5 py-0.5 text-[9px] tracking-wider shrink-0">Alert</span>
+									<span>{geofenceError}</span>
+								</div>
+								{latePermissionNote ? (
+									<p className="text-sky-300">{latePermissionNote}</p>
+								) : null}
+								{canRequestLatePermission ? (
+									<button
+										type="button"
+										disabled={latePermissionBusy}
+										onClick={() => void requestLatePermission()}
+										className="self-start rounded-none bg-sky-600 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white disabled:opacity-60"
+									>
+										{latePermissionBusy ? 'Sending…' : 'Request late permission'}
+									</button>
+								) : null}
 							</div>
 						)}
 
@@ -1243,9 +1309,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 							<Button 
 								type="submit"
-								className="w-full bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-none cursor-pointer transition-colors"
+								disabled={isLeaveSubmitting}
+								className="w-full bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-none cursor-pointer transition-colors disabled:opacity-60"
 							>
-								Submit Leave Request
+								{isLeaveSubmitting ? 'Submitting…' : 'Submit Leave Request'}
 							</Button>
 						</form>
 
@@ -2135,6 +2202,12 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 							</h2>
 							<p className="text-zinc-400 text-sm mt-0.5">Your official corporate profile and organization details</p>
 						</div>
+
+						<StipendCard
+							variant="dashboard"
+							employee={employee}
+							onEmployeeUpdate={onEmployeeUpdate}
+						/>
 
 						{/* Main Info Card */}
 						<div className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-none space-y-8">

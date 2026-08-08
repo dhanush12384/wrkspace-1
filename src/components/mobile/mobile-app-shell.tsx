@@ -143,10 +143,12 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 	const [leaveBusy, setLeaveBusy] = useState(false);
 	const [leaveSecondsLeft, setLeaveSecondsLeft] = useState(300);
 	const [installHint, setInstallHint] = useState(false);
+	const [pushHint, setPushHint] = useState<string | null>(null);
 	const [messagesChatOpen, setMessagesChatOpen] = useState(false);
 	const [closeChatSignal, setCloseChatSignal] = useState(0);
 	const [locStatus, setLocStatus] = useState<'ok' | 'denied' | 'prompt' | 'unsupported'>('prompt');
 	const [locBannerDismissed, setLocBannerDismissed] = useState(false);
+	const [arriveOfficeHint, setArriveOfficeHint] = useState(false);
 	const leaveTimerRef = useRef<number | undefined>(undefined);
 	const leaveTickRef = useRef<number | undefined>(undefined);
 	const leaveBusyRef = useRef(false);
@@ -182,7 +184,19 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 
 		// FCM after first paint — never block shell mount (Android Chrome stability).
 		const tPush = window.setTimeout(() => {
-			void registerWebPush(employee?.id).then(() => {
+			void registerWebPush(employee?.id).then((result) => {
+				if (!result.ok) {
+					if (result.reason === 'ios_not_standalone') {
+						setInstallHint(true);
+						setPushHint(
+							'Notifications need the Home Screen app — Share → Add to Home Screen, then Allow notifications.',
+						);
+					} else if (result.reason === 'permission_denied') {
+						setPushHint('Notifications blocked. Enable them in Settings to get check-in and leave-office alerts.');
+					} else if (result.reason === 'vapid_missing') {
+						setPushHint('Push is not configured (VAPID). Contact admin if alerts are missing.');
+					}
+				}
 				// FCM office_exit: only open dialog after a quick GPS check (avoid false alerts indoors).
 				subscribeOfficeExitPush(() => {
 					void (async () => {
@@ -268,6 +282,20 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 		};
 	}, [employee?.id, openLeaveDialog, clearLeaveTimers]);
 
+	const openArriveOfficeHint = useCallback(() => {
+		setArriveOfficeHint(true);
+		try {
+			if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+				new Notification('You are at the office', {
+					body: 'Please scan the QR code to check in.',
+					tag: 'wrkspace-office-arrive',
+				});
+			}
+		} catch {
+			/* ignore */
+		}
+	}, []);
+
 	useMobileTracking({
 		employee,
 		enabled: locStatus === 'ok',
@@ -276,6 +304,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 			clearLeaveTimers();
 			setLeaveOpen(false);
 		},
+		onArriveOffice: openArriveOfficeHint,
 		onLocationError: () => setLocStatus('denied'),
 	});
 
@@ -393,10 +422,60 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 			{installHint ? (
 				<div className="z-50 flex items-start gap-2 bg-[#0047FF] px-3 py-2 text-[12px] font-medium text-white">
 					<p className="min-w-0 flex-1">
-						iPhone: Share → <strong>Add to Home Screen</strong> for app icon + notifications.
+						{pushHint || (
+							<>
+								iPhone: Share → <strong>Add to Home Screen</strong>, open that icon, then Allow notifications.
+								Safari tabs cannot receive push.
+							</>
+						)}
 					</p>
-					<button type="button" className="shrink-0 underline" onClick={() => setInstallHint(false)}>
+					<button
+						type="button"
+						className="shrink-0 underline"
+						onClick={() => {
+							setInstallHint(false);
+							setPushHint(null);
+						}}
+					>
 						OK
+					</button>
+				</div>
+			) : null}
+
+			{!installHint && pushHint ? (
+				<div className="z-50 flex items-start gap-2 bg-[#0F172A] px-3 py-2 text-[12px] font-medium text-white">
+					<p className="min-w-0 flex-1">{pushHint}</p>
+					<button
+						type="button"
+						className="shrink-0 underline"
+						onClick={() => {
+							setPushHint(null);
+							void registerWebPush(employee?.id);
+						}}
+					>
+						Retry
+					</button>
+					<button type="button" className="shrink-0 underline" onClick={() => setPushHint(null)}>
+						OK
+					</button>
+				</div>
+			) : null}
+
+			{arriveOfficeHint ? (
+				<div className="z-50 flex items-start gap-2 bg-[#0F172A] px-3 py-2.5 text-[12px] font-medium text-white">
+					<p className="min-w-0 flex-1">You are at the office — scan the QR code to check in.</p>
+					<button
+						type="button"
+						className="shrink-0 rounded-md bg-[#0047FF] px-2.5 py-1 text-[11px] font-bold"
+						onClick={() => {
+							setArriveOfficeHint(false);
+							setScannerOpen(true);
+						}}
+					>
+						Scan
+					</button>
+					<button type="button" className="shrink-0 underline" onClick={() => setArriveOfficeHint(false)}>
+						Later
 					</button>
 				</div>
 			) : null}
@@ -435,6 +514,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 							onOpenProfile={() => openPanel('profile')}
 							onOpenSafety={() => openPanel('safety')}
 							onOpenPanel={openPanel}
+							onEmployeeUpdate={onEmployeeUpdate}
 						/>
 					</div>
 				) : null}

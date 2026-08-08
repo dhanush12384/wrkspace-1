@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 import { employeeDisplayName } from '@/lib/attendance-geo';
+import { paymentFieldsForPublic } from '@/lib/payment-details';
 
 function withGender(emp: {
   id: string;
@@ -22,6 +23,14 @@ function withGender(emp: {
   homeAddress?: string | null;
   homeRadiusM?: number | null;
   homeEditAllowed?: boolean | null;
+  stipendAmount?: number | null;
+  upiId?: string | null;
+  bankAccountNumber?: string | null;
+  bankName?: string | null;
+  bankIfsc?: string | null;
+  paymentDetailsFilledAt?: Date | null;
+  shiftCheckIn?: string | null;
+  shiftCheckOut?: string | null;
 }) {
   const gender = String(emp.gender || 'UNSPECIFIED').toUpperCase();
   return {
@@ -47,6 +56,9 @@ function withGender(emp: {
     homeAddress: emp.homeAddress ?? null,
     homeRadiusM: emp.homeRadiusM ?? 100,
     homeEditAllowed: emp.homeEditAllowed !== false,
+    shiftCheckIn: emp.shiftCheckIn ?? null,
+    shiftCheckOut: emp.shiftCheckOut ?? null,
+    ...paymentFieldsForPublic(emp),
   };
 }
 

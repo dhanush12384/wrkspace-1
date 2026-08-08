@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, signEmployeeToken } from '@/lib/api-auth';
 import { employeeDisplayName } from '@/lib/attendance-geo';
+import { friendlyDbError } from '@/lib/db-errors';
+import { paymentFieldsForPublic } from '@/lib/payment-details';
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,9 +35,10 @@ export async function POST(req: NextRequest) {
         phone: emp.phone,
         photoUrl: emp.photoUrl ?? null,
         gender: emp.gender ?? 'UNSPECIFIED',
+        ...paymentFieldsForPublic(emp),
       },
     });
   } catch (e: any) {
-    return jsonError(e.message || 'Login failed', 500);
+    return jsonError(friendlyDbError(e, 'Login failed'), 503);
   }
 }

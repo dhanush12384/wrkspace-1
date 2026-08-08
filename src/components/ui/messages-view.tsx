@@ -140,8 +140,12 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const attachInputRef = useRef<HTMLInputElement>(null);
 	const normalizeUserId = (value: string | null | undefined) => String(value || '').trim().toLowerCase();
-	const isCurrentUserMessage = (senderId: string | null | undefined) =>
-		normalizeUserId(senderId) === normalizeUserId(currentUser.id);
+	const isCurrentUserMessage = (
+		senderId: string | null | undefined,
+		senderName?: string | null,
+	) =>
+		normalizeUserId(senderId) === normalizeUserId(currentUser.id) ||
+		normalizeUserId(senderName) === normalizeUserId(currentUser.name);
 	const maxAttachBytes = 10 * 1024 * 1024;
 
 	const fileToDataUrl = (file: File): Promise<string> =>
@@ -153,7 +157,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		});
 
 	const canEditMessage = (msg: MessageType) => {
-		if (!isCurrentUserMessage(msg.senderId)) return false;
+		if (!isCurrentUserMessage(msg.senderId, msg.senderName)) return false;
 		const created = new Date(msg.createdAt).getTime();
 		return Date.now() - created <= EDIT_WINDOW_MS;
 	};
@@ -821,7 +825,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 								</div>
 							) : (
 								messages.map((msg) => {
-									const isSelf = isCurrentUserMessage(msg.senderId);
+									const isSelf = isCurrentUserMessage(msg.senderId, msg.senderName);
 									const timeStr = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 									const color = memberChatColor(msg.senderId || msg.senderName);
 									const reactions = msg.reactions || [];

@@ -9,7 +9,6 @@ import { exec, execSync } from 'child_process';
 import { notifyPush } from '@/lib/push-notify';
 import { notifyMessagePush } from '@/lib/message-push';
 import { resolveAdminEmployeeIds } from '@/lib/admin-recipients';
-import { processAttendanceCheckoutJobs } from '@/lib/attendance-cron';
 import { eventHasRepresentative, representativeIds } from '@/lib/event-reps';
 
 // Fixed admin email address
@@ -405,7 +404,12 @@ export async function loginEmployee(email: string, passwordId: string) {
         : found.id === passwordId.toUpperCase();
       if (ok) {
         const token = signEmployeeToken({ id: found.id, email: found.email, role: found.role });
-        return { success: true, employee: found, token };
+        const { paymentFieldsForPublic } = await import('@/lib/payment-details');
+        return {
+          success: true,
+          employee: { ...found, ...paymentFieldsForPublic(found) },
+          token,
+        };
       }
     }
   } catch (error) {
@@ -429,7 +433,12 @@ export async function loginEmployeeWithGoogle(email: string) {
       return { success: false as const, error: 'No employee linked to this Google account' };
     }
     const token = signEmployeeToken({ id: found.id, email: found.email, role: found.role });
-    return { success: true as const, employee: found, token };
+    const { paymentFieldsForPublic } = await import('@/lib/payment-details');
+    return {
+      success: true as const,
+      employee: { ...found, ...paymentFieldsForPublic(found) },
+      token,
+    };
   } catch (error: any) {
     console.error('Error in loginEmployeeWithGoogle:', error);
     return { success: false as const, error: error.message || 'Google login failed' };
@@ -553,7 +562,11 @@ export async function refreshEmployeeSession(employeeId: string) {
   try {
     const employee = await db.employee.findUnique({ where: { id: employeeId } });
     if (!employee) return { success: false as const, error: 'Employee not found' };
-    return { success: true as const, employee };
+    const { paymentFieldsForPublic } = await import('@/lib/payment-details');
+    return {
+      success: true as const,
+      employee: { ...employee, ...paymentFieldsForPublic(employee) },
+    };
   } catch (error: any) {
     return { success: false as const, error: error.message || 'Failed to refresh' };
   }
@@ -1322,11 +1335,8 @@ function getISTDateAndTime() {
 
 export async function runAutoCheckOut() {
   try {
-    // Closes shifts past 07:00 / 09:30 PM IST and sends FCM (reminder handled by cron).
-    const result = await processAttendanceCheckoutJobs({ notify: true });
-    if (result.autoCheckedOut || result.reminded) {
-      console.log('[runAutoCheckOut]', result);
-    }
+    const { processShiftCheckoutJobs } = await import('@/lib/shift-jobs');
+    await processShiftCheckoutJobs({ notify: true });
   } catch (error) {
     console.error('Error in runAutoCheckOut:', error);
   }
@@ -1352,7 +1362,21 @@ export async function getCurrentAttendanceStatus(employeeId: string) {
 
 export async function clockIn(employeeId: string, employeeName: string) {
   try {
-    await runAutoCheckOut();
+    const emp = await db.employee.findUnique({ where: { id: employeeId } });
+    if (!emp) return { success: false, error: 'Employee not found' };
+    const { assertCanCheckIn } = await import('@/lib/shift-jobs');
+    try {
+      await assertCanCheckIn(emp);
+    } catch (e: any) {
+      return {
+        success: false,
+        error: e.message || 'Check-in window closed',
+        code: e.code || e.payload?.code,
+        canRequestPermission: e.payload?.canRequestPermission === true || e.code === 'CHECKIN_WINDOW_CLOSED',
+        checkInBy: e.payload?.checkInBy,
+      };
+    }
+
     const { todayStr, timeStr } = getISTDateAndTime();
 
     const existing = await db.attendance.findFirst({

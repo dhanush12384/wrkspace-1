@@ -13,6 +13,14 @@ export default function GlobalError({
 }) {
 	useEffect(() => {
 		console.error('[global-error]', error);
+		try {
+			(window as any).StudentForgeMonitor?.trackCustomMetric?.('next_global_error', 1, {
+				digest: error?.digest || null,
+				message: error?.message || null,
+			});
+		} catch {
+			/* no-op */
+		}
 		const msg = `${error?.name ?? ''} ${error?.message ?? ''}`;
 		if (!/ChunkLoadError|Loading chunk|Failed to fetch dynamically imported module/i.test(msg)) {
 			return;

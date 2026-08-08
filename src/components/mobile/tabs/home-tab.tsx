@@ -14,6 +14,7 @@ import {
 	TrendingUp,
 } from 'lucide-react';
 import { CorpPageHeader } from '../corp-page-header';
+import { StipendCard } from '../stipend-card';
 import { apiGet, apiPost, getPosition, isFemaleEmployee } from '@/lib/mobile-api';
 import {
 	clockOut,
@@ -53,6 +54,7 @@ type Props = {
 	onOpenProfile: () => void;
 	onOpenSafety?: () => void;
 	onOpenPanel?: (panel: string) => void;
+	onEmployeeUpdate?: (emp: any) => void;
 };
 
 export function MobileHomeTab({
@@ -62,6 +64,7 @@ export function MobileHomeTab({
 	onOpenProfile,
 	onOpenSafety,
 	onOpenPanel,
+	onEmployeeUpdate,
 }: Props) {
 	const [today, setToday] = useState<any>(null);
 	const [overview, setOverview] = useState<any>(null);
@@ -291,6 +294,8 @@ export function MobileHomeTab({
 						)}
 					</div>
 				</section>
+
+				<StipendCard employee={employee} onEmployeeUpdate={onEmployeeUpdate} />
 
 				{openSos.length > 0 ? (
 					<button

@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
-import { apiPost, getPosition } from '@/lib/mobile-api';
+import { ApiError, apiPost, getPosition } from '@/lib/mobile-api';
+import { connectRealtime } from '@/lib/realtime-client';
+import { employeeToken } from '@/lib/mobile-api';
 
 type Phase = 'idle' | 'locating' | 'verifying' | 'success' | 'error';
 
@@ -16,6 +18,9 @@ export function MobileScannerScreen({ onClose }: Props) {
 	const [title, setTitle] = useState('Align QR in the frame');
 	const [subtitle, setSubtitle] = useState('Stay inside the office geofence while scanning');
 	const [detail, setDetail] = useState<string | null>(null);
+	const [canRequestPermission, setCanRequestPermission] = useState(false);
+	const [requestingPermission, setRequestingPermission] = useState(false);
+	const [permissionNote, setPermissionNote] = useState<string | null>(null);
 	const [manual, setManual] = useState('');
 	const handling = useRef(false);
 	const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -48,8 +53,27 @@ export function MobileScannerScreen({ onClose }: Props) {
 			}
 		})();
 
+		const token = employeeToken();
+		const stopRt = token
+			? connectRealtime({
+					token,
+					onAttendance: (p) => {
+						const action = String(p.action || '');
+						if (action !== 'late-permission' && action !== 'late_permission') return;
+						const att = p.attendance as any;
+						const status = String(att?.latePermission?.status || att?.status || '');
+						if (status !== 'APPROVED' || !mounted.current) return;
+						setCanRequestPermission(false);
+						setPermissionNote('Permission approved — scan the QR again.');
+						setTitle('You can check in now');
+						setSubtitle('Late permission approved for today');
+					},
+				})
+			: () => {};
+
 		return () => {
 			mounted.current = false;
+			stopRt();
 			const s = scannerRef.current;
 			scannerRef.current = null;
 			if (s) {
@@ -83,6 +107,8 @@ export function MobileScannerScreen({ onClose }: Props) {
 		setTitle('Checking you in');
 		setSubtitle('Confirming your location…');
 		setDetail(null);
+		setCanRequestPermission(false);
+		setPermissionNote(null);
 
 		try {
 			const pos = await getPosition(20000);
@@ -108,12 +134,33 @@ export function MobileScannerScreen({ onClose }: Props) {
 			await new Promise((r) => setTimeout(r, 1200));
 			onClose(true);
 		} catch (e: any) {
+			const api = e instanceof ApiError ? e : null;
 			setPhase('error');
-			setTitle("Couldn't check in");
-			setSubtitle('See the reason below, then try again');
+			setTitle(api?.code === 'CHECKIN_WINDOW_CLOSED' ? 'Check-in window closed' : "Couldn't check in");
+			setSubtitle(
+				api?.canRequestPermission
+					? 'Request permission from Dhanush or Rishi'
+					: 'See the reason below, then try again',
+			);
 			setDetail(String(e?.message || e).replace(/^Error:\s*/, ''));
+			setCanRequestPermission(Boolean(api?.canRequestPermission));
 		} finally {
 			handling.current = false;
+		}
+	}
+
+	async function requestLatePermission() {
+		if (requestingPermission) return;
+		setRequestingPermission(true);
+		try {
+			await apiPost('/api/attendance/late-permission', {});
+			setCanRequestPermission(false);
+			setPermissionNote('Request sent. Waiting for admin approval…');
+			setSubtitle('Admins have been notified');
+		} catch (e: any) {
+			setPermissionNote(String(e?.message || e).replace(/^Error:\s*/, ''));
+		} finally {
+			setRequestingPermission(false);
 		}
 	}
 
@@ -122,6 +169,8 @@ export function MobileScannerScreen({ onClose }: Props) {
 		setTitle('Align QR in the frame');
 		setSubtitle('Stay inside the office geofence while scanning');
 		setDetail(null);
+		setCanRequestPermission(false);
+		setPermissionNote(null);
 		handling.current = false;
 		try {
 			const scanner = new Html5Qrcode('wrkspace-qr-reader');
@@ -177,11 +226,24 @@ export function MobileScannerScreen({ onClose }: Props) {
 								{detail}
 							</p>
 						) : null}
+						{permissionNote ? (
+							<p className="text-sm text-sky-300">{permissionNote}</p>
+						) : null}
+						{phase === 'error' && canRequestPermission ? (
+							<button
+								type="button"
+								disabled={requestingPermission}
+								onClick={() => void requestLatePermission()}
+								className="mt-2 rounded-xl bg-[#2563EB] px-6 py-3 text-sm font-semibold disabled:opacity-60"
+							>
+								{requestingPermission ? 'Sending…' : 'Request permission'}
+							</button>
+						) : null}
 						{phase === 'error' ? (
 							<button
 								type="button"
 								onClick={() => void retry()}
-								className="mt-4 rounded-xl bg-[#0047FF] px-6 py-3 text-sm font-semibold"
+								className="mt-2 rounded-xl bg-[#0047FF] px-6 py-3 text-sm font-semibold"
 							>
 								Try again
 							</button>

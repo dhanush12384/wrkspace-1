@@ -94,6 +94,14 @@ export function AdminPage() {
 			if (result.success) {
 				setMessage(null);
 				localStorage.setItem('wrkspace_admin_session', JSON.stringify({ email }));
+				localStorage.removeItem('wrkspace_admin_token');
+				// Mint Bearer JWT for Shift timings / Payouts / Late check-ins API panels
+				try {
+					const { ensureAdminToken } = await import('@/lib/admin-client-auth');
+					await ensureAdminToken();
+				} catch {
+					/* panels will retry */
+				}
 				setFormState('dashboard');
 			} else {
 				setMessage({ type: 'error', text: result.error || 'Authentication failed' });
@@ -120,6 +128,13 @@ export function AdminPage() {
 			if (result.success && result.email) {
 				setEmail(result.email);
 				localStorage.setItem('wrkspace_admin_session', JSON.stringify({ email: result.email }));
+				localStorage.removeItem('wrkspace_admin_token');
+				try {
+					const { ensureAdminToken } = await import('@/lib/admin-client-auth');
+					await ensureAdminToken();
+				} catch {
+					/* panels will retry */
+				}
 				setFormState('dashboard');
 			} else {
 				setMessage({ type: 'error', text: result.error || 'No admin linked to this Google account' });
@@ -193,6 +208,7 @@ export function AdminPage() {
 				email={email} 
 				onLogout={() => {
 					localStorage.removeItem('wrkspace_admin_session');
+					localStorage.removeItem('wrkspace_admin_token');
 					setFormState('login');
 					setPassword('');
 					setMessage(null);

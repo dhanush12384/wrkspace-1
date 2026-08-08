@@ -119,8 +119,22 @@ model Employee {
   lastLocationAt DateTime?
   /// Admin requested personal live tracking (independent of global)
   liveTrackActive Boolean @default(false)
+  /// Personal shift window IST labels e.g. "04:30 PM" — null = open (any check-in, out 07:30 PM)
+  shiftCheckIn  String?
+  shiftCheckOut String?
+  /// Throttle server office-arrive FCM
+  officeArriveNotifiedAt DateTime?
+  /// Monthly stipend INR; null = not on payout list
+  stipendAmount            Int?
+  upiId                    String?
+  bankAccountHolderName    String?
+  bankAccountNumber        String?
+  bankName                 String?
+  bankIfsc                 String?
+  paymentDetailsFilledAt   DateTime?
   sosIncidents SosIncident[]
   safetyTrips  SafetyTrip[]
+  lateCheckInRequests LateCheckInRequest[]
 }
 
 /// Admin global live-tracking switch (start/stop all employees).
@@ -220,6 +234,33 @@ model Attendance {
   /// True after near-checkout FCM or auto check-out (dedupe reminders)
   checkoutReminderSent Boolean @default(false)
   createdAt    DateTime @default(now())
+}
+
+model ShiftReminderLog {
+  id         String   @id @default(uuid())
+  employeeId String
+  date       String
+  kind       String
+  createdAt  DateTime @default(now())
+
+  @@unique([employeeId, date, kind])
+  @@index([date, kind])
+}
+
+model LateCheckInRequest {
+  id         String    @id @default(uuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  date       String
+  reason     String?
+  status     String    @default("PENDING") // PENDING | APPROVED | DENIED
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([employeeId, date])
+  @@index([status])
+  @@index([date])
 }
 
 model Message {

@@ -32,6 +32,14 @@ export default function Error({
 }) {
 	useEffect(() => {
 		console.error('[app/error]', error);
+		try {
+			(window as any).StudentForgeMonitor?.trackCustomMetric?.('next_segment_error', 1, {
+				digest: error?.digest || null,
+				message: error?.message || null,
+			});
+		} catch {
+			/* no-op */
+		}
 		if (!isChunkFailure(error)) return;
 		if (!takeReloadSlot()) return;
 		window.location.reload();

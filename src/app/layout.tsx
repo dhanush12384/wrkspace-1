@@ -22,6 +22,19 @@ const inter = Inter({
 
 /** Brand navy — iOS PWA status bar / theme chrome */
 const BRAND_BLUE = "#0047FF";
+const SF_MONITORING_ENABLED = process.env.NEXT_PUBLIC_SF_MONITORING_ENABLED === "true";
+const SF_BASE_URL = process.env.NEXT_PUBLIC_SF_BASE_URL || "https://admin-iota-lyart-50.vercel.app";
+const SF_CLIENT_ID = process.env.NEXT_PUBLIC_SF_CLIENT_ID || "ada4670d-ff26-441f-806d-f089e8f13ece";
+const SF_PROPERTY_ID = process.env.NEXT_PUBLIC_SF_PROPERTY_ID || "76b12b60-feb0-4c2a-8e77-6cc086d74813";
+const SF_APP_VERSION = process.env.NEXT_PUBLIC_SF_APP_VERSION || "2.0";
+const SF_METRICS_INGEST_KEY =
+  process.env.NEXT_PUBLIC_SF_METRICS_INGEST_KEY || "sfm_k8N4xQ2vR7pL1tY5cD9hJ3mB6uW0";
+const SF_CRASH_INGEST_KEY =
+  process.env.NEXT_PUBLIC_SF_ENABLE_BROWSER_CRASH_INGEST === "false"
+    ? ""
+    : process.env.NEXT_PUBLIC_SF_CRASH_INGEST_KEY || "sfc_v4Pz8nT1wR6qK3yM9bH2dL5xC7";
+const SF_HEARTBEAT_INTERVAL_SEC = Number(process.env.NEXT_PUBLIC_SF_HEARTBEAT_INTERVAL_SEC || "300");
+const GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_ID || "G-6BHGEMXDT1";
 
 export const viewport: Viewport = {
   themeColor: BRAND_BLUE,
@@ -87,6 +100,38 @@ export default function RootLayout({
             }
           } catch (e) {}
         `}</Script>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA4_MEASUREMENT_ID}');
+        `}</Script>
+        {SF_MONITORING_ENABLED ? (
+          <>
+            <Script src="/studentforge/browser-monitor.js" strategy="afterInteractive" />
+            <Script id="studentforge-monitor-init" strategy="afterInteractive">{`
+              (function initStudentForgeMonitor() {
+                try {
+                  if (!window.StudentForgeMonitor || !window.StudentForgeMonitor.init) return;
+                  window.StudentForgeMonitor.init({
+                    baseUrl: ${JSON.stringify(SF_BASE_URL)},
+                    clientId: ${JSON.stringify(SF_CLIENT_ID)},
+                    propertyId: ${JSON.stringify(SF_PROPERTY_ID)},
+                    metricsIngestKey: ${JSON.stringify(SF_METRICS_INGEST_KEY)},
+                    crashIngestKey: ${JSON.stringify(SF_CRASH_INGEST_KEY)},
+                    appVersion: ${JSON.stringify(SF_APP_VERSION)},
+                    heartbeatIntervalSec: ${Number.isFinite(SF_HEARTBEAT_INTERVAL_SEC) ? SF_HEARTBEAT_INTERVAL_SEC : 300},
+                    debug: false
+                  });
+                } catch (_err) {}
+              })();
+            `}</Script>
+          </>
+        ) : null}
         <ChunkReloadGuard />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           {children}

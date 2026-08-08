@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { maybeArriveHomeFromLocation } from '@/lib/shift-jobs';
 
 /** Haversine distance in meters. */
 function distanceM(aLat: number, aLng: number, bLat: number, bLng: number) {
@@ -17,9 +18,15 @@ function distanceM(aLat: number, aLng: number, bLat: number, bLng: number) {
  * Append a GPS ping to a going-home trip (latest position + trail point).
  * Skips duplicate points closer than ~8m within the last 20s to limit noise,
  * but always updates trip.lat/lng for live admin map.
+ * Server auto-arrives when inside home radius.
  */
 export async function recordTripLocation(tripId: string, lat: number, lng: number) {
-	const updated = await db.safetyTrip.update({
+	const trip = await db.safetyTrip.findUnique({ where: { id: tripId } });
+	if (!trip || trip.status !== 'IN_TRANSIT') {
+		throw new Error('Trip not found');
+	}
+
+	let updated = await db.safetyTrip.update({
 		where: { id: tripId },
 		data: { lat, lng },
 	});
@@ -38,5 +45,8 @@ export async function recordTripLocation(tripId: string, lat: number, lng: numbe
 			data: { tripId, lat, lng },
 		});
 	}
+
+	const arrived = await maybeArriveHomeFromLocation(tripId, trip.employeeId, lat, lng);
+	if (arrived) return arrived;
 	return updated;
 }
