@@ -37,7 +37,7 @@ function SocialButton({ icon, label, onClick, disabled }: { icon: ReactNode; lab
 			type="button"
 			onClick={onClick}
 			disabled={disabled}
-			className="flex h-10 items-center justify-center gap-2 rounded-[10px] border border-black/25 bg-white px-3 text-xs font-semibold text-black transition-colors hover:bg-black/[0.03] disabled:opacity-50 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 sm:text-sm cursor-pointer"
+			className="flex h-10 items-center justify-center gap-2 rounded-[10px] border border-black/25 bg-white px-3 text-xs font-semibold text-black transition-colors hover:bg-black/[0.03] disabled:opacity-50 sm:text-sm cursor-pointer"
 		>
 			<span className="shrink-0">{icon}</span>
 			<span className="whitespace-nowrap truncate">{label}</span>
@@ -717,9 +717,9 @@ export function EmployeeVerificationApp() {
 
 	if (!session) {
 		return (
-			<section className="min-h-screen bg-white p-3 text-black antialiased [font-synthesis:none] dark:bg-[#050505] dark:text-white" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
+			<section className="min-h-screen bg-white p-3 text-black antialiased [font-synthesis:none]" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 				<div className="grid min-h-[calc(100vh-1.5rem)] gap-6 lg:grid-cols-[1.18fr_0.82fr] xl:grid-cols-[1.22fr_0.78fr]">
-					<div className="flex min-h-[600px] items-center rounded-md border border-black/20 bg-white px-6 py-8 sm:px-10 dark:border-white/10 dark:bg-[#0a0a0a] lg:min-h-0 lg:px-12 lg:py-14 shadow-sm">
+					<div className="flex min-h-[600px] items-center rounded-md border border-black/20 bg-white px-6 py-8 sm:px-10 lg:min-h-0 lg:px-12 lg:py-14 shadow-sm">
 						<div className="mx-auto w-full max-w-[510px] space-y-6">
 							<div>
 								<div className="mb-5 flex items-center justify-start">
@@ -729,16 +729,16 @@ export function EmployeeVerificationApp() {
 										className="h-11 sm:h-14 w-auto object-contain max-w-[220px]"
 									/>
 								</div>
-								<h1 className="whitespace-nowrap text-2xl font-medium tracking-[-0.03em] sm:text-3xl lg:text-3xl xl:text-3xl text-slate-900 dark:text-white">
+								<h1 className="whitespace-nowrap text-2xl font-medium tracking-[-0.03em] sm:text-3xl lg:text-3xl xl:text-3xl text-slate-900">
 									Employee Verification
 								</h1>
-								<p className="mt-1.5 text-xs text-slate-500 dark:text-zinc-400 sm:text-sm">
+								<p className="mt-1.5 text-xs text-slate-500 sm:text-sm">
 									Verify credentials and manage professional dossier records
 								</p>
 							</div>
 
 							{error ? (
-								<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 dark:text-red-400 font-mono">
+								<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono">
 									{error}
 								</div>
 							) : null}
@@ -747,8 +747,8 @@ export function EmployeeVerificationApp() {
 								otpStep === 'verify_otp' ? (
 									<form onSubmit={loginUnified} className="space-y-5">
 										<div className="space-y-2">
-											<p className="text-xs text-slate-500 dark:text-zinc-400">
-												We sent a 6-digit OTP code to <strong className="text-slate-800 dark:text-zinc-200">{maskedOtpEmail}</strong>. Please enter the code below to verify your identity.
+											<p className="text-xs text-slate-500">
+												We sent a 6-digit OTP code to <strong className="text-slate-800">{maskedOtpEmail}</strong>. Please enter the code below to verify your identity.
 											</p>
 											
 											<div className="flex justify-between items-center gap-2 pt-2" onPaste={handleOtpPaste}>
@@ -765,7 +765,7 @@ export function EmployeeVerificationApp() {
 														value={digit}
 														onChange={(e) => handleOtpChange(index, e.target.value)}
 														onKeyDown={(e) => handleOtpKeyDown(index, e)}
-														className="w-11 h-11 md:w-12 md:h-12 text-center text-lg font-bold border border-black/25 dark:border-white/15 bg-white dark:bg-white/5 text-slate-800 dark:text-zinc-200 rounded-lg outline-none focus:ring-1 focus:ring-[#E61E32] transition-all"
+														className="w-11 h-11 md:w-12 md:h-12 text-center text-lg font-bold border border-black/25 bg-white text-slate-800 rounded-lg outline-none focus:ring-1 focus:ring-[#E61E32] transition-all"
 													/>
 												))}
 											</div>
@@ -775,7 +775,7 @@ export function EmployeeVerificationApp() {
 											<button
 												type="button"
 												onClick={handleSendLoginOtp}
-												className="text-slate-500 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+												className="text-slate-500 hover:text-black transition-colors cursor-pointer"
 											>
 												Resend Code
 											</button>
@@ -794,23 +794,23 @@ export function EmployeeVerificationApp() {
 										<button
 											type="submit"
 											disabled={busy || otpDigits.join('').length !== 6}
-											className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 dark:border-white/40 dark:bg-white dark:text-black dark:hover:bg-white/85 cursor-pointer shadow-sm"
+											className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
 										>
 											{busy ? 'Verifying...' : 'Verify & Login'}
 										</button>
 									</form>
 								) : (
 									<form onSubmit={loginUnified} className="space-y-4">
-										<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none dark:border-white/15 dark:bg-white/5">
+										<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
 											<input
 												type="text"
 												required
 												value={employeeIdInput}
 												onChange={(e) => setEmployeeIdInput(e.target.value)}
 												placeholder="e.g. EMP123"
-												className="min-w-0 flex-1 truncate bg-transparent text-slate-800 dark:text-zinc-200 text-sm outline-none placeholder:text-black/30 dark:placeholder:text-white/35"
+												className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
 											/>
-											<span className="shrink-0 text-slate-500 dark:text-zinc-400 text-xs font-semibold">Employee ID</span>
+											<span className="shrink-0 text-slate-500 text-xs font-semibold">Employee ID</span>
 										</label>
 
 										<div className="mt-1.5 flex justify-end">
@@ -829,7 +829,7 @@ export function EmployeeVerificationApp() {
 										<button
 											type="submit"
 											disabled={busy}
-											className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 dark:border-white/40 dark:bg-white dark:text-black dark:hover:bg-white/85 cursor-pointer shadow-sm"
+											className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
 										>
 											{busy ? 'Signing in...' : 'Sign In'}
 										</button>
@@ -837,7 +837,7 @@ export function EmployeeVerificationApp() {
 								)
 							) : (
 								<form onSubmit={loginUnified} className="space-y-4">
-									<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none dark:border-white/15 dark:bg-white/5">
+									<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
 										<input
 											type="email"
 											required
@@ -845,12 +845,12 @@ export function EmployeeVerificationApp() {
 											value={email}
 											onChange={(e) => setEmail(e.target.value)}
 											placeholder="your.email@example.com"
-											className="min-w-0 flex-1 truncate bg-transparent text-slate-800 dark:text-zinc-200 text-sm outline-none placeholder:text-black/30 dark:placeholder:text-white/35"
+											className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
 										/>
-										<span className="shrink-0 text-slate-500 dark:text-zinc-400 text-xs font-semibold">Email</span>
+										<span className="shrink-0 text-slate-500 text-xs font-semibold">Email</span>
 									</label>
 
-									<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none dark:border-white/15 dark:bg-white/5">
+									<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
 										<input
 											type={showPass ? 'text' : 'password'}
 											required
@@ -858,7 +858,7 @@ export function EmployeeVerificationApp() {
 											value={password}
 											onChange={(e) => setPassword(e.target.value)}
 											placeholder="••••••••••••"
-											className="min-w-0 flex-1 truncate bg-transparent text-slate-800 dark:text-zinc-200 text-sm outline-none placeholder:text-black/30 dark:placeholder:text-white/35"
+											className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
 										/>
 										<div className="flex items-center gap-2">
 											<button
@@ -872,7 +872,7 @@ export function EmployeeVerificationApp() {
 													<EyeIcon className="size-4" />
 												)}
 											</button>
-											<span className="shrink-0 text-slate-500 dark:text-zinc-400 text-xs font-semibold border-l border-black/10 dark:border-white/10 pl-2">Password</span>
+											<span className="shrink-0 text-slate-500 text-xs font-semibold border-l border-black/10 pl-2">Password</span>
 										</div>
 									</label>
 
@@ -883,7 +883,7 @@ export function EmployeeVerificationApp() {
 												setIsEmployeeIdLogin(true);
 												setError('');
 											}}
-											className="text-[11px] font-medium text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white transition-colors underline cursor-pointer"
+											className="text-[11px] font-medium text-black/50 hover:text-black transition-colors underline cursor-pointer"
 										>
 											Want to login with the <span className="text-[#E61E32] font-semibold">employee ID</span>?
 										</button>
@@ -892,14 +892,14 @@ export function EmployeeVerificationApp() {
 									<button
 										type="submit"
 										disabled={busy}
-										className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 dark:border-white/40 dark:bg-white dark:text-black dark:hover:bg-white/85 cursor-pointer shadow-sm"
+										className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
 									>
 										{busy ? 'Signing in...' : 'Sign In'}
 									</button>
 								</form>
 							)}
 
-							<div className="my-5 text-center text-xs font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">
+							<div className="my-5 text-center text-xs font-semibold uppercase tracking-wider text-black/40">
 								or
 							</div>
 

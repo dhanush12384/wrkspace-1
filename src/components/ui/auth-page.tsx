@@ -41,8 +41,8 @@ const EmployeeDashboard = dynamic(
 
 function ShellLoading() {
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-[#050505] text-white">
-			<div className="size-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
+		<div className="flex min-h-screen items-center justify-center bg-white text-black">
+			<div className="size-8 animate-spin rounded-full border-2 border-black border-t-transparent" />
 		</div>
 	);
 }
@@ -301,32 +301,32 @@ export function AuthPage() {
 			}
 		};
 		return (
-			<main className="min-h-screen bg-[#050505] flex items-center justify-center p-6 font-sans text-white">
-				<div className="w-full max-w-sm bg-[#0a0a0a] border border-white/10 rounded-xl p-6 space-y-4">
-					<h1 className="text-lg font-medium tracking-tight text-white">Select your gender</h1>
-					<p className="text-xs text-white/60 leading-relaxed">
+			<main className="min-h-screen bg-white flex items-center justify-center p-6 font-sans text-black">
+				<div className="w-full max-w-sm bg-white border border-black/10 rounded-xl p-6 space-y-4">
+					<h1 className="text-lg font-medium tracking-tight text-black">Select your gender</h1>
+					<p className="text-xs text-black/55 leading-relaxed">
 						Required once for workplace safety settings. Girl Safety and SOS are available only for female employees.
 					</p>
 					{message?.type === 'error' && (
-						<p className="text-xs text-red-400 font-medium">{message.text}</p>
+						<p className="text-xs text-red-500 font-medium">{message.text}</p>
 					)}
 					<div className="grid grid-cols-2 gap-3 pt-1">
 						<button
 							type="button"
 							onClick={() => pick('FEMALE')}
-							className="bg-white text-black text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-white/90 transition-colors"
+							className="bg-black text-white text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-black/85 transition-colors"
 						>
 							Female
 						</button>
 						<button
 							type="button"
 							onClick={() => pick('MALE')}
-							className="bg-white/10 text-white text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-white/20 transition-colors border border-white/10"
+							className="bg-black/5 text-black text-sm font-medium py-2.5 px-3 rounded-lg hover:bg-black/10 transition-colors border border-black/15"
 						>
 							Male
 						</button>
 					</div>
-					<button type="button" onClick={handleLogout} className="text-xs text-white/40 underline">
+					<button type="button" onClick={handleLogout} className="text-xs text-black/40 underline">
 						Sign out
 					</button>
 				</div>
@@ -356,14 +356,14 @@ export function AuthPage() {
 			By creating an account, you agree to our{' '}
 			<a
 				href="#"
-				className="font-medium text-black/50 underline underline-offset-2 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors"
+				className="font-medium text-black/50 underline underline-offset-2 hover:text-black transition-colors"
 			>
 				Terms and Services
 			</a>{' '}
 			and{' '}
 			<a
 				href="#"
-				className="font-medium text-black/50 underline underline-offset-2 dark:text-white/45 hover:text-black dark:hover:text-white transition-colors"
+				className="font-medium text-black/50 underline underline-offset-2 hover:text-black transition-colors"
 			>
 				Privacy Policy
 			</a>
@@ -371,9 +371,9 @@ export function AuthPage() {
 	);
 
 	return (
-		<section className="min-h-screen bg-white p-3 text-black antialiased [font-synthesis:none] dark:bg-[#050505] dark:text-white">
+		<section className="min-h-screen bg-white p-3 text-black antialiased [font-synthesis:none]">
 			<div className="grid min-h-[calc(100vh-1.5rem)] gap-6 lg:grid-cols-[1.18fr_0.82fr] xl:grid-cols-[1.22fr_0.78fr]">
-				<div className="flex min-h-[600px] items-center rounded-md border border-black/20 bg-white px-6 py-8 sm:px-10 dark:border-white/10 dark:bg-[#0a0a0a] lg:min-h-0 lg:px-12 lg:py-14">
+				<div className="flex min-h-[600px] items-center rounded-md border border-black/20 bg-white px-6 py-8 sm:px-10 lg:min-h-0 lg:px-12 lg:py-14">
 					<div className="mx-auto w-full max-w-[510px]">
 						<div>
 							<div className="mb-5 flex items-center justify-start">
@@ -386,7 +386,7 @@ export function AuthPage() {
 							<h1 className="whitespace-nowrap text-2xl font-medium tracking-[-0.03em] sm:text-3xl lg:text-3xl xl:text-3xl">
 								{view === 'login' ? 'Sign in to account' : 'Reset your password'}
 							</h1>
-							<p className="mt-1.5 whitespace-nowrap text-xs text-black/60 dark:text-white/55 sm:text-sm lg:text-base">
+							<p className="mt-1.5 whitespace-nowrap text-xs text-black/60 sm:text-sm lg:text-base">
 								Brainstorm in chat, build in cowork
 							</p>
 						</div>
@@ -408,7 +408,7 @@ export function AuthPage() {
 									/>
 								</div>
 
-								<div className="my-5 text-center text-xs font-semibold uppercase tracking-wider text-black/40 dark:text-white/40">
+								<div className="my-5 text-center text-xs font-semibold uppercase tracking-wider text-black/40">
 									or
 								</div>
 
@@ -452,14 +452,14 @@ export function AuthPage() {
 													setMessage(null);
 													setForgotMessage(null);
 												}}
-												className="text-[11px] font-medium text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white transition-colors underline"
+												className="text-[11px] font-medium text-black/50 hover:text-black transition-colors underline"
 											>
 												Forgot password?
 											</button>
 										</div>
 									</div>
 
-									<div className="space-y-2 pt-1 text-xs leading-relaxed text-black/40 dark:text-white/40">
+									<div className="space-y-2 pt-1 text-xs leading-relaxed text-black/40">
 										<CheckboxLine>
 											Keep me signed in on this browser
 										</CheckboxLine>
@@ -469,7 +469,7 @@ export function AuthPage() {
 									<button
 										type="submit"
 										disabled={isLoading}
-										className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 disabled:opacity-50 dark:border-white/40 dark:bg-white dark:text-black dark:hover:bg-white/85 cursor-pointer"
+										className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer"
 									>
 										{isLoading ? 'Processing...' : 'Submit'}
 									</button>
@@ -479,7 +479,7 @@ export function AuthPage() {
 
 						{view === 'forgot' && (
 							<div className="mt-6 space-y-4">
-								<p className="text-black/60 dark:text-white/60 text-xs sm:text-sm">
+								<p className="text-black/60 text-xs sm:text-sm">
 									Enter your registered email address to receive a password reset OTP code.
 								</p>
 
@@ -509,7 +509,7 @@ export function AuthPage() {
 									<button
 										type="submit"
 										disabled={isSending}
-										className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 disabled:opacity-50 dark:border-white/40 dark:bg-white dark:text-black dark:hover:bg-white/85 cursor-pointer"
+										className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer"
 									>
 										{isSending ? 'Sending OTP...' : 'Send OTP Code'}
 									</button>
@@ -517,7 +517,7 @@ export function AuthPage() {
 									<button
 										type="button"
 										onClick={goBackToLogin}
-										className="w-full text-center text-xs font-medium text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white transition-colors underline pt-1"
+										className="w-full text-center text-xs font-medium text-black/50 hover:text-black transition-colors underline pt-1"
 									>
 										Back to Sign In
 									</button>
@@ -527,7 +527,7 @@ export function AuthPage() {
 
 						{view === 'forgot_verify' && (
 							<div className="mt-6 space-y-4">
-								<p className="text-black/60 dark:text-white/60 text-xs sm:text-sm">
+								<p className="text-black/60 text-xs sm:text-sm">
 									Enter the OTP code sent to your email and your new password.
 								</p>
 
@@ -575,7 +575,7 @@ export function AuthPage() {
 									<button
 										type="submit"
 										disabled={isSending}
-										className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 disabled:opacity-50 dark:border-white/40 dark:bg-white dark:text-black dark:hover:bg-white/85 cursor-pointer"
+										className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer"
 									>
 										{isSending ? 'Updating Password...' : 'Reset Password'}
 									</button>
@@ -583,7 +583,7 @@ export function AuthPage() {
 									<button
 										type="button"
 										onClick={goBackToLogin}
-										className="w-full text-center text-xs font-medium text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white transition-colors underline pt-1"
+										className="w-full text-center text-xs font-medium text-black/50 hover:text-black transition-colors underline pt-1"
 									>
 										Back to Sign In
 									</button>
@@ -600,7 +600,7 @@ export function AuthPage() {
 								<button
 									type="button"
 									onClick={goBackToLogin}
-									className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 dark:border-white/40 dark:bg-white dark:text-black dark:hover:bg-white/85 cursor-pointer"
+									className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-semibold text-white transition-all hover:bg-black/85 cursor-pointer"
 								>
 									Continue to Sign In
 								</button>
@@ -651,7 +651,7 @@ function SocialButton({ icon, label, onClick, disabled }: { icon: ReactNode; lab
 			type="button"
 			onClick={onClick}
 			disabled={disabled}
-			className="flex h-10 items-center justify-center gap-2 rounded-[10px] border border-black/25 bg-white px-3 text-xs font-medium text-black transition-colors hover:bg-black/[0.03] disabled:opacity-50 dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 sm:text-sm cursor-pointer"
+			className="flex h-10 items-center justify-center gap-2 rounded-[10px] border border-black/25 bg-white px-3 text-xs font-medium text-black transition-colors hover:bg-black/[0.03] disabled:opacity-50 sm:text-sm cursor-pointer"
 		>
 			<span className="shrink-0">{icon}</span>
 			<span className="whitespace-nowrap truncate">{label}</span>
@@ -675,7 +675,7 @@ function FieldBox({
 	required?: boolean;
 }) {
 	return (
-		<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none dark:border-white/15 dark:bg-white/5">
+		<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
 			<input
 				type={type}
 				value={value}
@@ -683,9 +683,9 @@ function FieldBox({
 				placeholder={placeholder || label}
 				required={required}
 				onChange={onChange}
-				className="min-w-0 flex-1 truncate bg-transparent text-black text-sm outline-none placeholder:text-black/30 dark:text-white dark:placeholder:text-white/35"
+				className="min-w-0 flex-1 truncate bg-transparent text-black text-sm outline-none placeholder:text-black/30:text-white/35"
 			/>
-			<span className="shrink-0 text-black/50 text-xs font-medium dark:text-white/50">{label}</span>
+			<span className="shrink-0 text-black/50 text-xs font-medium">{label}</span>
 		</label>
 	);
 }
@@ -696,11 +696,11 @@ function CheckboxLine({ children }: { children: ReactNode }) {
 			<span className="relative mt-0.5 size-3.5 shrink-0">
 				<input
 					type="checkbox"
-					className="peer size-full appearance-none rounded-[2px] border border-black/25 bg-white checked:border-black checked:bg-black dark:border-white/30 dark:bg-white/5 dark:checked:border-white dark:checked:bg-white"
+					className="peer size-full appearance-none rounded-[2px] border border-black/25 bg-white checked:border-black checked:bg-black"
 				/>
 				<svg
 					viewBox="0 0 12 12"
-					className="pointer-events-none absolute inset-0 hidden size-full p-0.5 text-white peer-checked:block dark:text-black"
+					className="pointer-events-none absolute inset-0 hidden size-full p-0.5 text-white peer-checked:block"
 					fill="none"
 					aria-hidden="true"
 				>
