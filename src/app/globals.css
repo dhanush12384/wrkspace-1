@@ -354,3 +354,36 @@ body {
   width: 100% !important;
   height: 100% !important;
 }
+
+/* ─── Verification Portal — Breadcrumb sub-bar ─────────────────────────── */
+.ev-breadcrumb-bar {
+  background: #E61E32;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.ev-breadcrumb-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.ev-bc-item {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.70);
+  letter-spacing: 0.01em;
+}
+
+.ev-bc-sep {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.40);
+  line-height: 1;
+}
+
+.ev-bc-active {
+  color: #ffffff;
+  font-weight: 600;
+}

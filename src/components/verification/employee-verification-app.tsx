@@ -962,18 +962,17 @@ export function EmployeeVerificationApp() {
 				<header className="ev-topbar print:hidden">
 					<div className="ev-topbar-inner">
 						<div className="ev-topbar-brand">
-							<div>
-								<img
-									src="https://ik.imagekit.io/dypkhqxip/wrkspacenew"
-									alt="WrkSpace"
-									className="ev-top-logo"
-								/>
-								<p className="ev-top-user">
-									{[empRecord?.firstName, empRecord?.lastName].filter(Boolean).join(' ') ||
-										session.user.email}
-									<span className="ev-pill">Employee</span>
-								</p>
-							</div>
+							<img
+								src="https://ik.imagekit.io/dypkhqxip/wrkspacenew"
+								alt="WrkSpace"
+								className="ev-top-logo"
+							/>
+							<div className="ev-brand-divider" />
+							<p className="ev-top-user">
+								{[empRecord?.firstName, empRecord?.lastName].filter(Boolean).join(' ') ||
+									session.user.email}
+								<span className="ev-pill">Employee</span>
+							</p>
 						</div>
 						<div className="ev-topbar-actions">
 							<button
@@ -990,22 +989,27 @@ export function EmployeeVerificationApp() {
 							>
 								View colleague
 							</button>
-							<button type="button" className="ev-nav-btn ev-nav-muted" onClick={logout}>
+							<button type="button" className="ev-nav-btn ev-nav-signout" onClick={logout}>
 								Sign out
 							</button>
 						</div>
 					</div>
 				</header>
+				<nav className="ev-breadcrumb-bar print:hidden">
+					<div className="ev-breadcrumb-inner">
+						<span className="ev-bc-item">WrkSpace</span>
+						<span className="ev-bc-sep">›</span>
+						<span className="ev-bc-item">Employee Portal</span>
+						<span className="ev-bc-sep">›</span>
+						<span className="ev-bc-item ev-bc-active">
+							{empSelfTab === 'peer_view' ? 'View Colleague' : 'My Profile'}
+						</span>
+					</div>
+				</nav>
 				{empSelfTab === 'peer_view' ? (
 					<PeerColleagueView authHeaders={authHeaders as Record<string, string>} />
 				) : (
 					<div className="ev-shell">
-						<div className="ev-card" style={{ marginBottom: 16 }}>
-							<h2 style={{ margin: 0 }}>My professional profile</h2>
-							<p className="ev-muted" style={{ marginTop: 6 }}>
-								Fill in your professional details here. Admins can review your full profile.
-							</p>
-						</div>
 						{empRecord?.id ? (
 							<EmployeeProfessionalProfileEditor employee={empRecord} onEmployeeUpdate={setEmpRecord} />
 						) : (
@@ -1034,20 +1038,19 @@ export function EmployeeVerificationApp() {
 			<header className="ev-topbar print:hidden">
 				<div className="ev-topbar-inner">
 					<div className="ev-topbar-brand">
-						<div>
-							<img
-								src="https://ik.imagekit.io/dypkhqxip/wrkspacenew"
-								alt="WrkSpace"
-								className="ev-top-logo"
-							/>
-							<p className="ev-top-user">
-								{session.user.email}
-								{session.user.companyName ? ` · ${session.user.companyName}` : ''}
-								<span className="ev-pill">
-									{hasOwnEmployeeProfile ? 'Admin · Technical' : session.user.role}
-								</span>
-							</p>
-						</div>
+						<img
+							src="https://ik.imagekit.io/dypkhqxip/wrkspacenew"
+							alt="WrkSpace"
+							className="ev-top-logo"
+						/>
+						<div className="ev-brand-divider" />
+						<p className="ev-top-user">
+							{session.user.email}
+							{session.user.companyName ? ` · ${session.user.companyName}` : ''}
+							<span className="ev-pill">
+								{hasOwnEmployeeProfile ? 'Admin · Technical' : session.user.role}
+							</span>
+						</p>
 					</div>
 					<div className="ev-topbar-actions">
 						{copied ? <span className="ev-toast">{copied}</span> : null}
@@ -1087,12 +1090,27 @@ export function EmployeeVerificationApp() {
 								Company access
 							</button>
 						) : null}
-						<button type="button" className="ev-nav-btn ev-nav-muted" onClick={logout}>
+						<button type="button" className="ev-nav-btn ev-nav-signout" onClick={logout}>
 							Sign out
 						</button>
 					</div>
 				</div>
 			</header>
+			<nav className="ev-breadcrumb-bar print:hidden">
+				<div className="ev-breadcrumb-inner">
+					<span className="ev-bc-item">WrkSpace</span>
+					<span className="ev-bc-sep">›</span>
+					<span className="ev-bc-item">Verification Portal</span>
+					<span className="ev-bc-sep">›</span>
+					<span className="ev-bc-item ev-bc-active">
+						{tab === 'directory' ? 'Directory'
+							: tab === 'my_profile' ? 'My Profile'
+							: tab === 'peer_view' ? 'View Colleague'
+							: tab === 'access' ? 'Company Access'
+							: 'Dashboard'}
+					</span>
+				</div>
+			</nav>
 
 			{error ? (
 				<div className="ev-shell">
@@ -1251,13 +1269,6 @@ export function EmployeeVerificationApp() {
 				<PeerColleagueView authHeaders={authHeaders as Record<string, string>} />
 			) : tab === 'my_profile' && hasOwnEmployeeProfile ? (
 				<div className="ev-shell print:hidden">
-					<div className="ev-card" style={{ marginBottom: 16 }}>
-						<h2 style={{ margin: 0 }}>My professional profile</h2>
-						<p className="ev-muted" style={{ marginTop: 6 }}>
-							You are signed in as <strong>Admin · Technical</strong> — manage every employee from
-							Directory, and complete your own professional details here.
-						</p>
-					</div>
 					{empRecord?.id && !ownProfileLoading ? (
 						<EmployeeProfessionalProfileEditor
 							key={`${empRecord.id}-${String(empRecord.about || '').length}-${String(empRecord.experience || '').length}`}

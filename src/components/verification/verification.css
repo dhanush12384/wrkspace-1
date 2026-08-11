@@ -1,14 +1,14 @@
 
 
 .ev-root {
-	--ev-bg: #ffffff;
+	--ev-bg: #f8fafc;
 	--ev-panel: #ffffff;
-	--ev-panel-2: #f8fafc;
-	--ev-line: rgba(15, 23, 42, 0.1);
+	--ev-panel-2: #f1f5f9;
+	--ev-line: rgba(15, 23, 42, 0.08);
 	--ev-text: #0f172a;
 	--ev-muted: #64748b;
-	--ev-blue: #0047ff;
-	--ev-blue-2: #2b6bff;
+	--ev-blue: #0f172a;
+	--ev-blue-2: #1e293b;
 	--ev-good: #10b981;
 	--ev-mid: #f59e0b;
 	--ev-low: #f43f5e;
@@ -383,6 +383,7 @@
 	background: rgba(255, 255, 255, 0.96);
 }
 
+
 .ev-topbar-inner {
 	max-width: 1280px;
 	margin: 0 auto;
@@ -401,19 +402,27 @@
 }
 
 .ev-top-logo {
-	height: 30px;
+	height: 36px;
 	width: auto;
 	display: block;
+	flex-shrink: 0;
 }
 
 .ev-top-user {
-	margin: 1px 0 0;
+	margin: 0;
 	font-size: 12.5px;
 	font-weight: 500;
 	color: #64748b;
 	display: flex;
 	align-items: center;
 	gap: 0;
+}
+
+.ev-brand-divider {
+	width: 1px;
+	height: 22px;
+	background: rgba(0, 0, 0, 0.12);
+	flex-shrink: 0;
 }
 
 .ev-pill {
@@ -472,6 +481,18 @@
 	color: #ef4444;
 }
 
+.ev-nav-signout {
+	border-color: #fca5a5;
+	background: #fff1f2;
+	color: #ef4444;
+}
+
+.ev-nav-signout:hover {
+	background: #fee2e2;
+	border-color: #f87171;
+	color: #dc2626;
+}
+
 .ev-toast {
 	font-size: 11px;
 	color: #059669;
@@ -481,7 +502,7 @@
 .ev-shell {
 	max-width: 1280px;
 	margin: 0 auto;
-	padding: 18px;
+	padding: 24px 20px;
 }
 
 .ev-workspace {
