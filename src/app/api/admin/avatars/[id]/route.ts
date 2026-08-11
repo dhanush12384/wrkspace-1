@@ -18,7 +18,7 @@ function photoToBuffer(raw: string | null | undefined) {
 	return { contentType: 'image/jpeg', buf: Buffer.from(s, 'base64') };
 }
 
-/** Admin Messages / directory — load avatar without employee JWT. */
+
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
 	try {
 		const email = String(

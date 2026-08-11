@@ -4,10 +4,10 @@ import { jsonError, requireEmployee } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * POST { ids: string[] } → { photos: Record<id, dataUrl|null> }
- * Used by mobile Messages to load profile photos reliably in one call.
- */
+
+
+
+
 export async function POST(req: NextRequest) {
 	try {
 		requireEmployee(req);

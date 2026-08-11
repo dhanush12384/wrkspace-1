@@ -88,7 +88,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 		void load();
 		const id = window.setInterval(() => void load(), 5000);
 		return () => window.clearInterval(id);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [adminEmail]);
 
 	const filtered = useMemo(() => {
@@ -270,7 +270,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 													onClick={(ev) => {
 														ev.stopPropagation();
 														if (e.lat != null && e.lng != null) {
-															// Force exact pin URL (avoid cached office searches)
+															
 															ev.preventDefault();
 															window.open(
 																`https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}`,

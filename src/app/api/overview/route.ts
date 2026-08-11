@@ -4,9 +4,9 @@ import { jsonError, requireEmployee } from '@/lib/api-auth';
 import { eventHasRepresentative } from '@/lib/event-reps';
 import { todayKeyIST } from '@/lib/attendance-geo';
 
-/**
- * Employee home/overview stats — aligned with website employee dashboard tiles.
- */
+
+
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

@@ -12,7 +12,7 @@ type State = {
 	error: Error | null;
 };
 
-/** Keeps login shell alive when a child tab throws. */
+
 export class SoftErrorBoundary extends Component<Props, State> {
 	state: State = { error: null };
 

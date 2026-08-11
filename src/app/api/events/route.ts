@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 import { eventHasRepresentative } from '@/lib/event-reps';
 
-/** Employee: only events where they are a representative. */
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

@@ -37,7 +37,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
 	const isSuperAdmin = email.toLowerCase() === 'webstrixx@gmail.com';
 
-	// Super Admin admin allocation states
+	
 	const [adminsList, setAdminsList] = useState<any[]>([]);
 	const [newAdminEmail, setNewAdminEmail] = useState('');
 	const [newAdminOrgName, setNewAdminOrgName] = useState('');
@@ -256,7 +256,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [stats, setStats] = useState<any>(null);
 	const [isRefreshing, setIsRefreshing] = useState(false);
 
-	// Employee Directory States
+	
 	const [employeesList, setEmployeesList] = useState<any[]>([]);
 	const [showAddForm, setShowAddForm] = useState(false);
 	const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -273,7 +273,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [addMessage, setAddMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
 
-	// Team Lead Allocation States
+	
 	const [teamLeadsList, setTeamLeadsList] = useState<any[]>([]);
 	const [showLeadForm, setShowLeadForm] = useState(false);
 	const [selectedEmpId, setSelectedEmpId] = useState('');
@@ -286,7 +286,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [editLeadPassword, setEditLeadPassword] = useState('');
 	const [editLeadAllowedPages, setEditLeadAllowedPages] = useState<string[]>([]);
 
-	// Task Allocation States
+	
 	const [tasksList, setTasksList] = useState<any[]>([]);
 	const [showTaskForm, setShowTaskForm] = useState(false);
 	const [taskTitle, setTaskTitle] = useState('');
@@ -300,13 +300,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [taskMessage, setTaskMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAddingTask, setIsAddingTask] = useState(false);
 
-	// Leaves Directory State
+	
 	const [leavesList, setLeavesList] = useState<any[]>([]);
 
-	// Attendance Logs Directory State
+	
 	const [attendanceList, setAttendanceList] = useState<any[]>([]);
 
-	// Events State
+	
 	const [eventsList, setEventsList] = useState<any[]>([]);
 	const [showEventForm, setShowEventForm] = useState(false);
 	const [eventTitle, setEventTitle] = useState('');
@@ -339,7 +339,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		"Delhi / Noida": ["Connaught Place", "Dwarka", "Saket", "Sector 62 Noida", "Greater Noida", "Gurugram"]
 	};
 
-	// CRUD Modals and Edit States
+	
 	const [editModalType, setEditModalType] = useState<'employee' | 'task' | 'leave' | 'attendance' | 'event' | 'submission' | 'hr_company' | null>(null);
 	const [editingItem, setEditingItem] = useState<any>(null);
 	const [showAddManualLeave, setShowAddManualLeave] = useState(false);
@@ -347,7 +347,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [showTodayAttendanceSummary, setShowTodayAttendanceSummary] = useState(false);
 	const [showAddManualHr, setShowAddManualHr] = useState(false);
 
-	// HR & Companies State variables
+	
 	const [hrCompaniesList, setHrCompaniesList] = useState<any[]>([]);
 	const [hrCompaniesSubTab, setHrCompaniesSubTab] = useState<'active' | 'crawler'>('active');
 	const [crawlHrCity, setCrawlHrCity] = useState('Hyderabad');
@@ -357,7 +357,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [assigningHrId, setAssigningHrId] = useState<string | null>(null);
 	const [assignHrEmployeeId, setAssignHrEmployeeId] = useState('');
 
-	// Manual HR & Company Form States
+	
 	const [manualCompanyName, setManualCompanyName] = useState('');
 	const [manualWebsite, setManualWebsite] = useState('');
 	const [manualIndustry, setManualIndustry] = useState('');
@@ -426,7 +426,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
-	// Work Submissions State
+	
 	const [submissionsList, setSubmissionsList] = useState<any[]>([]);
 	const [submissionFilter, setSubmissionFilter] = useState<string>('All');
 	const [reviewingId, setReviewingId] = useState<string | null>(null);
@@ -453,7 +453,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		setIsUpdatingStatus(false);
 	};
 
-	// CRUD Handlers
+	
 	const handleDeleteEmployee = async (id: string) => {
 		if (!confirm('Are you sure you want to delete this employee? All related attendance, tasks, leaves, and submissions will also be deleted.')) return;
 		const res = await deleteEmployee(id);
@@ -586,7 +586,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
-	// Leads State
+	
 	const [leadsList, setLeadsList] = useState<any[]>([]);
 	const [leadsFilter, setLeadsFilter] = useState('All');
 	const [leadsSourceFilter, setLeadsSourceFilter] = useState('All');
@@ -597,7 +597,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [importLoading, setImportLoading] = useState(false);
 	const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
 
-	// Manual Leads sub-tab & form states (Admin view)
+	
 	const [leadsSubTab, setLeadsSubTab] = useState<'pipeline' | 'manual'>('pipeline');
 	const [showManualForm, setShowManualForm] = useState(false);
 	const [manualBizName, setManualBizName] = useState('');
@@ -630,11 +630,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				description: manualDesc,
 				priority: manualPriority,
 				notes: manualNotes,
-				assignedTo: manualAssignTo || undefined, // Admins can optionally assign a lead immediately
+				assignedTo: manualAssignTo || undefined, 
 			});
 			if (result.success) {
 				setManualLeadMsg({ type: 'success', text: 'Lead manually created successfully!' });
-				// Reset inputs
+				
 				setManualBizName('');
 				setManualContact('');
 				setManualEmail('');
@@ -658,7 +658,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
-	// Automated crawling form states
+	
 	const [crawlCity, setCrawlCity] = useState('Hyderabad');
 	const [crawlCategory, setCrawlCategory] = useState('IT Services');
 	const [isCrawling, setIsCrawling] = useState(false);
@@ -1008,7 +1008,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					type: 'success',
 					text: `Employee successfully created! Generated 6-Digit ID: ${result.employee.id}`,
 				});
-				// Clear inputs
+				
 				setFirstName('');
 				setMiddleName('');
 				setLastName('');
@@ -1019,7 +1019,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				setEmpRole('Employee');
 				setEmpGender('UNSPECIFIED');
 
-				// Refresh list
+				
 				await fetchEmployees();
 			} else {
 				setAddMessage({ type: 'error', text: 'Failed to add employee.' });
@@ -1041,7 +1041,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		try {
 			const text = await file.text();
 
-			// Parse CSV
+			
 			const lines = text.split(/\r?\n/);
 			if (lines.length < 2) {
 				setAddMessage({ type: 'error', text: 'file is empty or missing data rows' });
@@ -1049,7 +1049,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				return;
 			}
 
-			// Parse headers
+			
 			const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
 
 			// Map indices
@@ -1151,7 +1151,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			return;
 		}
 
-		// Capitalize starting letters helper
+		
 		const toTitleCase = (str: string) => {
 			if (!str) return '';
 			return str.split(' ').map(word => {
@@ -1160,7 +1160,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			}).join(' ');
 		};
 
-		// Create table headers and rows with starting letter capitalized (caps)
+		
 		const headers = ['Employee ID', 'Full Name', 'Wing Name', 'Wing Lead', 'Role'];
 
 		const rows = employeesList.map(emp => {
@@ -1361,7 +1361,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					type: 'success',
 					text: `Task successfully allocated! ID: ${result.task.id}`,
 				});
-				// Clear inputs
+				
 				setTaskTitle('');
 				setTaskDescription('');
 				setTaskReportTo('');
@@ -1371,7 +1371,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				setTaskMode('Onsite');
 				setAssignToAll(false);
 				
-				// Refresh list
+				
 				await fetchTasks();
 			} else {
 				setTaskMessage({ type: 'error', text: result.error || 'Failed to allocate task.' });
@@ -1435,22 +1435,24 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 	return (
 		<main className="bg-zinc-950 text-white relative flex flex-col font-sans h-screen overflow-hidden">
-			{/* Premium background radial glow */}
+			{}
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_70%)] z-0 pointer-events-none" />
 
-			{/* Full Width Top Navbar (Window Edged, premium dusty black design) */}
-			<header className="w-full border-b border-zinc-900 bg-zinc-950 sticky top-0 z-50 shadow-md shadow-black/40">
-				<div className="w-full px-6 md:px-10 h-20 flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<img src="/branding/wrkspace-logo-on-dark.png" alt="wrkspace" className="h-9 w-auto object-contain" />
-						<div className="w-px h-6 bg-zinc-800" />
-						<span className="text-sm font-semibold tracking-wider text-zinc-400 uppercase font-mono">Admin</span>
+			{}
+			<header className="w-full border-b border-white/[0.08] bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+				<div className="w-full px-6 md:px-10 h-16 sm:h-20 flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="wrkspace" className="h-8 sm:h-9 w-auto object-contain" />
+						<div className="w-px h-5 bg-white/15" />
+						<span className="text-[11px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/20 px-2.5 py-1 rounded-md border border-[#E61E32]/30">
+							Admin
+						</span>
 					</div>
 					<div className="flex items-center gap-3">
 						{isAdminTeamLead && (
-							<Button
-								variant="outline"
-								className="border-indigo-800 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 cursor-pointer rounded-none transition-all duration-200 text-xs py-2 px-3 h-9 font-mono font-medium flex items-center gap-2"
+							<button
+								type="button"
+								className="border border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10 cursor-pointer rounded-md transition-all text-xs py-2 px-3 h-9 font-medium flex items-center gap-2 shadow-xs"
 								onClick={async () => {
 									const empRes = await getEmployeeByEmail(email);
 									if (empRes.success && empRes.employee) {
@@ -1462,30 +1464,31 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								}}
 							>
 								<UserCheckIcon className="size-3.5" />
-								switch to employee portal
-							</Button>
+								Switch to Employee Portal
+							</button>
 						)}
 						<button 
 							onClick={fetchStats}
 							disabled={isRefreshing}
-							className="p-2.5 border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all rounded-none cursor-pointer disabled:opacity-50"
+							className="p-2 border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 transition-all rounded-md cursor-pointer disabled:opacity-50 h-9 w-9 flex items-center justify-center"
 							title="Refresh Stats"
 						>
-							<RefreshCwIcon className={`size-4 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
+							<RefreshCwIcon className={`size-3.5 ${isRefreshing ? 'animate-spin text-[#E61E32]' : ''}`} />
 						</button>
-						<Button 
-							variant="outline" 
-							className="border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-700 cursor-pointer rounded-none transition-all duration-200 text-xs py-2.5 px-4 h-auto font-medium"
+						<button 
+							type="button"
+							className="bg-[#E61E32] hover:bg-[#c9182a] border-0 cursor-pointer rounded-md transition-all text-xs font-bold py-2 px-4 h-9 flex items-center gap-2 shadow-xs"
+							style={{ color: '#ffffff' }}
 							onClick={onLogout}
 						>
-							<LogOutIcon className="size-3.5 me-2 text-zinc-400" />
-							Logout
-						</Button>
+							<LogOutIcon className="size-3.5" style={{ color: '#ffffff' }} />
+							<span style={{ color: '#ffffff' }}>Logout</span>
+						</button>
 					</div>
 				</div>
 			</header>
 
-			{/* Full Width Subnavbar */}
+			{}
 			<div className="w-full border-b-2 border-brand-700 bg-brand-950 z-40 sticky top-20 shadow-lg shadow-brand-950/60" style={{backgroundImage: 'linear-gradient(180deg, #1a1040 0%, #0f0824 100%)'}}>
 				<div className="w-full px-6 md:px-10 flex gap-6 text-xs md:text-sm font-medium tracking-wide overflow-x-auto">
 					{(isSuperAdmin || allowedTabs.includes('overview')) && (
@@ -1635,19 +1638,19 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				</div>
 			</div>
 
-			{/* Main Dashboard Content Area */}
+			{}
 			<div className={cn(
 				"flex-1 w-full relative z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800",
 				activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col overflow-hidden" : "max-w-[90rem] mx-auto p-6 md:p-10 space-y-8"
 			)}>
 
-				{/* Tab content: Overview */}
+				{}
 				{activeTab === 'live_safety' && <AdminLiveSafetyPanel adminEmail={email} />}
 				{activeTab === 'live_tracking' && <AdminLiveTrackingPanel adminEmail={email} />}
 
 				{activeTab === 'overview' && (
 					<div className="space-y-6">
-						{/* Stats Grid */}
+						{}
 						<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
@@ -1726,7 +1729,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Leaves */}
+				{}
 				{activeTab === 'leaves' && (
 					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none">
 						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -1749,7 +1752,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Manual Leave Form */}
+						{}
 						{showAddManualLeave && (
 							<form 
 								onSubmit={async (e) => {
@@ -1935,7 +1938,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Attendance Logs */}
+				{}
 				{activeTab === 'attendance' && (() => {
 					const { presentList, absentList, onLeaveList } = getTodayAttendanceSummary();
 					return (
@@ -1975,7 +1978,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							</div>
 
-							{/* Manual Attendance Form */}
+							{}
 							{showAddManualAttendance && (
 								<form 
 									onSubmit={async (e) => {
@@ -2036,7 +2039,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 							{showTodayAttendanceSummary ? (
 								<div className="space-y-6">
-									{/* Top Stat Cards */}
+									{}
 									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 										<div className="border border-emerald-800 bg-emerald-950/20 p-4 space-y-1 rounded-none">
 											<h4 className="text-[10px] uppercase tracking-wider text-emerald-400 font-mono font-semibold">Present Today</h4>
@@ -2052,9 +2055,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									{/* Detailed Columns */}
+									{}
 									<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-										{/* Present Column */}
+										{}
 										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
 											<h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
 												<span>Present Employees</span>
@@ -2081,7 +2084,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											)}
 										</div>
 
-										{/* Absent Column */}
+										{}
 										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
 											<h4 className="text-xs font-bold text-red-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
 												<span>Absent Employees</span>
@@ -2105,7 +2108,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											)}
 										</div>
 
-										{/* On Leave Column */}
+										{}
 										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
 											<h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
 												<span>On Approved Leave</span>
@@ -2202,17 +2205,17 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					);
 				})()}
 
-				{/* Tab content: Clients */}
+				{}
 				{activeTab === 'clients' && (
 					<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none min-h-[200px] flex items-center justify-center text-zinc-500 italic text-sm">
 						Clients panel is ready. Content will be added soon.
 					</div>
 				)}
 
-				{/* Tab content: System Status */}
+				{}
 				{activeTab === 'system_status' && (
 					<div className="space-y-8">
-						{/* Stats Grid */}
+						{}
 						<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
@@ -2260,7 +2263,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Lifecycle Logs Table */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
@@ -2293,7 +2296,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Messages */}
+				{}
 				{activeTab === 'messages' && (
 					<MessagesView 
 						currentUser={{
@@ -2306,7 +2309,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					/>
 				)}
 
-				{/* Tab content: Task/Work Allocation */}
+				{}
 				{activeTab === 'task_allocation' && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -2330,7 +2333,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</Button>
 						</div>
 
-						{/* Notification message */}
+						{}
 						{taskMessage && (
 							<div className={cn(
 								"p-3 rounded-none text-xs border font-mono",
@@ -2342,7 +2345,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						)}
 
-						{/* Allocate Task Form Card */}
+						{}
 						{showTaskForm && (
 							<form onSubmit={handleCreateTask} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
 								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
@@ -2384,11 +2387,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-									{/* Whom you want to send dropdown */}
+									{}
 									<div className="space-y-1 md:col-span-2">
 										<div className="flex items-center justify-between">
 											<label className="text-[10px] text-zinc-400 uppercase font-medium">Whom you want to send</label>
-											{/* Send to all toggle option */}
+											{}
 											<button
 												type="button"
 												onClick={() => setAssignToAll(!assignToAll)}
@@ -2417,7 +2420,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 
-									{/* Deadline Date */}
+									{}
 									<div className="space-y-1">
 										<label className="text-[10px] text-zinc-400 uppercase font-medium">Deadline Date</label>
 										<Input
@@ -2429,7 +2432,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										/>
 									</div>
 
-									{/* Mode of the task */}
+									{}
 									<div className="space-y-1">
 										<label className="text-[10px] text-zinc-400 uppercase font-medium">Mode</label>
 										<select
@@ -2445,7 +2448,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									{/* Status of the task */}
+									{}
 									<div className="space-y-1">
 										<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
 										<select
@@ -2459,7 +2462,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 
-									{/* Submit button */}
+									{}
 									<div className="flex items-end">
 										<Button
 											type="submit"
@@ -2473,7 +2476,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Task List Table */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
 							<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
 								Allocated Tasks Directory
@@ -2581,7 +2584,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Employees Directory */}
+				{}
 				{activeTab === 'employees' && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -2648,7 +2651,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Notification message */}
+						{}
 						{addMessage && (
 							<div className={cn(
 								"p-3 rounded-none text-xs border font-mono",
@@ -2660,7 +2663,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						)}
 
-						{/* Add Employee Form Card */}
+						{}
 						{showAddForm && (
 							<form onSubmit={handleAddEmployee} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
 								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
@@ -2778,7 +2781,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Employee List Table */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
 							<table className="w-full min-w-[1800px] text-left text-xs text-zinc-300 font-mono">
 								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
@@ -2890,7 +2893,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* TAB: EVENTS */}
+				{}
 				{activeTab === 'events' && (() => {
 					const activeEvents = eventsList.filter(e => e.allowed !== false);
 					const crawledEvents = eventsList.filter(e => e.allowed === false);
@@ -2898,7 +2901,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{/* Header */}
+							{}
 							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 								<div>
 									<h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -2949,7 +2952,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* Create Event Form */}
+							{}
 							{eventsSubTab === 'active' && showEventForm && (
 								<form onSubmit={handleCreateEvent} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-5">
 									<h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider border-b border-zinc-800 pb-3">New Event Details</h3>
@@ -3094,10 +3097,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Events Crawler Subtab */}
+							{}
 							{eventsSubTab === 'crawler' && (
 								<div className="space-y-6">
-									{/* Crawler control panel */}
+									{}
 									<form onSubmit={handleEventsCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
 										<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
 											<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Automated Events Crawler</h3>
@@ -3156,7 +3159,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										)}
 									</form>
 
-									{/* Stats Grid */}
+									{}
 									<div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
 										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
 											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Total Scraped</p>
@@ -3180,7 +3183,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									{/* Table Control Buttons */}
+									{}
 									{crawledEvents.length > 0 && (
 										<div className="flex gap-2 justify-end">
 											<button
@@ -3200,7 +3203,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* Events List Views */}
+							{}
 							{eventsSubTab === 'active' ? (
 								activeEvents.length === 0 ? (
 									<div className="text-center py-16 text-zinc-600 border border-zinc-900">
@@ -3216,7 +3219,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											const endD = new Date(event.endDate);
 											return (
 												<div key={event.id} className="bg-zinc-900/30 border border-zinc-800/80 flex flex-col hover:border-brand-900/60 transition-all duration-305 shadow-lg group relative">
-													{/* Image Banner */}
+													{}
 													<div className="h-40 w-full relative overflow-hidden bg-zinc-950 flex items-center justify-center border-b border-zinc-800/50">
 														{event.imageUrl ? (
 															<img 
@@ -3231,7 +3234,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															</div>
 														)}
 														
-														{/* Absolute Badge */}
+														{}
 														<span className="absolute top-3 right-3 text-[10px] bg-brand-950/80 border border-brand-800/60 text-brand-400 backdrop-blur-sm px-2 py-1 font-mono uppercase tracking-wider whitespace-nowrap">
 															{event.source || 'Event'}
 														</span>
@@ -3317,7 +3320,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								)
 							) : (
-								/* Scraped/Crawled Events Table View */
+								
 								crawledEvents.length === 0 ? (
 									<div className="text-center py-16 text-zinc-600 border border-zinc-900/60 font-mono text-xs italic">
 										No crawled events. Specify Target City & Area above and run the events scraper.
@@ -3391,10 +3394,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					);
 				})()}
 
-				{/* TAB: WORK SUBMISSIONS */}
+				{}
 				{activeTab === 'work_submissions' && (
 					<div className="space-y-6">
-						{/* Header */}
+						{}
 						<div className="flex items-center justify-between flex-wrap gap-3">
 							<div>
 								<h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -3403,7 +3406,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</h2>
 								<p className="text-zinc-400 text-sm mt-0.5">Review and approve employee work submissions</p>
 							</div>
-							{/* Filter pills */}
+							{}
 							<div className="flex items-center gap-2 flex-wrap">
 								{['All', 'Submitted', 'Reviewed', 'Approved', 'Needs Revision'].map(f => (
 									<button
@@ -3422,7 +3425,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Stats bar */}
+						{}
 						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 							{[
 								{ label: 'Total', count: submissionsList.length, color: 'text-zinc-300' },
@@ -3437,7 +3440,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							))}
 						</div>
 
-						{/* Submissions list */}
+						{}
 						{submissionsList.filter(s => submissionFilter === 'All' || s.status === submissionFilter).length === 0 ? (
 							<div className="text-center py-16 text-zinc-600 border border-zinc-900">
 								<FileTextIcon className="size-10 mx-auto mb-3 opacity-40" />
@@ -3490,7 +3493,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 													</div>
 												)}
 
-												{/* Review panel */}
+												{}
 												{isReviewing ? (
 													<div className="space-y-3 pt-2 border-t border-zinc-800">
 														<textarea
@@ -3556,7 +3559,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* TAB: LEADS */}
+				{}
 				{activeTab === 'leads' && (() => {
 					const STATUS_COLOURS: Record<string, string> = {
 						New:        'bg-zinc-800/60 border-zinc-700 text-zinc-300',
@@ -3590,7 +3593,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{/* Header */}
+							{}
 							<div className="flex items-start justify-between gap-4 flex-wrap">
 								<div>
 									<h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -3601,7 +3604,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								
 								<div className="flex items-center gap-2 flex-wrap">
-									{/* Sub-tab selection */}
+									{}
 									<div className="bg-zinc-950 border border-zinc-800 p-0.5 flex gap-0.5 font-mono">
 										<button
 											onClick={() => { setLeadsSubTab('pipeline'); setLeadsFilter('All'); setLeadsSourceFilter('All'); }}
@@ -3617,7 +3620,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</button>
 									</div>
 
-									{/* Action buttons conditional on subtab */}
+									{}
 									{leadsSubTab === 'pipeline' ? (
 										<label className={cn(
 											"flex items-center gap-2 text-xs font-semibold px-4 py-2 cursor-pointer transition-colors border",
@@ -3650,7 +3653,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* Feed Manual Lead Form (Admin View) */}
+							{}
 							{leadsSubTab === 'manual' && showManualForm && (
 								<form onSubmit={handleCreateManualLead} className="bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
@@ -3788,7 +3791,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Crawl leads panel */}
+							{}
 							{leadsSubTab === 'pipeline' && (
 								<form onSubmit={handleLeadCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
 									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
@@ -3836,7 +3839,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Stats bar */}
+							{}
 							<div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
 								{Object.entries(STATUS_COLOURS).map(([status, cls]) => (
 									<button key={status} onClick={() => setLeadsFilter(leadsFilter === status ? 'All' : status)}
@@ -3850,7 +3853,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								))}
 							</div>
 
-							{/* Search + Source filter */}
+							{}
 							<div className="flex gap-3 flex-wrap items-center justify-between">
 								<div className="flex gap-3 flex-1 flex-wrap items-center">
 									<input
@@ -3892,7 +3895,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							</div>
 
-							{/* Leads list */}
+							{}
 							{filtered.length === 0 ? (
 								<div className="text-center py-16 border border-zinc-900 text-zinc-600">
 									<BarChart2Icon className="size-10 mx-auto mb-3 opacity-30" />
@@ -4036,7 +4039,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														</div>
 														{lead.description && <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2">{lead.description}</p>}
 														
-														{/* Assignment info */}
+														{}
 														<div className="text-[11px] text-zinc-400 mt-2 flex items-center gap-2 flex-wrap">
 															<UserCheckIcon className="size-3.5 text-zinc-500" />
 															{isAssigning ? (
@@ -4161,7 +4164,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{/* Sub-tab navigation */}
+							{}
 							<div className="flex items-center justify-between border-b border-zinc-800 pb-3">
 								<div className="flex gap-4 text-xs font-mono">
 									<button
@@ -4188,7 +4191,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								)}
 							</div>
 
-							{/* Add Manual Form (Inline) */}
+							{}
 							{showAddManualHr && (
 								<form onSubmit={handleAddManualHr} className="bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
@@ -4328,10 +4331,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Active Registry sub-tab view */}
+							{}
 							{hrCompaniesSubTab === 'active' && (
 								<div className="space-y-4">
-									{/* Search bar */}
+									{}
 									<div className="w-full">
 										<Input
 											type="text"
@@ -4465,7 +4468,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* HR Crawler sub-tab view */}
+							{}
 							{hrCompaniesSubTab === 'crawler' && (
 								<div className="space-y-6">
 									<form onSubmit={handleHrCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
@@ -4504,7 +4507,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										)}
 									</form>
 
-									{/* Crawled statistics */}
+									{}
 									<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
 											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Total Scraped</p>
@@ -4536,7 +4539,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									{/* Crawled Approval Review Table */}
+									{}
 									{crawledCompanies.length === 0 ? (
 										<div className="text-center py-10 bg-zinc-900/10 border border-zinc-800/40 text-xs italic text-zinc-500">
 											No crawled company records are currently awaiting approval.
@@ -4646,7 +4649,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						)}
 
 						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-							{/* Allocation Form */}
+							{}
 							<div className="lg:col-span-1 bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 								<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800 pb-2 font-mono">Allocate New Admin</h3>
 								<form onSubmit={handleAllocateAdmin} className="space-y-4">
@@ -4684,7 +4687,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										/>
 									</div>
 
-									{/* Permission Toggles */}
+									{}
 									<div className="space-y-2">
 										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold block font-mono">Select Allowed Pages</label>
 										<div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto border border-zinc-850 p-2.5 bg-zinc-950/40">
@@ -4725,7 +4728,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							</div>
 
-							{/* Directory list */}
+							{}
 							<div className="lg:col-span-2 bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 								<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800 pb-2 font-mono">Active Admin Directories</h3>
 								<div className="overflow-x-auto">
@@ -4790,7 +4793,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Team Leads */}
+				{}
 				{activeTab === 'team_leads' && (isSuperAdmin || allowedTabs.includes('team_leads')) && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -4819,7 +4822,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</Button>
 						</div>
 
-						{/* Notification message */}
+						{}
 						{leadMsg && (
 							<div className={cn(
 								"p-3 rounded-none text-xs border font-mono",
@@ -4831,7 +4834,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						)}
 
-						{/* Allocate Team Lead Form Card */}
+						{}
 						{showLeadForm && (
 							<form onSubmit={handleAllocateTeamLead} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
 								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
@@ -4871,7 +4874,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								</div>
 
-								{/* Checkbox select for Dedicated allowed pages */}
+								{}
 								<div className="space-y-2">
 									<label className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold block font-mono">DEDICATE ALLOWED PAGES *</label>
 									<div className="grid grid-cols-2 md:grid-cols-4 gap-3 border border-zinc-850 p-4 bg-zinc-950/40">
@@ -4912,7 +4915,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Team Leads Table list */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
 							<table className="w-full min-w-[1200px] text-left text-xs text-zinc-300 font-mono">
 								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
@@ -4988,7 +4991,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 			</div>
 
-			{/* CRUD Edit Modals */}
+			{}
 			{editModalType && editingItem && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
 					<div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 p-6 space-y-4 shadow-2xl relative">
@@ -5004,7 +5007,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</button>
 						</div>
 
-						{/* Employee Edit Form */}
+						{}
 						{editModalType === 'employee' && (
 							<form 
 								onSubmit={async (e) => {
@@ -5080,7 +5083,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<label className="text-[10px] text-zinc-400 uppercase font-medium">Employee ID card</label>
 									<p className="text-[11px] text-zinc-500">Upload the complete ID card image. Employee will see it in Mobile More → ID card and Website ID card tab.</p>
 									{editingItem.idCardUrl ? (
-										// eslint-disable-next-line @next/next/no-img-element
+										
 										<img src={editingItem.idCardUrl} alt="ID card" className="w-full max-h-40 object-contain border border-zinc-800 bg-zinc-950" />
 									) : (
 										<div className="text-[11px] text-zinc-600 border border-dashed border-zinc-800 p-3">No ID card uploaded yet</div>
@@ -5147,7 +5150,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Task Edit Form */}
+						{}
 						{editModalType === 'task' && (
 							<form 
 								onSubmit={async (e) => {
@@ -5224,7 +5227,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Attendance Edit Form */}
+						{}
 						{editModalType === 'attendance' && (
 							<form 
 								onSubmit={async (e) => {
@@ -5269,7 +5272,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Event Edit Form */}
+						{}
 						{editModalType === 'event' && (() => {
 							return (
 								<form 
@@ -5486,7 +5489,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				</div>
 			)}
 
-			{/* Edit Team Lead Modal */}
+			{}
 			{showEditLeadModal && editingLead && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
 					<div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 p-6 space-y-4 shadow-2xl relative">

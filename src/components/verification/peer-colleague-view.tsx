@@ -7,9 +7,9 @@ type Props = {
 	authHeaders: Record<string, string>;
 };
 
-/**
- * Enter another employee ID → OTP emailed to them → enter OTP → read-only profile.
- */
+
+
+
 export function PeerColleagueView({ authHeaders }: Props) {
 	const [employeeId, setEmployeeId] = useState('');
 	const [otp, setOtp] = useState('');
@@ -86,7 +86,7 @@ export function PeerColleagueView({ authHeaders }: Props) {
 					<div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
 						<div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
 							{photo ? (
-								// eslint-disable-next-line @next/next/no-img-element
+								
 								<img
 									src={photo}
 									alt=""
@@ -134,7 +134,7 @@ export function PeerColleagueView({ authHeaders }: Props) {
 					</div>
 				</div>
 
-				{/* Full professional profile — same sections as admin dossier (no remarks) */}
+				{}
 				<ProfessionalProfileReadonly profile={p} employee={e} showRemarks={false} />
 			</div>
 		);

@@ -1,10 +1,10 @@
 import { db } from '@/lib/db';
 
-/**
- * Mark which senders have a profile photo.
- * Do NOT embed base64 here (blows past API limits) — clients load
- * GET /api/employees/:id/avatar instead.
- */
+
+
+
+
+
 export async function enrichMessagesWithPhotos<T extends { senderId: string }>(messages: T[]) {
 	if (!messages.length) {
 		return messages as Array<T & { senderPhotoUrl: string | null; senderHasPhoto: boolean }>;
@@ -20,7 +20,7 @@ export async function enrichMessagesWithPhotos<T extends { senderId: string }>(m
 	return messages.map((m) => ({
 		...m,
 		senderHasPhoto: has.has(m.senderId),
-		// Keep field for older clients; real bytes come from avatar endpoint.
+		
 		senderPhotoUrl: null as string | null,
 	}));
 }

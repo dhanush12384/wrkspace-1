@@ -97,27 +97,27 @@ export function ProfilePhotoEditor({
 					else openPicker();
 				}}
 				className={cn(
-					'relative shrink-0 overflow-hidden border border-brand-700/50 bg-brand-900/60 text-white font-black tracking-wider shadow-lg shadow-brand-950/40',
-					'rounded-none cursor-pointer hover:opacity-95 transition-opacity disabled:opacity-60',
+					'relative shrink-0 text-[#E61E32] font-bold tracking-wider rounded-full bg-transparent border-0 p-0 shadow-xs outline-none',
+					'cursor-pointer hover:opacity-95 transition-all disabled:opacity-60',
 					box,
 					className,
 				)}
+				style={{ background: 'transparent', borderRadius: '9999px', border: 'none', outline: 'none', boxShadow: 'none' }}
 				aria-label={hasPhoto ? 'View profile photo' : 'Upload profile photo'}
 			>
-				{hasPhoto ? (
-					// eslint-disable-next-line @next/next/no-img-element
-					<img src={safePhotoUrl!} alt="" className="absolute inset-0 size-full object-cover" />
-				) : (
-					<span className={size === 'lg' ? 'text-2xl' : 'text-sm'}>{initials}</span>
-				)}
-				{!hasPhoto && (
-					<span className="absolute bottom-1 right-1 flex size-6 items-center justify-center bg-indigo-600 text-white shadow">
-						<PencilIcon className="size-3.5" />
-					</span>
-				)}
+				<div className="absolute inset-0 rounded-full overflow-hidden border border-[#E61E32]/20 bg-[#E61E32]/10 flex items-center justify-center shadow-xs">
+					{hasPhoto ? (
+						<img src={safePhotoUrl!} alt="" className="size-full object-cover" />
+					) : (
+						<span className={size === 'lg' ? 'text-xl font-bold' : 'text-xs font-bold'}>{initials}</span>
+					)}
+				</div>
+				<span className="absolute -bottom-0.5 -right-0.5 z-10 flex size-4.5 items-center justify-center rounded-full bg-[#E61E32] text-white shadow-xs border-1.5 border-white dark:border-zinc-950">
+					<PencilIcon className="size-2.5" />
+				</span>
 				{busy && (
-					<span className="absolute inset-0 flex items-center justify-center bg-black/50">
-						<span className="size-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+					<span className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 rounded-full">
+						<span className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
 					</span>
 				)}
 			</button>
@@ -155,7 +155,7 @@ export function ProfilePhotoEditor({
 								<XIcon className="size-4" />
 							</button>
 						</div>
-						{/* eslint-disable-next-line @next/next/no-img-element */}
+						{}
 						<img src={safePhotoUrl!} alt="Profile" className="w-full aspect-square object-cover bg-zinc-900" />
 						<div className="p-4 space-y-2">
 							<Button
@@ -165,7 +165,7 @@ export function ProfilePhotoEditor({
 									setPreviewOpen(false);
 									openPicker();
 								}}
-								className="w-full h-10 bg-indigo-600 hover:bg-indigo-500 text-white font-bold cursor-pointer rounded-none"
+								className="w-full h-10 bg-[#E61E32] hover:bg-[#c9182a] text-white font-bold cursor-pointer rounded-lg border-0"
 							>
 								<CameraIcon className="size-4 mr-2" />
 								Change photo

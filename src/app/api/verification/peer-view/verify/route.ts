@@ -12,17 +12,17 @@ function requireMember(req: NextRequest): { viewerId: string } {
 		const emp = requireEmployee(req);
 		return { viewerId: emp.sub };
 	} catch {
-		/* fall through */
+		
 	}
 	const v = requireVerification(req);
 	if (v.role !== 'SUPER') throw new Error('Unauthorized');
 	return { viewerId: v.sub };
 }
 
-/**
- * Verify OTP and return another employee's profile in read-only form
- * (no admin remarks).
- */
+
+
+
+
 export async function POST(req: NextRequest) {
 	try {
 		const viewer = requireMember(req);
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
 		const name = [target.firstName, target.middleName, target.lastName].filter(Boolean).join(' ').trim();
 		const profile = profileFromEmployee(target as any);
-		// Never expose admin-only remarks on peer view
+		
 		profile.remarks = '';
 
 		return Response.json({

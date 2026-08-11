@@ -2,10 +2,10 @@
 
 type Handler = (payload: Record<string, unknown>) => void;
 
-/**
- * Lightweight Socket.IO client for admin/employee live boards.
- * Connects to Render API (Vercel cannot host Socket.IO).
- */
+
+
+
+
 export function connectRealtime(opts: {
 	token: string;
 	onAttendance?: Handler;

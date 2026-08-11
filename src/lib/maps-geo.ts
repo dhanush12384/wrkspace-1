@@ -1,4 +1,4 @@
-/** Parse lat/lng from Google Maps links, Plus-ish paste, or plain "lat,lng". */
+
 export function parseMapsLocation(input: string): { lat: number; lng: number } | null {
 	const s = String(input || '').trim();
 	if (!s) return null;
@@ -24,7 +24,7 @@ export function parseMapsLocation(input: string): { lat: number; lng: number } |
 
 export function encodePlusCode(lat: number, lng: number): string {
 	try {
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		
 		const { OpenLocationCode } = require('open-location-code') as {
 			OpenLocationCode: new () => { encode: (a: number, b: number, c?: number) => string };
 		};

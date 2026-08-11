@@ -4,7 +4,7 @@ import { jsonError, requireEmployee } from '@/lib/api-auth';
 import { employeeDisplayName } from '@/lib/attendance-geo';
 import { emitSafetyUpdate } from '@/lib/realtime-emit';
 
-const MAX_CHARS = 450_000; // ~337KB base64 → keep Neon row reasonable
+const MAX_CHARS = 450_000; 
 
 function normalizePhoto(raw: string): string | null {
 	const s = String(raw || '').trim();
@@ -13,7 +13,7 @@ function normalizePhoto(raw: string): string | null {
 		if (s.length > MAX_CHARS) throw new Error('Photo too large — try a smaller image');
 		return s;
 	}
-	if (/^https?:\/\//i.test(s) && s.length < 2048) return s;
+	if (/^https?:\/\//.test(s)) return s;
 	throw new Error('Invalid photo format');
 }
 

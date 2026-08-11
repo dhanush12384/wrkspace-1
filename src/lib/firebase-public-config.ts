@@ -1,7 +1,7 @@
-/**
- * Client Firebase config — env only (never hardcode API keys in git).
- * Set NEXT_PUBLIC_FIREBASE_* in Vercel / .env
- */
+
+
+
+
 export type FirebasePublicConfig = {
 	apiKey: string;
 	authDomain: string;

@@ -129,11 +129,11 @@ const PANEL_TITLES: Record<string, string> = {
 
 const SAFETY_KEYS = new Set(['safety', 'sos', 'home_pin', 'trips']);
 
-/**
- * Mobile shell — pure React navigation (no History API).
- * pushState/popstate was unloading the document on Android Chrome
- * ("This page couldn't load").
- */
+
+
+
+
+
 export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) {
 	const [section, setSection] = useState<Section>('home');
 	const [scannerOpen, setScannerOpen] = useState(false);
@@ -180,10 +180,10 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 			void ensureLocationPermission().then(setLocStatus);
 		}, 2500);
 
-		// FCM after first paint — never block shell mount (Android Chrome stability).
+		
 		const tPush = window.setTimeout(() => {
 			void registerWebPush(employee?.id).then(() => {
-				// FCM office_exit: only open dialog after a quick GPS check (avoid false alerts indoors).
+				
 				subscribeOfficeExitPush(() => {
 					void (async () => {
 						try {
@@ -211,7 +211,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 								return;
 							}
 						} catch {
-							/* if GPS fails, still show — user can pick Office work */
+							
 						}
 						openLeaveDialog();
 					})();
@@ -219,8 +219,8 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 			});
 		}, 3500);
 
-		// Do NOT restore stale leave prompts from sessionStorage — those caused false alerts
-		// while still in office. Only honor explicit ?office_exit=1 after a GPS check.
+		
+		
 		const tLeave = window.setTimeout(() => {
 			try {
 				clearOfficeExitPending();
@@ -252,11 +252,11 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 						if (inside) return;
 						openLeaveDialog();
 					} catch {
-						/* ignore stale link */
+						
 					}
 				})();
 			} catch {
-				/* ignore */
+				
 			}
 		}, 800);
 
@@ -279,7 +279,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 		onLocationError: () => setLocStatus('denied'),
 	});
 
-	// 5 min no reply → auto check-out (Flutter parity)
+	
 	useEffect(() => {
 		if (!leaveOpen) {
 			clearLeaveTimers();
@@ -304,7 +304,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 				try {
 					await clockOut(employee.id, 'outside_geofence_timeout');
 				} catch {
-					/* ignore */
+					
 				}
 				clearOfficeExitPending();
 				setLeaveOpen(false);
@@ -350,7 +350,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 						const pos = await getPosition(12000);
 						await startGoingHomeTrip(employee.id, pos.coords.latitude, pos.coords.longitude);
 					} catch {
-						/* optional */
+						
 					}
 				}
 			}
@@ -358,7 +358,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 			setLeaveOpen(false);
 			setRefreshToken((n) => n + 1);
 		} catch {
-			/* ignore */
+			
 		} finally {
 			setLeaveBusy(false);
 		}
@@ -383,7 +383,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 					'var(--font-inter), Inter, ui-sans-serif, system-ui, -apple-system, sans-serif',
 			}}
 		>
-			{/* Status bar / notch — keep chrome below the clock (never under it) */}
+			{}
 			<div
 				className="shrink-0 bg-[#0047FF]"
 				style={{ height: 'max(env(safe-area-inset-top, 0px), 0px)' }}
@@ -425,7 +425,7 @@ export function MobileAppShell({ employee, onLogout, onEmployeeUpdate }: Props) 
 			) : null}
 
 			<div className="relative min-h-0 flex-1">
-				{/* Mount only the active tab so Android does not load all chunks at once */}
+				{}
 				{section === 'home' ? (
 					<div className="h-full">
 						<MobileHomeTab

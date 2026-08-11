@@ -5,12 +5,12 @@ import { linkAdminToEmployee } from '@/lib/verification-admin-employee-link';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Google sign-in — employees and admins only (no public access).
- * 1) portal SUPER admin
- * 2) workspace admin → SUPER (+ linked employee profile when present)
- * 3) employee → professional profile self-service
- */
+
+
+
+
+
+
 export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json().catch(() => ({}));

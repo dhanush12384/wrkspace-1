@@ -42,7 +42,7 @@ import {
 const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'] as const;
 const EDIT_WINDOW_MS = 10 * 60 * 1000;
 
-/** Solid active colors — readable on employee light portal (avoids /15 tint + forced white text). */
+
 const CHANNEL_META: Record<string, { label: string; accent: string; activeBg: string; activeBorder: string }> = {
 	public: {
 		label: 'Public Chat',
@@ -109,7 +109,7 @@ interface MessagesViewProps {
 		role: 'Admin' | 'Employee';
 		photoUrl?: string | null;
 	};
-	/** When opened from admin panel — used for avatar API auth */
+	
 	adminEmail?: string;
 }
 
@@ -124,13 +124,13 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 	const [isSending, setIsSending] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
 	
-	// Access Control States
+	
 	const [accessStatus, setAccessStatus] = useState<'Approved' | 'Pending' | 'Rejected' | 'None'>('Approved');
 	const [isCheckingAccess, setIsCheckingAccess] = useState(false);
 	const [isRequestingAccess, setIsRequestingAccess] = useState(false);
 	const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
-	// Mobile View State: 'sidebar' shows the list, 'chat' shows the message body
+	
 	const [mobileView, setMobileView] = useState<'sidebar' | 'chat'>('sidebar');
 	const [menuMsgId, setMenuMsgId] = useState<string | null>(null);
 	const [editingId, setEditingId] = useState<string | null>(null);
@@ -244,12 +244,12 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		}
 	};
 
-	// Load members
+	
 	useEffect(() => {
 		const loadMembers = async () => {
 			const res = await getChatMembers();
 			if (res.success && res.members) {
-				// Exclude self from direct messages list
+				
 				const filtered = res.members.filter(m => m.id !== currentUser.id);
 				setMembers(filtered);
 			}
@@ -272,7 +272,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		};
 	}, []);
 
-	// Live profile photo updates → refresh avatars on all open Messages screens
+	
 	useEffect(() => {
 		const token =
 			typeof window !== 'undefined'
@@ -298,7 +298,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 						m.id === id ? { ...m, hasPhoto: Boolean(p.hasPhoto) } : { ...m },
 					),
 				);
-				// Force remount-ish refresh of message list avatars
+				
 				setMessages((prev) => [...prev]);
 			},
 			onMessage: (p) => {
@@ -315,7 +315,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		return stop;
 	}, [activeChannel, currentUser.id, currentUser.role]);
 
-	// Check access to target channel
+	
 	const checkAccess = async (channelId: string) => {
 		if (channelId === 'public' || channelId.startsWith('dm:')) {
 			setAccessStatus('Approved');
@@ -343,7 +343,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		}
 	};
 
-	// Load pending channel access requests (Admin Only)
+	
 	const loadPendingRequests = async (channelId: string) => {
 		if (currentUser.role !== 'Admin') return;
 		try {
@@ -356,7 +356,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		}
 	};
 
-	// Fetch messages for active channel
+	
 	const fetchMessages = async (showLoading = false) => {
 		if (showLoading) setIsLoading(true);
 		try {
@@ -374,13 +374,13 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 		}
 	};
 
-	// Polling for new messages and requests
+	
 	useEffect(() => {
 		checkAccess(activeChannel);
 		fetchMessages(true);
 
 		const interval = setInterval(() => {
-			// Only fetch messages if approved
+			
 			const isUnrestricted = activeChannel === 'public' || activeChannel.startsWith('dm:') || currentUser.role === 'Admin';
 			if (isUnrestricted || accessStatus === 'Approved') {
 				fetchMessages(false);
@@ -389,7 +389,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 			if (currentUser.role === 'Admin' && (activeChannel === 'marketing' || activeChannel === 'technical' || activeChannel === 'core')) {
 				loadPendingRequests(activeChannel);
 			} else if (currentUser.role === 'Employee' && (activeChannel === 'marketing' || activeChannel === 'technical' || activeChannel === 'core')) {
-				// Re-verify employee's access status silently in case admin just approved it
+				
 				getChannelAccessStatus(currentUser.id, activeChannel).then(res => {
 					if (res.success && res.status) {
 						setAccessStatus(res.status as any);
@@ -402,7 +402,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 	}, [activeChannel, accessStatus, currentUser.id, currentUser.role]);
 
 	const scrollMessagesToBottom = () => {
-		// Scroll only the chat pane — never the whole page
+		
 		const el = messagesEndRef.current?.parentElement;
 		if (el) el.scrollTop = el.scrollHeight;
 	};
@@ -436,10 +436,10 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					);
 				}
 				await fetchMessages(false);
-				// Only jump down when the user just sent — never on poll refresh
+				
 				requestAnimationFrame(scrollMessagesToBottom);
 			} else {
-				setMessageText(tempText); // restore text on failure
+				setMessageText(tempText); 
 			}
 		} catch (err) {
 			console.error(err);
@@ -494,7 +494,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 	};
 
 	const selectDM = (member: ChatMember) => {
-		// Create deterministic DM channel string: dm:minId:maxId
+		
 		const sortedIds = [currentUser.id, member.id].sort();
 		const dmChannelId = `dm:${sortedIds[0]}:${sortedIds[1]}`;
 		selectChannel(dmChannelId, member.name);
@@ -518,12 +518,12 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					void handleFilePick(file);
 				}}
 			/>
-			{/* Left Sidebar (Channels / Users) */}
+			{}
 			<div className={cn(
 				"w-full md:w-80 border-r border-zinc-800 flex flex-col bg-zinc-950/80 shrink-0",
 				mobileView === 'chat' ? "hidden md:flex" : "flex"
 			)}>
-				{/* Top Search bar */}
+				{}
 				<div className="p-4 border-b border-zinc-900">
 					<div className="relative">
 						<SearchIcon className="absolute left-3 top-2.5 size-4 text-zinc-550" />
@@ -537,9 +537,9 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					</div>
 				</div>
 
-				{/* Sidebar Content */}
+				{}
 				<div className="flex-1 overflow-y-auto p-3 space-y-6 scrollbar-thin scrollbar-thumb-zinc-800">
-					{/* Global & Team Rooms */}
+					{}
 					<div className="space-y-1.5">
 						<div className="flex items-center gap-2 px-1">
 							{mobileView === 'chat' && (
@@ -593,7 +593,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 						})}
 					</div>
 
-					{/* Direct Messages Section */}
+					{}
 					<div className="space-y-1.5">
 						<div className="flex items-center gap-2 px-1">
 							{mobileView === 'chat' && activeChannel.startsWith('dm:') && (
@@ -653,7 +653,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					</div>
 				</div>
 
-				{/* User Profile Footer */}
+				{}
 				<div className="p-3 border-t border-zinc-900 bg-zinc-950 flex items-center justify-between">
 					<div className="flex items-center gap-2 overflow-hidden">
 						{(() => {
@@ -684,12 +684,12 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				</div>
 			</div>
 
-			{/* Right Section (Messages Container) */}
+			{}
 			<div className={cn(
 				"flex-1 min-w-0 flex flex-col bg-zinc-950",
 				mobileView === 'sidebar' ? "hidden md:flex" : "flex"
 			)}>
-				{/* Compact title row (no tall navbar) */}
+				{}
 				<div className="px-4 py-2 border-b border-zinc-800 flex items-center gap-2 bg-zinc-950 min-h-0">
 					<button
 						type="button"
@@ -702,7 +702,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					<p className="text-sm font-semibold text-zinc-100 truncate">{channelTitle}</p>
 				</div>
 
-				{/* Admin Review Banner (Pending requests) */}
+				{}
 				{currentUser.role === 'Admin' && pendingRequests.length > 0 && (
 					<div className="bg-indigo-950/20 border-b border-indigo-900/40 px-6 py-3 flex flex-col space-y-2">
 						<div className="flex items-center justify-between">
@@ -740,7 +740,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					</div>
 				)}
 
-				{/* Messages Scroll Area */}
+				{}
 				<div className="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-4 scrollbar-thin scrollbar-thumb-zinc-800 bg-zinc-950 flex flex-col justify-start">
 					{isCheckingAccess ? (
 						<div className="h-full flex items-center justify-center">
@@ -877,7 +877,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 													)}
 												</div>
 												<div className="relative w-full">
-													{/* Hover chevron (WhatsApp-style) */}
+													{}
 													<button
 														type="button"
 														onClick={() => setMenuMsgId(menuOpen ? null : msg.id)}
@@ -1040,7 +1040,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					)}
 				</div>
 
-				{/* Input box (only visible if approved) */}
+				{}
 				{accessStatus === 'Approved' && (
 					<form onSubmit={handleSendMessage} className="p-4 border-t border-zinc-800 bg-zinc-950 flex gap-3">
 						<Button

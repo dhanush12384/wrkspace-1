@@ -8,12 +8,12 @@ export const dynamic = 'force-dynamic';
 
 type Ctx = { params: Promise<{ id: string }> };
 
-/**
- * Employee dossier. Everyone must sign in first (one unified login page for admins,
- * employees & public/company accounts). Company/public accounts only ever get
- * general info — no attendance/task/leave history, no professional profile. A valid
- * SUPER admin token unlocks the full workplace dossier.
- */
+
+
+
+
+
+
 export async function GET(req: NextRequest, ctx: Ctx) {
 	try {
 		const user = requireVerification(req);
@@ -97,9 +97,9 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 			return out;
 		};
 
-		// Public / anonymous viewers only get general, non-sensitive info + employment
-		// status. No attendance/task/leave/event history is even queried for them — the
-		// full workplace dossier & professional profile is admin (SUPER) only.
+		
+		
+		
 		if (!isAdmin) {
 			return Response.json({
 				employee: {
@@ -194,7 +194,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 			wingName: emp.wingName,
 		});
 
-		// We only reach here for admin (SUPER) viewers — full, non-restricted payload.
+		
 		const employeeOut = { ...serialize(emp as any), name, tenureDays };
 
 		return Response.json({
@@ -233,7 +233,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 	}
 }
 
-/** SUPER-only: admins may fill/edit any employee's professional profile, remarks & employment status. */
+
 export async function PATCH(req: NextRequest, ctx: Ctx) {
 	try {
 		const user = requireVerification(req);

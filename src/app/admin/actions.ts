@@ -12,10 +12,10 @@ import { resolveAdminEmployeeIds } from '@/lib/admin-recipients';
 import { processAttendanceCheckoutJobs } from '@/lib/attendance-cron';
 import { eventHasRepresentative, representativeIds } from '@/lib/event-reps';
 
-// Fixed admin email address
+
 const ADMIN_EMAIL = 'webstrixx@gmail.com';
 
-// Seed admin if not present
+
 async function getOrCreateAdmin() {
   let admin = await db.admin.findUnique({
     where: { email: ADMIN_EMAIL }
@@ -52,7 +52,7 @@ export async function loginAdmin(email: string, password: string) {
   return { success: false, error: 'Invalid admin credentials' };
 }
 
-/** After Firebase Google sign-in — allow only registered Admin emails. */
+
 export async function loginAdminWithGoogle(email: string) {
   try {
     await getOrCreateAdmin();
@@ -81,11 +81,11 @@ export async function sendOtp(email: string) {
       return { success: false, error: 'Unauthorized email address' };
     }
 
-    // Generate 6-digit OTP
+    
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
 
-    // Update admin OTP details in database
+    
     await db.admin.update({
       where: { email: admin.email },
       data: {
@@ -150,7 +150,7 @@ export async function verifyOtpAndResetPassword(email: string, otp: string, newP
       return { success: false, error: 'OTP has expired' };
     }
 
-    // Update password and clear OTP
+    
     await db.admin.update({
       where: { email: admin.email },
       data: {
@@ -167,7 +167,7 @@ export async function verifyOtpAndResetPassword(email: string, otp: string, newP
   }
 }
 
-// Super Admin allocation & management actions
+
 import { randomUUID } from 'crypto';
 import { ifError } from 'assert';
 import { PassThrough } from 'stream';
@@ -319,7 +319,7 @@ export async function addEmployee(employeeData: {
   gender?: string;
 }) {
   try {
-    // Generate unique 6-digit alphanumeric code
+    
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let generatedId = '';
     let isUnique = false;
@@ -375,7 +375,7 @@ export async function getEmployees() {
     const employees = await db.employee.findMany({
       orderBy: { createdAt: 'desc' },
     });
-    // Strip huge base64 from list payload; keep hasPhoto for admin directory.
+    
     return employees.map((e) => {
       const { photoUrl, ...rest } = e as typeof e & { photoUrl?: string | null };
       return {
@@ -415,7 +415,7 @@ export async function loginEmployee(email: string, passwordId: string) {
   return { success: false, error: 'Invalid email address or password/Employee ID' };
 }
 
-/** After Firebase Google sign-in — link Google email to Neon employee row. */
+
 export async function loginEmployeeWithGoogle(email: string) {
   try {
     const { signEmployeeToken } = await import('@/lib/api-auth');
@@ -436,7 +436,7 @@ export async function loginEmployeeWithGoogle(email: string) {
   }
 }
 
-/** Admin: upload / clear employee ID card image. */
+
 export async function updateEmployeeIdCard(employeeId: string, idCardUrl: string | null) {
   try {
     const id = String(employeeId || '').trim();
@@ -448,7 +448,7 @@ export async function updateEmployeeIdCard(employeeId: string, idCardUrl: string
       if (s.startsWith('data:image/') && s.includes(';base64,')) {
         if (s.length > 900_000) return { success: false as const, error: 'ID card image too large' };
         next = s;
-      } else if (/^https?:\/\//i.test(s) && s.length < 2048) {
+      } else if (/^https?:\/\//.test(s)) {
         next = s;
       } else {
         return { success: false as const, error: 'Invalid ID card image format' };
@@ -466,7 +466,7 @@ export async function updateEmployeeIdCard(employeeId: string, idCardUrl: string
   }
 }
 
-/** Employee self-service: set/clear profile photo (data URL or https). */
+
 export async function updateEmployeePhoto(employeeId: string, photoUrl: string | null) {
   try {
     const id = String(employeeId || '').trim();
@@ -478,7 +478,7 @@ export async function updateEmployeePhoto(employeeId: string, photoUrl: string |
       if (s.startsWith('data:image/') && s.includes(';base64,')) {
         if (s.length > 450_000) return { success: false as const, error: 'Photo too large — try a smaller image' };
         next = s;
-      } else if (/^https?:\/\//i.test(s) && s.length < 2048) {
+      } else if (/^https?:\/\//.test(s)) {
         next = s;
       } else {
         return { success: false as const, error: 'Invalid photo format' };
@@ -503,7 +503,7 @@ export async function updateEmployeePhoto(employeeId: string, photoUrl: string |
   }
 }
 
-/** Employee self-service: about, remarks, quals, certs, experience, projects, EC. */
+
 export async function updateEmployeeProfessionalProfile(
   employeeId: string,
   payload: Record<string, unknown>
@@ -586,7 +586,7 @@ export async function setEmployeeHomeLocation(
         homePlusCode: data.plusCode ? String(data.plusCode).slice(0, 32) : null,
         homeAddress: data.address ? String(data.address).slice(0, 500) : null,
         homeRadiusM: data.homeRadiusM && data.homeRadiusM > 0 ? Math.round(data.homeRadiusM) : 100,
-        // One-time setup — admin must unlock to change again
+        
         homeEditAllowed: false,
       },
     });
@@ -597,7 +597,7 @@ export async function setEmployeeHomeLocation(
   }
 }
 
-/** Admin: yellow “Allow home setup” — employee can set/change home once more. */
+
 export async function allowEmployeeHomeSetup(employeeId: string) {
   try {
     const employee = await db.employee.update({
@@ -662,7 +662,7 @@ export async function getOpenSosIncidents(_bust?: number) {
         },
       },
     });
-    // Plain JSON so the client always gets a fresh serializable payload
+    
     return JSON.parse(JSON.stringify(rows)) as typeof rows;
   } catch (error) {
     console.error('getOpenSosIncidents', error);
@@ -695,7 +695,7 @@ export async function resolveSosIncident(incidentId: string) {
       where: { id: incidentId },
       data: { status: 'RESOLVED', resolvedAt: new Date() },
     });
-    // Tell every employee device + website lists: this SOS is closed.
+    
     void notifyPush({
       title: 'SOS resolved',
       body: 'The emergency alert was closed by admin. You can return to normal.',
@@ -792,7 +792,7 @@ export async function getLiveSystemStats() {
     console.error('Error in getLiveSystemStats DB query:', error);
   }
 
-  // Read package.json to get actual dependency count
+  
   let dependenciesCount = 0;
   let devDependenciesCount = 0;
   try {
@@ -806,12 +806,12 @@ export async function getLiveSystemStats() {
     console.error('Error reading package.json:', e);
   }
 
-  // System memory
+  
   const mem = process.memoryUsage();
   const heapUsed = Math.round(mem.heapUsed / 1024 / 1024);
   const heapTotal = Math.round(mem.heapTotal / 1024 / 1024);
 
-  // System uptime
+  
   const uptimeSeconds = Math.floor(process.uptime());
   const uptimeMin = Math.floor(uptimeSeconds / 60);
   const uptimeHr = Math.floor(uptimeMin / 60);
@@ -819,7 +819,7 @@ export async function getLiveSystemStats() {
     ? `${uptimeHr}h ${uptimeMin % 60}m`
     : `${uptimeMin}m ${uptimeSeconds % 60}s`;
 
-  // Real log entries based on actual files and DB state
+  
   const logEntries = [
     {
       event: 'Database Sync Uptime',
@@ -879,7 +879,7 @@ export async function sendEmployeeIdByEmail(email: string) {
     });
 
     if (!employee) {
-      // Return success anyway to avoid email enumeration
+      
       return { success: true };
     }
 
@@ -1012,7 +1012,7 @@ export async function createTask(data: {
       }
     });
 
-    // Send email asynchronously in the background so it doesn't block the UI
+    
     if (data.assigneeId === 'ALL') {
       void notifyPush({
         title: 'New task assigned',
@@ -1090,9 +1090,9 @@ export async function sendEmployeeOtp(email: string) {
       return { success: false, error: 'No employee account is registered with this email address.' };
     }
 
-    // Generate 6-digit numeric OTP
+    
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
 
     await db.employee.update({
       where: { id: employee.id },
@@ -1158,7 +1158,7 @@ export async function verifyEmployeeOtpAndResetPassword(email: string, otp: stri
       return { success: false, error: 'OTP has expired. Please request a new one.' };
     }
 
-    // Reset password
+    
     await db.employee.update({
       where: { id: employee.id },
       data: {
@@ -1322,7 +1322,7 @@ function getISTDateAndTime() {
 
 export async function runAutoCheckOut() {
   try {
-    // Closes shifts past 07:00 / 09:30 PM IST and sends FCM (reminder handled by cron).
+    
     const result = await processAttendanceCheckoutJobs({ notify: true });
     if (result.autoCheckedOut || result.reminded) {
       console.log('[runAutoCheckOut]', result);
@@ -1424,7 +1424,7 @@ export async function clockOut(employeeId: string, reason?: string) {
   }
 }
 
-/** Employee chose “Office work” — stay checked in outside office. */
+
 export async function keepCheckedIn(employeeId: string, reason = 'office_work') {
   try {
     const { todayStr } = getISTDateAndTime();
@@ -1449,7 +1449,7 @@ export async function keepCheckedIn(employeeId: string, reason = 'office_work') 
   }
 }
 
-/** Female going home from website — start live trip (optional lat/lng). */
+
 export async function startGoingHomeTrip(employeeId: string, lat?: number, lng?: number) {
   try {
     const emp = await db.employee.findUnique({ where: { id: employeeId } });
@@ -1489,7 +1489,7 @@ export async function startGoingHomeTrip(employeeId: string, lat?: number, lng?:
 
 export async function getMessages(channel: string, requestingUserId: string, requestingUserRole: string) {
   try {
-    // RBAC validation
+    
     if (requestingUserRole !== 'Admin') {
       if (channel.startsWith('dm:')) {
         const parts = channel.split(':');
@@ -1513,7 +1513,7 @@ export async function getMessages(channel: string, requestingUserId: string, req
       orderBy: { createdAt: 'asc' },
       include: { reactions: true },
     });
-    // Do not embed base64 photos here (payload too large). Client loads via loadEmployeeAvatar.
+    
     const senderIds = [...new Set(messages.map((m) => m.senderId))];
     const withPhoto = senderIds.length
       ? await db.employee.findMany({
@@ -1529,7 +1529,7 @@ export async function getMessages(channel: string, requestingUserId: string, req
   }
 }
 
-/** Load one employee profile photo (data URL) for chat avatars. */
+
 export async function loadEmployeeAvatar(employeeId: string) {
   try {
     const id = String(employeeId || '').trim();
@@ -1618,7 +1618,7 @@ export async function postMessage(channel: string, senderId: string, senderName:
       return { success: false, error: 'Message content cannot be empty' };
     }
 
-    // RBAC validation
+    
     if (senderRole !== 'Admin') {
       if (channel.startsWith('dm:')) {
         const parts = channel.split(':');
@@ -1646,7 +1646,7 @@ export async function postMessage(channel: string, senderId: string, senderName:
       }
     });
 
-    // FCM: DM → peer; public/wing → members (exclude sender)
+    
     void notifyMessagePush({
       channel,
       senderId,
@@ -1688,7 +1688,7 @@ export async function postMessageWithAttachment(
       return { success: false, error: 'Attachment too large for this endpoint' };
     }
 
-    // RBAC validation
+    
     if (senderRole !== 'Admin') {
       if (channel.startsWith('dm:')) {
         const parts = channel.split(':');
@@ -1822,7 +1822,7 @@ export async function requestChannelAccess(employeeId: string, employeeName: str
 
 export async function getChannelAccessStatus(employeeId: string, channel: string) {
   try {
-    // Admins automatically get access
+    
     if (employeeId === 'admin') {
       return { success: true, status: 'Approved' };
     }
@@ -1834,7 +1834,7 @@ export async function getChannelAccessStatus(employeeId: string, channel: string
     });
 
     if (!request) {
-      return { success: true, status: 'None' }; // No request submitted yet
+      return { success: true, status: 'None' }; 
     }
 
     return { success: true, status: request.status };
@@ -1956,7 +1956,7 @@ export async function getEvents() {
   }
 }
 
-/** Employee view: only events where they are a listed representative. */
+
 export async function getEventsForEmployee(employeeId: string) {
   try {
     const id = String(employeeId || '').trim();
@@ -1965,7 +1965,7 @@ export async function getEventsForEmployee(employeeId: string) {
       where: { allowed: true },
       orderBy: { startDate: 'asc' },
     });
-    // Serialize dates — raw Date in JSX crashes React (#31) on mobile web.
+    
     return events
       .filter((e) => eventHasRepresentative(e.representatives, id))
       .map((e) => ({
@@ -2151,7 +2151,7 @@ export async function updateSubmissionStatus(submissionId: string, status: strin
   }
 }
 
-// ─── LEADS ───────────────────────────────────────────────────────────────────
+
 
 export async function getLeads(filter?: { status?: string; source?: string; assignedTo?: string; allowed?: boolean }) {
   try {
@@ -2252,10 +2252,10 @@ function getPythonCommand(): string {
       execSync(`"${p}" --version`, { stdio: 'ignore' });
       return p;
     } catch (e) {
-      // ignore and try next
+      
     }
   }
-  return 'python3'; // fallback
+  return 'python3'; 
 }
 
 function generateRealisticLeads(city: string, category: string, count: number, sources: string[]): any[] {
@@ -3278,7 +3278,7 @@ export async function bulkImportEmployees(employees: {
   role?: string;
 }[]) {
   try {
-    // To ensure unique random IDs, we'll fetch existing employee IDs
+    
     const existingEmployees = await db.employee.findMany({
       select: { id: true }
     });
@@ -3352,7 +3352,7 @@ export async function getTeamLeads() {
       where: { isTeamLead: true },
       orderBy: { createdAt: 'desc' }
     });
-    // For each lead, retrieve the employee info
+    
     const populated = await Promise.all(leads.map(async (lead) => {
       const emp = lead.employeeId ? await db.employee.findUnique({
         where: { id: lead.employeeId }
@@ -3389,7 +3389,7 @@ export async function allocateTeamLead(data: {
       return { success: false, error: 'Employee not found.' };
     }
 
-    // Check if employee already has an admin/lead account
+    
     const existing = await db.admin.findFirst({
       where: {
         OR: [
@@ -3403,7 +3403,7 @@ export async function allocateTeamLead(data: {
       return { success: false, error: 'A login account already exists for this employee.' };
     }
 
-    // Create Admin user linked as Team Lead
+    
     const newLead = await db.admin.create({
       data: {
         email: employee.email.toLowerCase(),
@@ -3415,7 +3415,7 @@ export async function allocateTeamLead(data: {
       }
     });
 
-    // Update the employee's role in the employee table to 'Team Lead'
+    
     await db.employee.update({
       where: { id: employee.id },
       data: { role: 'Team Lead' }
@@ -3435,14 +3435,14 @@ export async function deleteTeamLead(adminId: string) {
     });
 
     if (lead) {
-      // Revert employee role to 'Employee'
+      
       if (lead.employeeId) {
         await db.employee.update({
           where: { id: lead.employeeId },
           data: { role: 'Employee' }
         });
       }
-      // Delete the Admin record
+      
       await db.admin.delete({
         where: { id: adminId }
       });

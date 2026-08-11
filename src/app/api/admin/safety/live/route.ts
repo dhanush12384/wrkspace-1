@@ -16,7 +16,7 @@ async function requireAdminEmail(req: NextRequest) {
 	return admin;
 }
 
-/** Admin Live safety snapshot — fetch API (avoids stale Server Action IDs after deploy). */
+
 export async function GET(req: NextRequest) {
 	try {
 		await requireAdminEmail(req);

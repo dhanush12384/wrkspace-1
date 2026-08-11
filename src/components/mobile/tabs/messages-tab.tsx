@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 type Props = {
 	employee: any;
 	onChatOpenChange?: (open: boolean) => void;
-	/** Incremented by shell on system back to leave an open chat. */
+	
 	closeChatSignal?: number;
 };
 
@@ -108,7 +108,7 @@ function fileToDataUrl(file: File): Promise<string> {
 	});
 }
 
-/** Flutter MessagesTab parity: lists + chat with long-press actions & attach. */
+
 export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal = 0 }: Props) {
 	const myId = String(employee?.id || '');
 	const myName = employeeDisplayName(employee);
@@ -234,7 +234,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 		if (nearBottom) el.scrollTop = el.scrollHeight;
 	}, [messages, inChat]);
 
-	/** Pull new messages from server while chat is open (FCM is for background alerts). */
+	
 	useEffect(() => {
 		if (!inChat) return;
 		let alive = true;
@@ -243,7 +243,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 			try {
 				await reloadChat();
 			} catch {
-				/* ignore */
+				
 			}
 		};
 		const id = window.setInterval(() => void tick(), 4000);
@@ -286,7 +286,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 	useEffect(() => {
 		if (!closeChatSignal) return;
 		closeChat();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [closeChatSignal]);
 
 	const openChannel = async (c: string) => {
@@ -733,7 +733,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 													</p>
 												) : null}
 												{m.attachmentType === 'image' && m.attachmentUrl ? (
-													// eslint-disable-next-line @next/next/no-img-element
+													
 													<img
 														src={m.attachmentUrl}
 														alt=""
@@ -845,7 +845,7 @@ export function MobileMessagesTab({ employee, onChatOpenChange, closeChatSignal 
 				</>
 			) : null}
 
-			{/* Long-press / context actions — Flutter parity */}
+			{}
 			{actionMsg && !editOpen ? (
 				<div
 					className="fixed inset-0 z-[90] flex items-end bg-black/40"

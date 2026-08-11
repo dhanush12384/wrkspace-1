@@ -11,7 +11,7 @@ const WING_MAP: Record<string, string> = {
 	product: 'core',
 };
 
-/** Unlocked channels for the employee (Flutter /api/messages/channels). */
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

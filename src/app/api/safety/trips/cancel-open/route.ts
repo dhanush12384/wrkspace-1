@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 
-/** Check-in at office → end any open going-home live trip. */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

@@ -5,7 +5,7 @@ import { notifyPush } from '@/lib/push-notify';
 
 export const dynamic = 'force-dynamic';
 
-/** Admin marks SOS resolved — closes for all employees. */
+
 export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json().catch(() => ({}));

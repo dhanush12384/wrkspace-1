@@ -17,7 +17,7 @@ type EmpRow = {
 	ageMs?: number | null;
 };
 
-/** Leaflet ignores MapContainer center after mount — must flyTo explicitly. */
+
 function FlyToEmployee({
 	lat,
 	lng,

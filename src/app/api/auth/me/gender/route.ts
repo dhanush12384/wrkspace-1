@@ -38,7 +38,7 @@ function publicEmployee(emp: {
 	};
 }
 
-/** Mobile gender setup — updates Neon directly (works even if Render API is stale). */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

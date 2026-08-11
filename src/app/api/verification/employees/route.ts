@@ -4,11 +4,11 @@ import { jsonError, requireVerification } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Directory of employees. Everyone must sign in first (one unified login page for
- * admins, employees & public/company accounts). A valid SUPER admin token unlocks
- * live-location data too; company/public accounts only ever get general info.
- */
+
+
+
+
+
 export async function GET(req: NextRequest) {
 	try {
 		const authUser = requireVerification(req);
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 					photoUrl: e.photoUrl,
 					joinedAt: e.createdAt,
 					employmentStatus: e.employmentStatus || 'Active',
-					// Live location is admin-only — outsiders only see general directory info.
+					
 					lastLocationAt: isAdmin ? e.lastLocationAt : null,
 				};
 			})

@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 
-/** Official multicolor Google "G" mark. */
+
 function GoogleMark({ className }: { className?: string }) {
 	return (
 		<svg className={cn('size-5 shrink-0', className)} viewBox="0 0 24 24" aria-hidden="true">
@@ -34,7 +34,7 @@ type Props = {
 	className?: string;
 };
 
-/** High-contrast Google sign-in control for dark auth panels. */
+
 export function GoogleSignInButton({
 	onClick,
 	disabled,

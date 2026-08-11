@@ -24,7 +24,7 @@ function requireMember(req: NextRequest): { viewerId: string; viewerEmail: strin
 		const emp = requireEmployee(req);
 		return { viewerId: emp.sub, viewerEmail: emp.email };
 	} catch {
-		/* fall through */
+		
 	}
 	const v = requireVerification(req);
 	if (v.role !== 'SUPER') throw new Error('Unauthorized');
@@ -46,7 +46,7 @@ async function findEmployeeById(rawId: string) {
 		const byLower = await db.employee.findUnique({ where: { id: lower } });
 		if (byLower) return byLower;
 	}
-	// Case-insensitive fallback
+	
 	const rows = await db.employee.findMany({
 		where: { id: { equals: id, mode: 'insensitive' } },
 		take: 1,
@@ -54,12 +54,12 @@ async function findEmployeeById(rawId: string) {
 	return rows[0] || null;
 }
 
-/**
- * Request OTP to view another employee (read-only).
- * OTP is emailed to the TARGET employee — they must share it with the requester.
- * Requester also gets a confirmation email explaining that (so they know to check
- * the colleague’s inbox / ask them for the code — not their own for the OTP itself).
- */
+
+
+
+
+
+
 export async function POST(req: NextRequest) {
 	try {
 		const viewer = requireMember(req);
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Notify requester — OTP is NOT in this mail; explains where it went.
+		
 		try {
 			await transporter.sendMail({
 				from: '"Employee Verification Portal" <forgedigitaltechnologies@gmail.com>',
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
 			});
 		} catch (notifyErr: any) {
 			console.error('peer-view notify requester failed', notifyErr);
-			/* non-fatal — target OTP already sent */
+			
 		}
 
 		return Response.json({

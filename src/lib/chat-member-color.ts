@@ -1,37 +1,37 @@
-/** Deterministic per-member chat colors — keep palette order in sync with mobile `chat_member_color.dart`. */
+
 
 export type MemberChatColor = {
-	/** Mid-intensity bubble / avatar fill */
+	
 	bg: string;
-	/** Readable text on `bg` */
+	
 	fg: string;
-	/** Soft border tint */
+	
 	soft: string;
-	/** Accent for names / labels (same family, slightly deeper) */
+	
 	accent: string;
 };
 
-/**
- * Mid-saturation colors (neither pastel nor near-black) — like Discord-style chat bubbles.
- * Order must match mobile.
- */
+
+
+
+
 export const CHAT_MEMBER_PALETTE = [
-	'#8232E6', // violet (ref)
-	'#068D7F', // teal (ref)
-	'#C8D93A', // chartreuse — black text
-	'#DB2777', // pink
-	'#2563EB', // blue
-	'#16A34A', // green
-	'#EA580C', // orange
-	'#9333EA', // purple
-	'#0891B2', // cyan
-	'#E11D48', // rose-red
-	'#4F46E5', // indigo
-	'#65A30D', // lime
-	'#C026D3', // fuchsia
-	'#0284C7', // sky
-	'#D97706', // amber
-	'#7C3AED', // violet soft
+	'#8232E6', 
+	'#068D7F', 
+	'#C8D93A', 
+	'#DB2777', 
+	'#2563EB', 
+	'#16A34A', 
+	'#EA580C', 
+	'#9333EA', 
+	'#0891B2', 
+	'#E11D48', 
+	'#4F46E5', 
+	'#65A30D', 
+	'#C026D3', 
+	'#0284C7', 
+	'#D97706', 
+	'#7C3AED', 
 ] as const;
 
 function hashId(id: string): number {
@@ -49,7 +49,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 	return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
-/** Relative luminance (sRGB) — WCAG-ish */
+
 function luminance(hex: string): number {
 	const { r, g, b } = hexToRgb(hex);
 	const lin = [r, g, b].map((c) => {
@@ -64,9 +64,9 @@ function withAlpha(hex: string, alpha: number): string {
 	return `rgba(${r},${g},${b},${alpha})`;
 }
 
-/**
- * Stable color for a chat member. Prefer employee/admin id; fallback to name.
- */
+
+
+
 export function memberChatColor(idOrName: string | null | undefined): MemberChatColor {
 	const key = String(idOrName || 'unknown').trim() || 'unknown';
 	const bg = CHAT_MEMBER_PALETTE[hashId(key) % CHAT_MEMBER_PALETTE.length];

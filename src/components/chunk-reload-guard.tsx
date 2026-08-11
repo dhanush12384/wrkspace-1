@@ -25,10 +25,10 @@ function takeReloadSlot(): boolean {
 	}
 }
 
-/**
- * After deploy / cache clear, dynamic imports can flake once or twice.
- * Guarded reloads recover instead of sticking on the error screen.
- */
+
+
+
+
 export function ChunkReloadGuard() {
 	useEffect(() => {
 		const onRejection = (ev: PromiseRejectionEvent) => {
@@ -48,7 +48,7 @@ export function ChunkReloadGuard() {
 			try {
 				sessionStorage.removeItem(FLAG);
 			} catch {
-				/* ignore */
+				
 			}
 		}, 20_000);
 		return () => {

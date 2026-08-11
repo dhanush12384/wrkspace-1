@@ -122,7 +122,7 @@ export default function EventTicketPage() {
 								)}
 								<span className="text-[11px] text-slate-700 uppercase tracking-widest font-bold block">Official Reference Pass</span>
 								{employee.photoUrl ? (
-									// eslint-disable-next-line @next/next/no-img-element
+									
 									<img
 										src={employee.photoUrl}
 										alt=""

@@ -1,4 +1,4 @@
-/** Shared helpers for Flutter-parity mobile web app. */
+
 
 export function employeeToken(): string {
 	if (typeof window === 'undefined') return '';
@@ -74,7 +74,7 @@ export function getPosition(timeoutMs = 20000): Promise<GeolocationPosition> {
 		navigator.geolocation.getCurrentPosition(resolve, reject, {
 			enableHighAccuracy: true,
 			timeout: timeoutMs,
-			// Prefer a fresh fix for geofence — stale Wi‑Fi positions false-trigger leave-office.
+			
 			maximumAge: 0,
 		});
 	});
@@ -82,7 +82,7 @@ export function getPosition(timeoutMs = 20000): Promise<GeolocationPosition> {
 
 export type LocationPermissionStatus = 'ok' | 'denied' | 'prompt' | 'unsupported';
 
-/** Request / check geolocation for PWA live tracking (Flutter GeofenceService equivalent). */
+
 export async function ensureLocationPermission(opts?: {
 	forcePrompt?: boolean;
 }): Promise<LocationPermissionStatus> {
@@ -95,7 +95,7 @@ export async function ensureLocationPermission(opts?: {
 			if (result.state === 'denied') return 'denied';
 		}
 	} catch {
-		/* Permissions API optional */
+		
 	}
 	try {
 		await getPosition(15000);

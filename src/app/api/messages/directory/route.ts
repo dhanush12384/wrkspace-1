@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 				role: e.role,
 				wingName: e.wingName,
 				wing: e.wingName,
-				// Avoid multi‑MB JSON — app loads /api/employees/:id/avatar
+				
 				hasPhoto: Boolean(e.photoUrl && String(e.photoUrl).trim()),
 				photoUrl: null,
 			})),

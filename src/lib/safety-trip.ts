@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 
-/** Haversine distance in meters. */
+
 function distanceM(aLat: number, aLng: number, bLat: number, bLng: number) {
 	const R = 6371000;
 	const toRad = (d: number) => (d * Math.PI) / 180;
@@ -13,11 +13,11 @@ function distanceM(aLat: number, aLng: number, bLat: number, bLng: number) {
 	return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-/**
- * Append a GPS ping to a going-home trip (latest position + trail point).
- * Skips duplicate points closer than ~8m within the last 20s to limit noise,
- * but always updates trip.lat/lng for live admin map.
- */
+
+
+
+
+
 export async function recordTripLocation(tripId: string, lat: number, lng: number) {
 	const updated = await db.safetyTrip.update({
 		where: { id: tripId },

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 
-/** Mobile registers FCM token on Neon (works even when Render devices route is missing). */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

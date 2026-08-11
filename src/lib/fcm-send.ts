@@ -113,7 +113,7 @@ async function sendToTokenList(tokens: string[], payload: PushPayload) {
 	return { sent, failed, tokens: list.length, pruned: dead.length };
 }
 
-/** Send FCM from Vercel directly (does not depend on Render). */
+
 export async function sendFcmToAllActive(payload: PushPayload) {
 	const rows = await db.employee.findMany({
 		where: { fcmToken: { not: null } },
@@ -125,7 +125,7 @@ export async function sendFcmToAllActive(payload: PushPayload) {
 	);
 }
 
-/** Targeted FCM to one or more employees (by Neon id). */
+
 export async function sendFcmToEmployees(employeeIds: string[], payload: PushPayload) {
 	const ids = [...new Set((employeeIds || []).map((id) => String(id || '').trim()).filter(Boolean))];
 	if (!ids.length) {

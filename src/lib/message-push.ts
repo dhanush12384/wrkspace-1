@@ -9,7 +9,7 @@ function wingMatchesChannel(wingName: string | null | undefined, channel: string
 	return false;
 }
 
-/** Resolve who should get a chat notification (never includes sender). */
+
 export async function resolveMessageRecipients(
 	channel: string,
 	senderId: string,
@@ -17,12 +17,12 @@ export async function resolveMessageRecipients(
 ): Promise<{ employeeIds: string[]; all: boolean; peerId: string | null }> {
 	const sender = String(senderId || '').trim();
 
-	// Explicit peer (mobile DM)
+	
 	if (peerId && peerId !== sender) {
 		return { employeeIds: [peerId], all: false, peerId };
 	}
 
-	// DM channel: dm:idA:idB
+	
 	if (channel.startsWith('dm:')) {
 		const parts = channel.split(':');
 		const a = parts[1] || '';
@@ -32,12 +32,12 @@ export async function resolveMessageRecipients(
 		return { employeeIds: [], all: false, peerId: null };
 	}
 
-	// Public → everyone with a token except sender
+	
 	if (channel === 'public') {
 		return { employeeIds: [], all: true, peerId: null };
 	}
 
-	// Wing / restricted channels → wing members + approved access requests
+	
 	if (channel === 'marketing' || channel === 'technical' || channel === 'core') {
 		const [accessRows, employees] = await Promise.all([
 			db.channelAccessRequest.findMany({

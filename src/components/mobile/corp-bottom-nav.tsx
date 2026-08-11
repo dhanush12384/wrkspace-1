@@ -15,10 +15,10 @@ type Props = {
 	hidden?: boolean;
 };
 
-/**
- * Flutter CorpBottomNav — slightly shorter dock; scanner FAB stays 64.
- * FAB 64 · bar 68 · dock = bar+18 · FAB bottom = bar-22
- */
+
+
+
+
 export function CorpBottomNav({
 	section,
 	onHome,
@@ -32,9 +32,9 @@ export function CorpBottomNav({
 
 	const FAB = 64;
 	const BAR = 68;
-	const DOCK = BAR + 18; // 86
-	const SHELL = BAR + 36; // 104
-	const FAB_BOTTOM = BAR - 22; // 46
+	const DOCK = BAR + 18; 
+	const SHELL = BAR + 36; 
+	const FAB_BOTTOM = BAR - 22; 
 
 	return (
 		<div

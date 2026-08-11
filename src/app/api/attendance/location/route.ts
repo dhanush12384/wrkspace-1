@@ -17,7 +17,7 @@ function nowMinutesIST() {
 	return h * 60 + m;
 }
 
-/** Continuous GPS heartbeat while app is monitoring / checked in. */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 			select: { id: true, lastLat: true, lastLng: true, lastLocationAt: true },
 		});
 
-		// While phone is posting GPS, also enforce staged auto-checkout (Hobby cron only runs twice/day).
+		
 		let autoCheckedOut: unknown = null;
 		try {
 			const todayStr = todayKeyIST();
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 					});
 				}
 			}
-			// Also sweep previous-day leftovers for this employee
+			
 			const stale = await db.attendance.findMany({
 				where: {
 					employeeId: user.sub,

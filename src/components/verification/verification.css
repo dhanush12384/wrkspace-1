@@ -1,4 +1,4 @@
-/* Employee Verification portal — white theme */
+
 
 .ev-root {
 	--ev-bg: #ffffff;
@@ -51,7 +51,7 @@
 	color: var(--ev-blue);
 }
 
-/* Login brand title — sentence case (not ALL CAPS) */
+
 .ev-login-brand .ev-brand-title {
 	margin: 0;
 	font-size: 0.95rem;
@@ -68,7 +68,7 @@
 	font-size: 12px;
 }
 
-/* —— Login —— */
+
 .ev-login-grid {
 	display: grid;
 	min-height: 100vh;
@@ -166,7 +166,7 @@
 	transform: scale(1.55);
 	transform-origin: center center;
 	background: #ffffff;
-	/* Blend light video plate into the white page so it looks embedded */
+	
 	mix-blend-mode: multiply;
 }
 
@@ -373,7 +373,7 @@
 	margin-left: auto;
 }
 
-/* —— App shell —— */
+
 .ev-topbar {
 	position: sticky;
 	top: 0;
@@ -1130,7 +1130,7 @@
 }
 
 
-/* --- Employment status pill (public/company general-info view) --- */
+
 .ev-status-pill {
 	display: inline-flex;
 	align-items: center;
@@ -1160,7 +1160,7 @@
 	vertical-align: middle;
 }
 
-/* --- Admin edit-profile tab (SUPER only) --- */
+
 .ev-admin-edit .ev-chip {
 	cursor: pointer;
 }

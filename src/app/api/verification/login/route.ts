@@ -26,7 +26,7 @@ async function sessionFromPortalUser(user: {
 		data: { lastLoginAt: new Date() },
 	});
 
-	// Portal SUPER may also be a workspace person — attach linked employee if same email
+	
 	let linkedEmployee = null as Awaited<ReturnType<typeof linkAdminToEmployee>>['employee'];
 	let employeeToken = null as string | null;
 	if (role === 'SUPER') {
@@ -99,7 +99,7 @@ async function sessionFromWorkspaceAdmin(admin: {
 	};
 }
 
-/** Email/password login for Employee Verification portal. */
+
 export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json().catch(() => ({}));
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
 			return Response.json({ ok: true, ...(await sessionFromPortalUser(portal)) });
 		}
 
-		// Workspace admins (main admin panel) may enter this portal as SUPER
+		
 		const admin = await db.admin.findUnique({ where: { email } });
 		if (admin && admin.password === password && !admin.isTeamLead) {
 			return Response.json({ ok: true, ...(await sessionFromWorkspaceAdmin(admin)) });

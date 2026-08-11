@@ -4,7 +4,7 @@ import { jsonError, requireEmployee } from '@/lib/api-auth';
 import { employeeDisplayName } from '@/lib/attendance-geo';
 import { notifyPush } from '@/lib/push-notify';
 
-/** Mobile / web SOS create — writes Neon + FCM fan-out with name + phone. */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 	}
 }
 
-/** Create a manual lead (employee). */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

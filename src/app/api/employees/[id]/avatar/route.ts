@@ -29,7 +29,7 @@ function photoToBuffer(raw: string | null | undefined) {
 	return { contentType: 'image/jpeg', buf: Buffer.from(s, 'base64') };
 }
 
-/** Binary avatar for Messages. */
+
 export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
 	try {
 		requireAnyUser(req);

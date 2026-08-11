@@ -1,4 +1,4 @@
-/** Shared shapes for employee professional profile (company-facing, resume-style). */
+
 
 export const EMPLOYMENT_TYPES = [
 	'Full Time',
@@ -21,7 +21,7 @@ export type ProfileExperience = {
 	current?: boolean;
 	description?: string;
 	technologiesUsed?: string;
-	/** Optional proof / offer letter / letter of experience (image or PDF data URL) */
+	
 	fileUrl?: string;
 };
 
@@ -46,7 +46,7 @@ export type ProfileEducation = {
 	cgpa?: string;
 	from?: string;
 	to?: string;
-	/** Optional marksheet / degree certificate */
+	
 	fileUrl?: string;
 };
 
@@ -81,7 +81,7 @@ export type ProfileProject = {
 	liveUrl?: string;
 	tech?: string;
 	description?: string;
-	/** Optional screenshot / demo PDF */
+	
 	fileUrl?: string;
 };
 
@@ -92,7 +92,7 @@ export type ProfileCertification = {
 	credentialId?: string;
 	credentialUrl?: string;
 	issueDate?: string;
-	/** Optional certificate image / PDF as data URL or https */
+	
 	fileUrl?: string;
 };
 
@@ -102,7 +102,7 @@ export type ProfileAchievement = {
 	organization?: string;
 	date?: string;
 	description?: string;
-	/** Optional proof image / PDF as data URL or https */
+	
 	fileUrl?: string;
 };
 
@@ -126,7 +126,7 @@ export type ProfileCustomSection = {
 };
 
 export type ProfessionalProfile = {
-	// Personal information
+	
 	professionalTitle: string;
 	city: string;
 	state: string;
@@ -138,26 +138,26 @@ export type ProfessionalProfile = {
 	codeforcesUrl: string;
 	codechefUrl: string;
 	hackerrankUrl: string;
-	/** Optional ID / personal document (image or PDF) */
+	
 	personalFileUrl: string;
 
-	// Professional summary
-	about: string; // Resume summary
+	
+	about: string; 
 	careerObjective: string;
 	yearsOfExperience: string;
 	industry: string;
 	remarks: string;
-	/** Optional full resume PDF / summary attachment */
+	
 	summaryFileUrl: string;
-	/** Optional skills proof / certificate */
+	
 	skillsFileUrl: string;
 
-	// Emergency contact
+	
 	emergencyContactName: string;
 	emergencyContactPhone: string;
 	emergencyContactRelation: string;
 
-	// Repeatable / structured sections
+	
 	experience: ProfileExperience[];
 	education: ProfileEducation[];
 	skills: ProfileSkills;
@@ -209,7 +209,7 @@ export function parseJsonObject<T extends Record<string, unknown>>(raw: unknown,
 	}
 }
 
-/** Legacy qualification shape (pre-Education tab). */
+
 type LegacyQualification = { id?: string; degree?: string; institution?: string; year?: string; details?: string };
 
 function migrateLegacyEducation(emp: Record<string, unknown>): ProfileEducation[] {
@@ -367,10 +367,10 @@ function clipTags(list: unknown, maxTags: number, maxLen: number): string[] {
 	return out;
 }
 
-/** Sanitize payload before DB write (JSON columns stay compact strings, empties become null).
- *  `allowRemarks` — only admins may write remarks; employee self-service omits the field
- *  so existing admin remarks are never overwritten.
- */
+
+
+
+
 export function sanitizeProfessionalProfile(
 	input: Partial<ProfessionalProfile>,
 	opts?: { allowRemarks?: boolean },
@@ -533,7 +533,7 @@ export function sanitizeProfessionalProfile(
 		internships: internships.length ? JSON.stringify(internships) : null,
 		publications: publications.length ? JSON.stringify(publications) : null,
 		customSections: customSections.length ? JSON.stringify(customSections) : null,
-		// qualifications column intentionally left untouched (legacy fallback only, no longer written)
+		
 	};
 
 	if (opts?.allowRemarks) {

@@ -13,14 +13,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-/** Same family Flutter AppTheme uses (GoogleFonts.inter). */
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
 });
 
-/** Brand navy — iOS PWA status bar / theme chrome */
+
 const BRAND_BLUE = "#0047FF";
 
 export const viewport: Viewport = {
@@ -40,18 +40,18 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "wrkspace",
-    // Translucent so brand blue (safe-area fill) shows behind the clock/signal bar
+    
     statusBarStyle: "black-translucent",
   },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/branding/favicon.ico", sizes: "48x48" },
-      { url: "/branding/favicon.png", type: "image/png", sizes: "32x32" },
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: "https://ik.imagekit.io/dypkhqxip/wrkspacefavivon", type: "image/png" },
+      { url: "/branding/favicon.png", type: "image/png" },
+      { url: "/icon.png", type: "image/png" },
     ],
-    apple: "/icon.png",
-    shortcut: "/branding/favicon.ico",
+    apple: "https://ik.imagekit.io/dypkhqxip/wrkspacefavivon",
+    shortcut: "https://ik.imagekit.io/dypkhqxip/wrkspacefavivon",
   },
   other: {
     "mobile-web-app-capable": "yes",
@@ -73,7 +73,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        {/* Unregister SWs once. Never wipe Cache Storage every load — that breaks chunk fetches. */}
+        {}
         <Script id="purge-sw" strategy="beforeInteractive">{`
           try {
             var FLAG = 'wrkspace_sw_purged_v3';

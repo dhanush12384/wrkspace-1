@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-/** Set gender (MALE | FEMALE) — same as /api/auth/me/gender */
+
 export async function PATCH(req: NextRequest) {
   try {
     const user = requireEmployee(req);

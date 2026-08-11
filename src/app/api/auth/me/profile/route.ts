@@ -9,7 +9,7 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-/** Employee updates company-facing professional profile (remarks & employmentStatus are admin-only). */
+
 export async function PATCH(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

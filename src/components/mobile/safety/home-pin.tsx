@@ -33,7 +33,7 @@ export function MobileHomePin({ employee, onEmployeeUpdate }: Props) {
 						try {
 							localStorage.setItem('wrkspace_employee_session', JSON.stringify(merged));
 						} catch {
-							/* ignore */
+							
 						}
 					}}
 				/>

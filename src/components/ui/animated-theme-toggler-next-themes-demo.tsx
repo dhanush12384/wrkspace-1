@@ -13,7 +13,7 @@ export function AnimatedThemeTogglerNextThemesDemo() {
   }, []);
 
   if (!mounted) {
-    // Return a hollow block skeleton of the same size to prevent SSR flashes
+    
     return (
       <div className="size-9 border border-zinc-800 bg-zinc-950/40 rounded-none animate-pulse" />
     );

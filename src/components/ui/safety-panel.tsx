@@ -27,7 +27,7 @@ export function EmployeeSafetyPanel({
 		try {
 			localStorage.setItem('wrkspace_employee_session', JSON.stringify(next));
 		} catch {
-			/* ignore */
+			
 		}
 	};
 
@@ -36,7 +36,7 @@ export function EmployeeSafetyPanel({
 			const rows = await getOpenSosIncidents(Date.now());
 			setIncidents(Array.isArray(rows) ? rows : []);
 		} catch {
-			/* keep previous list */
+			
 		}
 	};
 
@@ -74,81 +74,81 @@ export function EmployeeSafetyPanel({
 	const needsHomeBanner = isFemale && canEditHome;
 
 	return (
-		<div className="space-y-6 p-4 md:p-6">
+		<div className="space-y-5 p-4 md:p-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 			{isFemale && (
 				<>
 					{needsHomeBanner && (
-						<div className="bg-amber-50 border border-amber-400 p-4 space-y-2">
-							<p className="font-black text-amber-950">
+						<div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 rounded-xl space-y-1.5 shadow-xs">
+							<p className="font-bold text-amber-800 dark:text-amber-300 text-sm">
 								{hasHome ? 'Admin allowed — update home location' : 'Select home location'}
 							</p>
-							<p className="text-sm text-amber-900">
+							<p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
 								{hasHome
 									? 'Admin unlocked home setup. Update your pin below, then save (locks again).'
 									: 'Set your home pin once below. After save it locks — ask admin (yellow Allow home setup) only if you need to change it.'}
 							</p>
 						</div>
 					)}
-					<div className="bg-white border border-rose-300 p-5 space-y-3">
-						<div className="flex items-center gap-3">
+					<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-xl shadow-xs space-y-4">
+						<div className="flex items-center gap-3.5">
 							{/* eslint-disable-next-line @next/next/no-img-element */}
-							<img src="/branding/girl-safety-logo.png" alt="Girl Safety" className="size-12 object-contain" />
+							<img src="/branding/girl-safety-logo.png" alt="Girl Safety" className="size-11 object-contain" />
 							<div>
-								<h2 className="text-lg font-black text-slate-900">Girl Safety — SOS</h2>
-								<p className="text-xs text-rose-800 font-semibold">Commute tracking & emergency alerts</p>
+								<h2 className="text-lg font-black text-slate-900 dark:text-white">Girl Safety — SOS</h2>
+								<p className="text-xs text-[#E61E32] font-bold">Commute tracking & emergency alerts</p>
 							</div>
 						</div>
-					<p className="text-sm text-slate-600">
-						SOS: emergency only — live location to all employees. Going-home tracking (mobile): only after
-						office exit / checkout until you reach home; then it stops until the next day.
-						Allow location when the browser asks.
-					</p>
+						<p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
+							SOS: emergency only — live location to all employees. Going-home tracking (mobile): only after
+							office exit / checkout until you reach home; then it stops until the next day.
+							Allow location when the browser asks.
+						</p>
 						<button
 							type="button"
 							disabled={busy}
 							onClick={triggerSos}
-							className="w-full bg-rose-700 hover:bg-rose-600 text-white font-bold py-3 disabled:opacity-60"
+							className="w-full bg-[#E61E32] hover:bg-[#c9182a] text-white font-bold py-3.5 px-6 rounded-md transition-all duration-200 shadow-sm cursor-pointer hover:shadow-md disabled:opacity-50 text-center tracking-wide uppercase text-sm"
 						>
 							{busy ? 'Sending…' : 'Trigger SOS'}
 						</button>
-						{msg && <p className="text-sm font-semibold text-slate-800">{msg}</p>}
+						{msg && <p className="text-xs font-semibold text-[#E61E32]">{msg}</p>}
 					</div>
 					<HomeLocationPicker employee={emp} onSaved={(next) => persistEmployee({ ...emp, ...next })} />
 				</>
 			)}
 
-			<div className="bg-white border border-slate-300 p-5 space-y-3">
+			<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-5 rounded-xl shadow-xs space-y-4">
 				<div className="flex items-center justify-between gap-3">
-					<h2 className="text-lg font-black text-slate-900">Open SOS alerts</h2>
+					<h2 className="text-lg font-black text-slate-900 dark:text-white">Open SOS alerts</h2>
 					<button
 						type="button"
 						onClick={() => void load()}
-						className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-50"
+						className="px-3.5 py-1.5 text-xs font-bold bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-black/[0.06] dark:border-white/[0.08] rounded-md transition-colors cursor-pointer"
 					>
 						Refresh
 					</button>
 				</div>
-				<p className="text-xs text-slate-500">
+				<p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
 					Shows only open emergencies. When admin marks resolved, this list clears for everyone.
 				</p>
 				{incidents.length === 0 ? (
-					<p className="text-sm text-slate-500">No active SOS incidents.</p>
+					<p className="text-xs text-slate-500 dark:text-zinc-500 italic py-2">No active SOS incidents.</p>
 				) : (
 					<ul className="space-y-3">
 						{incidents.map((inc) => (
-							<li key={inc.id} className="border border-rose-200 bg-rose-50 p-3 text-sm space-y-2">
-								<p className="font-bold text-rose-900">
+							<li key={inc.id} className="border border-red-500/20 bg-red-50/70 dark:bg-red-500/10 p-4 rounded-xl space-y-2.5">
+								<p className="font-bold text-[#E61E32] text-sm">
 									{inc.employee?.firstName} {inc.employee?.lastName} needs help
 								</p>
 								{inc.employee?.phone && (
-									<p className="text-slate-800 font-semibold">
+									<p className="text-xs text-slate-800 dark:text-zinc-300 font-semibold">
 										Phone:{' '}
-										<a href={`tel:${inc.employee.phone}`} className="text-brand-700 underline">
+										<a href={`tel:${inc.employee.phone}`} className="text-[#E61E32] underline font-bold">
 											{inc.employee.phone}
 										</a>
 									</p>
 								)}
-								<p className="text-slate-700">
+								<p className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
 									{new Date(inc.createdAt).toLocaleString()} · {Number(inc.lat).toFixed(5)},{' '}
 									{Number(inc.lng).toFixed(5)}
 								</p>
@@ -156,7 +156,7 @@ export function EmployeeSafetyPanel({
 									href={`https://www.google.com/maps?q=${inc.lat},${inc.lng}`}
 									target="_blank"
 									rel="noreferrer"
-									className="inline-flex items-center justify-center rounded-lg bg-rose-700 hover:bg-rose-600 px-4 py-2.5 text-sm font-bold text-white no-underline"
+									className="inline-flex items-center justify-center rounded-md bg-[#E61E32] hover:bg-[#c9182a] px-4 py-2 text-xs font-bold text-white no-underline transition-colors cursor-pointer"
 								>
 									Open live map
 								</a>
@@ -172,7 +172,7 @@ export function EmployeeSafetyPanel({
 function mapsPathUrl(points: { lat: number; lng: number }[]) {
 	if (!points.length) return null;
 	if (points.length === 1) return `https://www.google.com/maps?q=${points[0].lat},${points[0].lng}`;
-	// Sample to stay under Maps URL limits
+	
 	const step = Math.max(1, Math.ceil(points.length / 25));
 	const sampled = points.filter((_, i) => i === 0 || i === points.length - 1 || i % step === 0);
 	const path = sampled.map((p) => `${p.lat},${p.lng}`).join('/');
@@ -304,13 +304,13 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 			clearInterval(id);
 			stopSocket?.();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [adminEmail]);
 
 	useEffect(() => {
 		if (!adminEmail) return;
 		void loadHistory();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [histDate, histEmployeeId, adminEmail]);
 
 	return (

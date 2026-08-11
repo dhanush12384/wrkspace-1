@@ -4,7 +4,7 @@ import { jsonError, requireEmployee } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-/** Employee phones poll this — if true, keep posting GPS even off-shift. */
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

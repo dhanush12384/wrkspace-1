@@ -1,11 +1,11 @@
-/**
- * Helpers for merging workspace Admin + Employee into one verification-portal
- * SUPER session (manage everyone + fill own professional profile).
- */
+
+
+
+
 import { db } from '@/lib/db';
 import { signEmployeeToken } from '@/lib/api-auth';
 
-/** Full professional fields so My profile editor does not open empty / wipe on save. */
+
 export const linkedEmployeeSelect = {
 	id: true,
 	email: true,
@@ -69,11 +69,11 @@ export type LinkedEmployeePayload = {
 	[key: string]: unknown;
 };
 
-/**
- * Find the Employee row for a workspace Admin (by employeeId link or same email),
- * and ensure Admin.employeeId is set so they stay merged going forward.
- * Also normalizes role label toward "Admin · Technical" when they hold both.
- */
+
+
+
+
+
 export async function linkAdminToEmployee(admin: {
 	id: string;
 	email: string;
@@ -95,7 +95,7 @@ export async function linkAdminToEmployee(admin: {
 		return { employee: null, employeeToken: null };
 	}
 
-	// Persist the merge on Admin if missing
+	
 	if (admin.employeeId !== employee.id) {
 		try {
 			await db.admin.update({
@@ -103,11 +103,11 @@ export async function linkAdminToEmployee(admin: {
 				data: { employeeId: employee.id },
 			});
 		} catch {
-			/* unique conflict on employeeId — ignore; still use this employee for session */
+			
 		}
 	}
 
-	// Prefer a dual-role label so the directory shows Admin · Technical
+	
 	const roleLower = String(employee.role || '').toLowerCase().trim();
 	const alreadyMerged =
 		roleLower.includes('admin') && (roleLower.includes('technical') || roleLower.includes('tech'));
@@ -124,7 +124,7 @@ export async function linkAdminToEmployee(admin: {
 				select: linkedEmployeeSelect,
 			});
 		} catch {
-			/* keep existing role */
+			
 		}
 	}
 

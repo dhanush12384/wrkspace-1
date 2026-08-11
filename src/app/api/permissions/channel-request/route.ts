@@ -4,7 +4,7 @@ import { jsonError, requireEmployee } from '@/lib/api-auth';
 
 const ALLOWED = new Set(['marketing', 'technical', 'core']);
 
-/** Request access to a restricted channel (Flutter channel-request). */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

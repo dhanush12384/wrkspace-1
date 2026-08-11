@@ -24,18 +24,18 @@ import {
 type Props = {
 	employee: any;
 	onEmployeeUpdate?: (next: any) => void;
-	/** Lighter styling for mobile panel / light theme */
+	
 	compact?: boolean;
-	/**
-	 * When provided, used instead of the built-in self-service save path.
-	 * Used by admins (e.g. verification-portal SUPER users) editing another
-	 * employee's profile — bypasses `employeeToken()` / server-action fallback.
-	 */
+	
+
+
+
+
 	saveOverride?: (profile: ProfessionalProfile) => Promise<{ employee?: any; profile?: ProfessionalProfile }>;
-	/**
-	 * Only wrkspace admins may write/edit "Remarks". Employees (self-service) only ever
-	 * see remarks read-only — they cannot edit their own remarks.
-	 */
+	
+
+
+
 	canEditRemarks?: boolean;
 };
 
@@ -150,11 +150,11 @@ export function EmployeeProfessionalProfileEditor({
 	const [loading, setLoading] = useState(Boolean(compact) && !saveOverride);
 	const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-	// Mobile / embedded panels: pull latest profile from API (session employee is often stale).
-	// Skipped entirely in admin-edit mode (`saveOverride`) — the `employee` prop already
-	// carries the full raw record for the *target* employee; fetching `/api/auth/me/profile`
-	// here would wrongly pull the *admin's own* employee token/profile if one happens to be
-	// cached in this browser.
+	
+	
+	
+	
+	
 	useEffect(() => {
 		if (saveOverride) {
 			setLoading(false);
@@ -172,7 +172,7 @@ export function EmployeeProfessionalProfileEditor({
 				if (data.profile) setProfile(data.profile);
 				if (data.employee) onEmployeeUpdate?.({ ...employee, ...data.employee });
 			} catch {
-				/* keep initial from props */
+				
 			} finally {
 				if (!cancelled) setLoading(false);
 			}
@@ -181,7 +181,7 @@ export function EmployeeProfessionalProfileEditor({
 		return () => {
 			cancelled = true;
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [employee?.id, saveOverride]);
 
 	const sx: Sx = {
@@ -199,7 +199,7 @@ export function EmployeeProfessionalProfileEditor({
 			'shrink-0 rounded-full border border-[#0047FF] bg-[#0047FF] px-3.5 py-1.5 text-xs font-semibold text-white whitespace-nowrap',
 		chip: 'inline-flex items-center gap-1 rounded-full bg-[#EFF4FF] border border-[#D7E3FF] px-2.5 py-1 text-xs font-medium text-[#0047FF]',
 	};
-	// compact kept for API compatibility — light theme is always used now
+	
 	void compact;
 
 	function setField<K extends keyof ProfessionalProfile>(key: K, value: ProfessionalProfile[K]) {
@@ -253,7 +253,7 @@ export function EmployeeProfessionalProfileEditor({
 				setMsg({ type: 'ok', text: 'Profile saved.' });
 				return;
 			}
-			// Prefer authenticated employee API (mobile web JWT); fall back to server action.
+			
 			if (employeeToken()) {
 				const data = await apiPatch<{ employee?: any; profile?: ProfessionalProfile }>(
 					'/api/auth/me/profile',
@@ -458,7 +458,7 @@ export function EmployeeProfessionalProfileEditor({
 	);
 }
 
-/* ---------- Shared small pieces ---------- */
+
 
 function Field({
 	sx,
@@ -575,7 +575,7 @@ function ItemCard({ children }: { children: React.ReactNode }) {
 	return <div className="space-y-2 border-t border-dashed border-zinc-800/40 pt-3 first:border-t-0 first:pt-0">{children}</div>;
 }
 
-/* ---------- Tab 1: Personal Info ---------- */
+
 
 function PersonalTab({
 	employee,
@@ -656,7 +656,7 @@ function PersonalTab({
 	);
 }
 
-/* ---------- Tab 2: Summary ---------- */
+
 
 function SummaryTab({
 	profile,
@@ -705,7 +705,7 @@ function SummaryTab({
 	);
 }
 
-/* ---------- Tab 3: Experience ---------- */
+
 
 function ExperienceTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.experience;
@@ -765,7 +765,7 @@ function ExperienceTab({ profile, addItem, updateItem, removeItem, sx, setMsg }:
 	);
 }
 
-/* ---------- Tab 4: Education ---------- */
+
 
 function EducationTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.education;
@@ -816,7 +816,7 @@ function EducationTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: 
 	);
 }
 
-/* ---------- Tab 5: Skills ---------- */
+
 
 function SkillsTab({
 	profile,
@@ -893,7 +893,7 @@ function SkillsTab({
 	);
 }
 
-/* ---------- Tab 6: Projects ---------- */
+
 
 function ProjectsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.projects;
@@ -944,7 +944,7 @@ function ProjectsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: L
 	);
 }
 
-/* ---------- Tab 7: Certifications ---------- */
+
 
 function CertificationsTab({
 	profile,
@@ -986,7 +986,7 @@ function CertificationsTab({
 	);
 }
 
-/* ---------- Tab 8: Achievements ---------- */
+
 
 function AchievementsTab({
 	profile,
@@ -1027,7 +1027,7 @@ function AchievementsTab({
 	);
 }
 
-/* ---------- Tab 9: Internships ---------- */
+
 
 function InternshipsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.internships;
@@ -1088,7 +1088,7 @@ function InternshipsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }
 	);
 }
 
-/* ---------- Tab 10: Publications ---------- */
+
 
 function PublicationsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.publications;
@@ -1144,7 +1144,7 @@ function PublicationsTab({ profile, addItem, updateItem, removeItem, sx, setMsg 
 	);
 }
 
-/* ---------- Tab 11: Custom Sections ---------- */
+
 
 function CustomSectionsTab({ profile, addItem, updateItem, removeItem, sx, setMsg }: ListTabProps) {
 	const list = profile.customSections;

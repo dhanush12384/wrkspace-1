@@ -4,7 +4,7 @@ import { jsonError, requireEmployee } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-/** Employee's own going-home trip history + GPS trail (Flutter Trip history). */
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

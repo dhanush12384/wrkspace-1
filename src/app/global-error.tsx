@@ -22,7 +22,7 @@ export default function GlobalError({
 			if (n >= 2) return;
 			sessionStorage.setItem(FLAG, String(n + 1));
 		} catch {
-			/* still reload */
+			
 		}
 		window.location.reload();
 	}, [error]);
