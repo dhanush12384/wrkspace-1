@@ -963,11 +963,15 @@ export function EmployeeVerificationApp() {
 					<div className="ev-topbar-inner">
 						<div className="ev-topbar-brand">
 							<div>
-								<p className="ev-kicker">Employee Verification Portal</p>
+								<img
+									src="https://ik.imagekit.io/dypkhqxip/wrkspacenew"
+									alt="WrkSpace"
+									className="ev-top-logo"
+								/>
 								<p className="ev-top-user">
 									{[empRecord?.firstName, empRecord?.lastName].filter(Boolean).join(' ') ||
 										session.user.email}
-									<span className="ev-pill">EMPLOYEE</span>
+									<span className="ev-pill">Employee</span>
 								</p>
 							</div>
 						</div>
@@ -1031,12 +1035,16 @@ export function EmployeeVerificationApp() {
 				<div className="ev-topbar-inner">
 					<div className="ev-topbar-brand">
 						<div>
-							<p className="ev-kicker">Employee Verification Portal</p>
+							<img
+								src="https://ik.imagekit.io/dypkhqxip/wrkspacenew"
+								alt="WrkSpace"
+								className="ev-top-logo"
+							/>
 							<p className="ev-top-user">
 								{session.user.email}
 								{session.user.companyName ? ` · ${session.user.companyName}` : ''}
 								<span className="ev-pill">
-									{hasOwnEmployeeProfile ? 'ADMIN · TECHNICAL' : session.user.role}
+									{hasOwnEmployeeProfile ? 'Admin · Technical' : session.user.role}
 								</span>
 							</p>
 						</div>
