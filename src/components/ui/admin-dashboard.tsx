@@ -269,6 +269,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [wingLeadName, setWingLeadName] = useState('');
 	const [empRole, setEmpRole] = useState('Employee');
 	const [empGender, setEmpGender] = useState('UNSPECIFIED');
+	const [empRemarks, setEmpRemarks] = useState('');
+	const [empMonthWorked, setEmpMonthWorked] = useState('');
 
 	const [addMessage, setAddMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
@@ -1001,6 +1003,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				wingLeadName,
 				role: empRole,
 				gender: empGender,
+				remarks: empRemarks,
+				monthWorked: empMonthWorked,
 			});
 
 			if (result.success && result.employee) {
@@ -1018,6 +1022,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				setWingLeadName('');
 				setEmpRole('Employee');
 				setEmpGender('UNSPECIFIED');
+				setEmpRemarks('');
+				setEmpMonthWorked('');
 
 				
 				await fetchEmployees();
@@ -2771,6 +2777,27 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								</div>
 
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+										<Input
+											placeholder="e.g. October 2026, or 6 Months"
+											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											value={empMonthWorked}
+											onChange={e => setEmpMonthWorked(e.target.value)}
+										/>
+									</div>
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+										<Input
+											placeholder="e.g. Outstanding performance, punctual"
+											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											value={empRemarks}
+											onChange={e => setEmpRemarks(e.target.value)}
+										/>
+									</div>
+								</div>
+
 								<Button
 									type="submit"
 									disabled={isAdding}
@@ -2795,13 +2822,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<th className="p-4 font-semibold w-64">Wing Lead</th>
 										<th className="p-4 font-semibold w-64">Role</th>
 										<th className="p-4 font-semibold w-40">Gender</th>
+										<th className="p-4 font-semibold w-48">Month Worked</th>
+										<th className="p-4 font-semibold w-64">Remarks</th>
 										<th className="p-4 font-semibold text-right w-32">Actions</th>
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
 									{employeesList.length === 0 ? (
 										<tr>
-											<td colSpan={10} className="p-8 text-center text-zinc-550 text-xs italic font-sans">
+											<td colSpan={12} className="p-8 text-center text-zinc-550 text-xs italic font-sans">
 												No employees registered in directory. Click "Add New Employee" to get started.
 											</td>
 										</tr>
@@ -2843,6 +2872,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															? 'Male'
 															: 'Not set'}
 												</td>
+												<td className="p-4 text-zinc-200 truncate max-w-[150px]" title={emp.monthWorked || ''}>{emp.monthWorked || '—'}</td>
+												<td className="p-4 text-zinc-300 truncate max-w-[200px]" title={emp.remarks || ''}>{emp.remarks || '—'}</td>
 												<td className="p-4 text-right">
 													<div className="inline-flex items-center justify-end gap-2 flex-wrap">
 														{String(emp.gender || '').toUpperCase() === 'FEMALE' && (
@@ -5023,6 +5054,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										wingLeadName: formData.get('wingLeadName') as string,
 										role: formData.get('role') as string,
 										gender: formData.get('gender') as string,
+										remarks: formData.get('remarks') as string,
+										monthWorked: formData.get('monthWorked') as string,
 									});
 								}}
 								className="space-y-4"
@@ -5077,6 +5110,16 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											<option value="FEMALE">Female</option>
 											<option value="MALE">Male</option>
 										</select>
+									</div>
+								</div>
+								<div className="grid grid-cols-2 gap-2">
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+										<Input name="monthWorked" defaultValue={editingItem.monthWorked || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+									</div>
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+										<Input name="remarks" defaultValue={editingItem.remarks || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
 									</div>
 								</div>
 								<div className="space-y-2 pt-2 border-t border-zinc-800">

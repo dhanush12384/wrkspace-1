@@ -317,6 +317,8 @@ export async function addEmployee(employeeData: {
   wingLeadName: string;
   role?: string;
   gender?: string;
+  remarks?: string;
+  monthWorked?: string;
 }) {
   try {
     
@@ -357,6 +359,8 @@ export async function addEmployee(employeeData: {
         wingLeadName: employeeData.wingLeadName,
         role: employeeData.role || "Employee",
         gender,
+        remarks: employeeData.remarks || null,
+        monthWorked: employeeData.monthWorked || null,
       }
     });
 
@@ -2524,6 +2528,8 @@ export async function updateEmployee(id: string, data: {
   wingLeadName: string;
   role?: string;
   gender?: string;
+  remarks?: string;
+  monthWorked?: string;
 }) {
   try {
     const genderRaw = String(data.gender || 'UNSPECIFIED').trim().toUpperCase();
@@ -2542,6 +2548,8 @@ export async function updateEmployee(id: string, data: {
         wingLeadName: data.wingLeadName,
         role: data.role || "Employee",
         gender,
+        remarks: data.remarks || null,
+        monthWorked: data.monthWorked || null,
       }
     });
     return { success: true, employee: updated };

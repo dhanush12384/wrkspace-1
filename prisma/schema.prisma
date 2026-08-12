@@ -65,6 +65,7 @@ model Employee {
   about        String?  @db.Text
   
   remarks      String?  @db.Text
+  monthWorked  String?  @db.Text
   
   qualifications String? @db.Text
   

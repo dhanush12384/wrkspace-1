@@ -181,6 +181,12 @@ export function EmployeeVerificationApp() {
 	const [newUserPassword, setNewUserPassword] = useState('');
 	const [newUserCompanyId, setNewUserCompanyId] = useState('');
 	const [accessMsg, setAccessMsg] = useState('');
+	
+	const [showRemarksSearch, setShowRemarksSearch] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [searchResults, setSearchResults] = useState<any[]>([]);
+	const [searchLoading, setSearchLoading] = useState(false);
+	const [searchError, setSearchError] = useState('');
 
 	useEffect(() => {
 		setSession(loadSession());
@@ -197,7 +203,7 @@ export function EmployeeVerificationApp() {
 		
 	}, [ready, session?.user.role]);
 
-	const authHeaders = useMemo(() => {
+	const authHeaders = useMemo((): Record<string, string> => {
 		if (!session?.token) return {};
 		return { Authorization: `Bearer ${session.token}` };
 	}, [session?.token]);
@@ -737,186 +743,328 @@ export function EmployeeVerificationApp() {
 								</p>
 							</div>
 
-							{error ? (
-								<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono">
-									{error}
-								</div>
-							) : null}
+							{/* Tab Switcher */}
+							<div className="flex border-b border-slate-200 mb-6">
+								<button
+									type="button"
+									onClick={() => {
+										setShowRemarksSearch(false);
+										setError('');
+									}}
+									className={`flex-1 pb-3 text-sm font-semibold transition-all border-b-2 cursor-pointer text-center ${
+										!showRemarksSearch
+											? "border-[#E61E32] text-slate-900"
+											: "border-transparent text-slate-400 hover:text-slate-650"
+									}`}
+								>
+									Secure Sign In
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setShowRemarksSearch(true);
+										setError('');
+									}}
+									className={`flex-1 pb-3 text-sm font-semibold transition-all border-b-2 cursor-pointer text-center ${
+										showRemarksSearch
+											? "border-[#E61E32] text-slate-900"
+											: "border-transparent text-slate-400 hover:text-slate-650"
+									}`}
+								>
+									Earn Your Remarks
+								</button>
+							</div>
 
-							{isEmployeeIdLogin ? (
-								otpStep === 'verify_otp' ? (
-									<form onSubmit={loginUnified} className="space-y-5">
-										<div className="space-y-2">
-											<p className="text-xs text-slate-500">
-												We sent a 6-digit OTP code to <strong className="text-slate-800">{maskedOtpEmail}</strong>. Please enter the code below to verify your identity.
-											</p>
-											
-											<div className="flex justify-between items-center gap-2 pt-2" onPaste={handleOtpPaste}>
-												{otpDigits.map((digit, index) => (
-													<input
-														key={index}
-														ref={(el) => {
-															otpRefs.current[index] = el;
+							{!showRemarksSearch ? (
+								<>
+									{error ? (
+										<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono mb-4">
+											{error}
+										</div>
+									) : null}
+
+									{isEmployeeIdLogin ? (
+										otpStep === 'verify_otp' ? (
+											<form onSubmit={loginUnified} className="space-y-5">
+												<div className="space-y-2">
+													<p className="text-xs text-slate-500">
+														We sent a 6-digit OTP code to <strong className="text-slate-800">{maskedOtpEmail}</strong>. Please enter the code below to verify your identity.
+													</p>
+													
+													<div className="flex justify-between items-center gap-2 pt-2" onPaste={handleOtpPaste}>
+														{otpDigits.map((digit, index) => (
+															<input
+																key={index}
+																ref={(el) => {
+																	otpRefs.current[index] = el;
+																}}
+																type="text"
+																inputMode="numeric"
+																pattern="[0-9]*"
+																maxLength={1}
+																value={digit}
+																onChange={(e) => handleOtpChange(index, e.target.value)}
+																onKeyDown={(e) => handleOtpKeyDown(index, e)}
+																className="w-11 h-11 md:w-12 md:h-12 text-center text-lg font-bold border border-black/25 bg-white text-slate-800 rounded-lg outline-none focus:ring-1 focus:ring-[#E61E32] transition-all"
+															/>
+														))}
+													</div>
+												</div>
+
+												<div className="flex justify-between items-center text-xs">
+													<button
+														type="button"
+														onClick={handleSendLoginOtp}
+														className="text-slate-500 hover:text-black transition-colors cursor-pointer"
+													>
+														Resend Code
+													</button>
+													<button
+														type="button"
+														onClick={() => {
+															setOtpStep('input_id');
+															setError('');
 														}}
+														className="text-[#E61E32] hover:text-[#c9182a] transition-colors underline cursor-pointer"
+													>
+														Change Employee ID
+													</button>
+												</div>
+
+												<button
+													type="submit"
+													disabled={busy || otpDigits.join('').length !== 6}
+													className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
+												>
+													{busy ? 'Verifying...' : 'Verify & Login'}
+												</button>
+											</form>
+										) : (
+											<form onSubmit={loginUnified} className="space-y-4">
+												<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
+													<input
 														type="text"
-														inputMode="numeric"
-														pattern="[0-9]*"
-														maxLength={1}
-														value={digit}
-														onChange={(e) => handleOtpChange(index, e.target.value)}
-														onKeyDown={(e) => handleOtpKeyDown(index, e)}
-														className="w-11 h-11 md:w-12 md:h-12 text-center text-lg font-bold border border-black/25 bg-white text-slate-800 rounded-lg outline-none focus:ring-1 focus:ring-[#E61E32] transition-all"
+														required
+														value={employeeIdInput}
+														onChange={(e) => setEmployeeIdInput(e.target.value)}
+														placeholder="e.g. EMP123"
+														className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
 													/>
-												))}
+													<span className="shrink-0 text-slate-500 text-xs font-semibold">Employee ID</span>
+												</label>
+
+												<div className="mt-1.5 flex justify-end">
+													<button
+														type="button"
+														onClick={() => {
+															setIsEmployeeIdLogin(false);
+															setError('');
+														}}
+														className="text-[11px] font-medium text-[#E61E32] hover:text-[#c9182a] transition-colors underline cursor-pointer"
+													>
+														Want to login with email instead?
+													</button>
+												</div>
+
+												<button
+													type="submit"
+													disabled={busy}
+													className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
+												>
+													{busy ? 'Signing in...' : 'Sign In'}
+												</button>
+											</form>
+										)
+									) : (
+										<form onSubmit={loginUnified} className="space-y-4">
+											<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
+												<input
+													type="email"
+													required
+													autoComplete="username"
+													value={email}
+													onChange={(e) => setEmail(e.target.value)}
+													placeholder="your.email@example.com"
+													className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
+												/>
+												<span className="shrink-0 text-slate-500 text-xs font-semibold">Email</span>
+											</label>
+
+											<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
+												<input
+													type={showPass ? 'text' : 'password'}
+													required
+													autoComplete="current-password"
+													value={password}
+													onChange={(e) => setPassword(e.target.value)}
+													placeholder="••••••••••••"
+													className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
+												/>
+												<div className="flex items-center gap-2">
+													<button
+														type="button"
+														className="text-slate-400 hover:text-[#E61E32] transition-colors cursor-pointer p-0.5"
+														onClick={() => setShowPass((v) => !v)}
+													>
+														{showPass ? (
+															<EyeOffIcon className="size-4" />
+														) : (
+															<EyeIcon className="size-4" />
+														)}
+													</button>
+													<span className="shrink-0 text-slate-500 text-xs font-semibold border-l border-black/10 pl-2">Password</span>
+												</div>
+											</label>
+
+											<div className="mt-1.5 flex justify-end">
+												<button
+													type="button"
+													onClick={() => {
+														setIsEmployeeIdLogin(true);
+														setError('');
+													}}
+													className="text-[11px] font-medium text-black/50 hover:text-black transition-colors underline cursor-pointer"
+												>
+													Want to login with the <span className="text-[#E61E32] font-semibold">employee ID</span>?
+												</button>
 											</div>
-										</div>
 
-										<div className="flex justify-between items-center text-xs">
 											<button
-												type="button"
-												onClick={handleSendLoginOtp}
-												className="text-slate-500 hover:text-black transition-colors cursor-pointer"
+												type="submit"
+												disabled={busy}
+												className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
 											>
-												Resend Code
+												{busy ? 'Signing in...' : 'Sign In'}
 											</button>
-											<button
-												type="button"
-												onClick={() => {
-													setOtpStep('input_id');
-													setError('');
-												}}
-												className="text-[#E61E32] hover:text-[#c9182a] transition-colors underline cursor-pointer"
-											>
-												Change Employee ID
-											</button>
-										</div>
+										</form>
+									)}
 
-										<button
-											type="submit"
-											disabled={busy || otpDigits.join('').length !== 6}
-											className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
-										>
-											{busy ? 'Verifying...' : 'Verify & Login'}
-										</button>
-									</form>
-								) : (
-									<form onSubmit={loginUnified} className="space-y-4">
+									<div className="my-5 text-center text-xs font-semibold uppercase tracking-wider text-black/40">
+										or
+									</div>
+
+									<div className="grid grid-cols-2 gap-3">
+										<SocialButton
+											icon={<GoogleIcon />}
+											label="Sign in with Google"
+											onClick={loginGoogle}
+											disabled={busy}
+										/>
+										<SocialButton
+											icon={<AppleIcon />}
+											label="Sign in with Apple"
+											onClick={() => setError('Apple sign-in is coming soon.')}
+											disabled={busy}
+										/>
+									</div>
+								</>
+							) : (
+								<div className="space-y-5">
+									{searchError ? (
+										<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono">
+											{searchError}
+										</div>
+									) : null}
+
+									<form
+										onSubmit={async (e) => {
+											e.preventDefault();
+											if (!searchQuery.trim()) return;
+											setSearchLoading(true);
+											setSearchError('');
+											setSearchResults([]);
+											try {
+												const res = await fetch(`/api/verification/public-search?q=${encodeURIComponent(searchQuery)}`);
+												const data = await res.json();
+												if (res.ok) {
+													setSearchResults(data.employees || []);
+													if (!data.employees || data.employees.length === 0) {
+														setSearchError('No employee found with that name.');
+													}
+												} else {
+													setSearchError(data.error || 'Failed to search employee.');
+												}
+											} catch (err: any) {
+												setSearchError('An error occurred during search.');
+											} finally {
+												setSearchLoading(false);
+											}
+										}}
+										className="space-y-4"
+									>
 										<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
 											<input
 												type="text"
 												required
-												value={employeeIdInput}
-												onChange={(e) => setEmployeeIdInput(e.target.value)}
-												placeholder="e.g. EMP123"
-												className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
+												value={searchQuery}
+												onChange={(e) => setSearchQuery(e.target.value)}
+												placeholder="Enter employee's name (e.g. John)"
+												className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30"
 											/>
-											<span className="shrink-0 text-slate-500 text-xs font-semibold">Employee ID</span>
+											<span className="shrink-0 text-slate-500 text-xs font-semibold">Employee Name</span>
 										</label>
-
-										<div className="mt-1.5 flex justify-end">
-											<button
-												type="button"
-												onClick={() => {
-													setIsEmployeeIdLogin(false);
-													setError('');
-												}}
-												className="text-[11px] font-medium text-[#E61E32] hover:text-[#c9182a] transition-colors underline cursor-pointer"
-											>
-												Want to login with email instead?
-											</button>
-										</div>
 
 										<button
 											type="submit"
-											disabled={busy}
-											className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
+											disabled={searchLoading}
+											className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
 										>
-											{busy ? 'Signing in...' : 'Sign In'}
+											{searchLoading ? 'Searching...' : 'Search Remarks'}
 										</button>
 									</form>
-								)
-							) : (
-								<form onSubmit={loginUnified} className="space-y-4">
-									<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
-										<input
-											type="email"
-											required
-											autoComplete="username"
-											value={email}
-											onChange={(e) => setEmail(e.target.value)}
-											placeholder="your.email@example.com"
-											className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
-										/>
-										<span className="shrink-0 text-slate-500 text-xs font-semibold">Email</span>
-									</label>
 
-									<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
-										<input
-											type={showPass ? 'text' : 'password'}
-											required
-											autoComplete="current-password"
-											value={password}
-											onChange={(e) => setPassword(e.target.value)}
-											placeholder="••••••••••••"
-											className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30:text-white/35"
-										/>
-										<div className="flex items-center gap-2">
-											<button
-												type="button"
-												className="text-slate-400 hover:text-[#E61E32] transition-colors cursor-pointer p-0.5"
-												onClick={() => setShowPass((v) => !v)}
-											>
-												{showPass ? (
-													<EyeOffIcon className="size-4" />
-												) : (
-													<EyeIcon className="size-4" />
-												)}
-											</button>
-											<span className="shrink-0 text-slate-500 text-xs font-semibold border-l border-black/10 pl-2">Password</span>
+									{/* Search Results Display */}
+									{searchResults.length > 0 && (
+										<div className="space-y-3 pt-2">
+											<h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+												Search Results ({searchResults.length})
+											</h3>
+											<div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
+												{searchResults.map((emp) => (
+													<div
+														key={emp.id}
+														className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 space-y-3"
+													>
+														<div className="flex items-center gap-3">
+															<div className="size-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 border border-slate-200 uppercase">
+																{emp.name.charAt(0)}
+															</div>
+															<div>
+																<h4 className="text-sm font-semibold text-slate-900">{emp.name}</h4>
+																<p className="text-[11px] text-slate-500 font-mono">ID: {emp.id} · {emp.role}</p>
+															</div>
+														</div>
+														<div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs border-t border-slate-100 pt-3 text-slate-600 font-mono">
+															<div>
+																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Wing</span>
+																{emp.wingName}
+															</div>
+															<div>
+																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Wing Lead</span>
+																{emp.wingLeadName}
+															</div>
+															<div>
+																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Month Worked</span>
+																<span className="text-slate-900 font-semibold">{emp.monthWorked || '—'}</span>
+															</div>
+															<div>
+																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Status</span>
+																<span className={`font-semibold ${emp.employmentStatus === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>{emp.employmentStatus || 'Active'}</span>
+															</div>
+														</div>
+														<div className="bg-[#E61E32]/5 border border-[#E61E32]/10 rounded-lg p-3.5 mt-2">
+															<span className="text-[10px] text-[#E61E32] font-semibold uppercase block tracking-wider font-mono">Remarks</span>
+															<p className="text-xs text-slate-800 mt-1 font-sans italic leading-relaxed">
+																"{emp.remarks || 'No remarks provided.'}"
+															</p>
+														</div>
+													</div>
+												))}
+											</div>
 										</div>
-									</label>
-
-									<div className="mt-1.5 flex justify-end">
-										<button
-											type="button"
-											onClick={() => {
-												setIsEmployeeIdLogin(true);
-												setError('');
-											}}
-											className="text-[11px] font-medium text-black/50 hover:text-black transition-colors underline cursor-pointer"
-										>
-											Want to login with the <span className="text-[#E61E32] font-semibold">employee ID</span>?
-										</button>
-									</div>
-
-									<button
-										type="submit"
-										disabled={busy}
-										className="mt-6 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
-									>
-										{busy ? 'Signing in...' : 'Sign In'}
-									</button>
-								</form>
+									)}
+								</div>
 							)}
-
-							<div className="my-5 text-center text-xs font-semibold uppercase tracking-wider text-black/40">
-								or
-							</div>
-
-							<div className="grid grid-cols-2 gap-3">
-								<SocialButton
-									icon={<GoogleIcon />}
-									label="Sign in with Google"
-									onClick={loginGoogle}
-									disabled={busy}
-								/>
-								<SocialButton
-									icon={<AppleIcon />}
-									label="Sign in with Apple"
-									onClick={() => setError('Apple sign-in is coming soon.')}
-									disabled={busy}
-								/>
-							</div>
 						</div>
 					</div>
 
