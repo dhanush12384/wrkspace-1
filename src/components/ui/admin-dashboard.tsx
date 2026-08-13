@@ -294,6 +294,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [remBadgeTitle, setRemBadgeTitle] = useState('');
 	const [remBadgeIcon, setRemBadgeIcon] = useState('Award');
 	const [remBadgeColor, setRemBadgeColor] = useState('blue');
+	const [remSelectedEmployee, setRemSelectedEmployee] = useState<any>(null);
+	const [remEmpSearch, setRemEmpSearch] = useState('');
+	const [remShowEmpDropdown, setRemShowEmpDropdown] = useState(false);
+	const [remCertifications, setRemCertifications] = useState<{ title: string; url: string }[]>([]);
 
 	const [addMessage, setAddMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
@@ -1106,73 +1110,116 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		setRemBusy(true);
 		setRemMessage(null);
 
+		const certsJson = remCertifications.filter(c => c.url.trim()).length > 0
+			? JSON.stringify(remCertifications.filter(c => c.url.trim()))
+			: undefined;
+
+		const BADGE_DESC: Record<string, string> = {
+			'New Joinee': 'Welcomed as a new member of the team',
+			'Super Worker': 'Consistently delivering outstanding work',
+			'Slashing Dev': 'Exceptional speed and quality in development',
+			'Core Dev': 'Pillar of the engineering team',
+			'Pro Marketer': 'Drives growth and brand excellence',
+			'Employee of the Month': 'Recognised as the best performer this month',
+		};
+
 		try {
-			const result = await addEmployee({
-				firstName: remFirstName,
-				middleName: remMiddleName,
-				lastName: remLastName,
-				email: remEmail,
-				phone: remPhone,
-				wingName: remWingName || 'Default Wing',
-				wingLeadName: remWingLeadName || 'Default Lead',
-				role: remRole || 'Employee',
-				gender: remGender,
-				remarks: remRemarks,
-				monthWorked: remMonthWorked,
-				companyWorkedFor: remCompanyWorkedFor,
-				overallScore: remOverallScore,
-				conduct: remConduct,
-				employmentStatus: remStatus,
-				photoUrl: remPhotoUrl || undefined,
+			let resultEmployee: any = null;
+
+			if (remSelectedEmployee) {
+				const result = await updateEmployee(remSelectedEmployee.id, {
+					firstName: remFirstName,
+					middleName: remMiddleName,
+					lastName: remLastName,
+					email: remEmail,
+					phone: remPhone,
+					wingName: remWingName || 'Default Wing',
+					wingLeadName: remWingLeadName || 'Default Lead',
+					role: remRole || 'Employee',
+					gender: remGender,
+					remarks: remRemarks,
+					monthWorked: remMonthWorked,
+					companyWorkedFor: remCompanyWorkedFor,
+					overallScore: remOverallScore,
+					conduct: remConduct,
+					employmentStatus: remStatus,
+					photoUrl: remPhotoUrl || undefined,
+					certifications: certsJson,
+				});
+				if (result.success && result.employee) {
+					resultEmployee = result.employee;
+				} else {
+					setRemMessage({ type: 'error', text: result.error || 'Failed to update employee.' });
+					return;
+				}
+			} else {
+				const result = await addEmployee({
+					firstName: remFirstName,
+					middleName: remMiddleName,
+					lastName: remLastName,
+					email: remEmail,
+					phone: remPhone,
+					wingName: remWingName || 'Default Wing',
+					wingLeadName: remWingLeadName || 'Default Lead',
+					role: remRole || 'Employee',
+					gender: remGender,
+					remarks: remRemarks,
+					monthWorked: remMonthWorked,
+					companyWorkedFor: remCompanyWorkedFor,
+					overallScore: remOverallScore,
+					conduct: remConduct,
+					employmentStatus: remStatus,
+					photoUrl: remPhotoUrl || undefined,
+					certifications: certsJson,
+				});
+				if (result.success && result.employee) {
+					resultEmployee = result.employee;
+				} else {
+					setRemMessage({ type: 'error', text: result.error || 'Failed to create employee.' });
+					return;
+				}
+			}
+
+			if (remBadgeTitle && resultEmployee) {
+				await giveBadgeToEmployee(resultEmployee.id, {
+					title: remBadgeTitle,
+					icon: remBadgeIcon,
+					color: remBadgeColor,
+					description: BADGE_DESC[remBadgeTitle] || '',
+				});
+			}
+
+			setRemMessage({
+				type: 'success',
+				text: remSelectedEmployee
+					? `Employee "${remFirstName} ${remLastName}" updated!${remBadgeTitle ? ` · Badge "${remBadgeTitle}" assigned.` : ''}${certsJson ? ' · Certifications saved.' : ''}`
+					: `Record created! ID: ${resultEmployee.id}${remBadgeTitle ? ` · Badge "${remBadgeTitle}" assigned.` : ''}${certsJson ? ' · Certifications saved.' : ''}`,
 			});
 
-			if (result.success && result.employee) {
-				// Auto-assign badge if one was selected
-				if (remBadgeTitle) {
-					const BADGE_DESC: Record<string, string> = {
-						'New Joinee': 'Welcomed as a new member of the team',
-						'Super Worker': 'Consistently delivering outstanding work',
-						'Slashing Dev': 'Exceptional speed and quality in development',
-						'Core Dev': 'Pillar of the engineering team',
-						'Pro Marketer': 'Drives growth and brand excellence',
-						'Employee of the Month': 'Recognised as the best performer this month',
-					};
-					await giveBadgeToEmployee(result.employee.id, {
-						title: remBadgeTitle,
-						icon: remBadgeIcon,
-						color: remBadgeColor,
-						description: BADGE_DESC[remBadgeTitle] || '',
-					});
-				}
-				setRemMessage({
-					type: 'success',
-					text: `Employee remarks successfully created! Generated 6-Digit ID: ${result.employee.id}${remBadgeTitle ? ` · Badge "${remBadgeTitle}" assigned.` : ''}`,
-				});
-				
-				setRemPhotoUrl('');
-				setRemFirstName('');
-				setRemMiddleName('');
-				setRemLastName('');
-				setRemEmail('');
-				setRemPhone('');
-				setRemCompanyWorkedFor('');
-				setRemStatus('Active');
-				setRemRemarks('');
-				setRemOverallScore('');
-				setRemConduct('');
-				setRemWingName('');
-				setRemWingLeadName('');
-				setRemRole('Employee');
-				setRemGender('UNSPECIFIED');
-				setRemMonthWorked('');
-				setRemBadgeTitle('');
-				setRemBadgeIcon('Award');
-				setRemBadgeColor('blue');
+			setRemPhotoUrl('');
+			setRemFirstName('');
+			setRemMiddleName('');
+			setRemLastName('');
+			setRemEmail('');
+			setRemPhone('');
+			setRemCompanyWorkedFor('');
+			setRemStatus('Active');
+			setRemRemarks('');
+			setRemOverallScore('');
+			setRemConduct('');
+			setRemWingName('');
+			setRemWingLeadName('');
+			setRemRole('Employee');
+			setRemGender('UNSPECIFIED');
+			setRemMonthWorked('');
+			setRemBadgeTitle('');
+			setRemBadgeIcon('Award');
+			setRemBadgeColor('blue');
+			setRemSelectedEmployee(null);
+			setRemEmpSearch('');
+			setRemCertifications([]);
 
-				await fetchEmployees();
-			} else {
-				setRemMessage({ type: 'error', text: result.error || 'Failed to create employee remarks.' });
-			}
+			await fetchEmployees();
 		} catch (error: any) {
 			setRemMessage({ type: 'error', text: error.message || 'An unexpected error occurred.' });
 		} finally {
@@ -1821,14 +1868,121 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						{remMessage && (
 							<div className={`p-3 rounded-none text-xs border font-mono ${
 								remMessage.type === 'success'
-									? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
+							? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
 									: "bg-red-950/30 border-red-800 text-red-400"
 							}`}>
 								{remMessage.text}
 							</div>
 						)}
-
 						<form onSubmit={handleRemarksSubmit} className="space-y-6">
+							{/* Employee Search / Select */}
+							<div className="border border-zinc-700 bg-zinc-950/60 p-4 space-y-3">
+								<div className="flex items-center justify-between">
+									<span className="text-[10px] text-white uppercase font-bold tracking-wider font-mono">
+										Select Existing Employee <span className="text-zinc-500 normal-case font-normal">(optional — auto-fills fields below)</span>
+									</span>
+									{remSelectedEmployee && (
+										<button
+											type="button"
+											onClick={() => {
+												setRemSelectedEmployee(null);
+												setRemEmpSearch('');
+												setRemPhotoUrl(''); setRemFirstName(''); setRemMiddleName(''); setRemLastName('');
+												setRemEmail(''); setRemPhone(''); setRemCompanyWorkedFor(''); setRemStatus('Active');
+												setRemRemarks(''); setRemOverallScore(''); setRemConduct('');
+												setRemWingName(''); setRemWingLeadName(''); setRemRole('Employee');
+												setRemGender('UNSPECIFIED'); setRemMonthWorked('');
+											}}
+											className="text-[10px] text-red-400 hover:text-red-300 cursor-pointer transition-colors"
+										>
+											✕ Clear selection
+										</button>
+									)}
+								</div>
+
+								{remSelectedEmployee ? (
+									<div className="flex items-center gap-3 p-2.5 bg-indigo-950/30 border border-indigo-800/50 rounded-lg">
+										{remSelectedEmployee.photoUrl && (
+											<img src={remSelectedEmployee.photoUrl} alt="" className="size-8 rounded object-cover border border-zinc-700 shrink-0" />
+										)}
+										<div className="min-w-0">
+											<p className="text-xs font-bold text-white truncate">{remSelectedEmployee.firstName} {remSelectedEmployee.lastName}</p>
+											<p className="text-[10px] text-zinc-400 truncate">{remSelectedEmployee.email} · ID: {remSelectedEmployee.id}</p>
+										</div>
+										<span className="ml-auto shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-900/50 text-indigo-300 border border-indigo-700/50 uppercase tracking-wider">Update mode</span>
+									</div>
+								) : (
+									<div className="relative">
+										<Input
+											placeholder="Search by name or email..."
+											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+											value={remEmpSearch}
+											onChange={e => { setRemEmpSearch(e.target.value); setRemShowEmpDropdown(true); }}
+											onFocus={() => setRemShowEmpDropdown(true)}
+										/>
+										{remShowEmpDropdown && remEmpSearch.trim().length > 0 && (() => {
+											const q = remEmpSearch.toLowerCase();
+											const matches = employeesList.filter((emp: any) =>
+												`${emp.firstName} ${emp.lastName}`.toLowerCase().includes(q) ||
+												emp.email?.toLowerCase().includes(q) ||
+												emp.id?.toLowerCase().includes(q)
+											).slice(0, 8);
+											if (matches.length === 0) return null;
+											return (
+												<div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-zinc-900 border border-zinc-700 shadow-xl max-h-52 overflow-y-auto">
+													{matches.map((emp: any) => (
+														<button
+															key={emp.id}
+															type="button"
+															onClick={() => {
+																setRemSelectedEmployee(emp);
+																setRemEmpSearch('');
+																setRemShowEmpDropdown(false);
+																// Auto-fill all fields
+																setRemFirstName(emp.firstName || '');
+																setRemMiddleName(emp.middleName || '');
+																setRemLastName(emp.lastName || '');
+																setRemEmail(emp.email || '');
+																setRemPhone(emp.phone || '');
+																setRemPhotoUrl(emp.photoUrl || '');
+																setRemRole(emp.role || 'Employee');
+																setRemGender(emp.gender || 'UNSPECIFIED');
+																setRemWingName(emp.wingName || '');
+																setRemWingLeadName(emp.wingLeadName || '');
+																setRemCompanyWorkedFor(emp.companyWorkedFor || '');
+																setRemStatus(emp.employmentStatus || 'Active');
+																setRemRemarks(emp.remarks || '');
+																setRemOverallScore(emp.overallScore || '');
+																setRemConduct(emp.conduct || '');
+																setRemMonthWorked(emp.monthWorked || '');
+																// Parse existing certifications if any
+																try {
+																	if (emp.certifications) {
+																		setRemCertifications(JSON.parse(emp.certifications));
+																	} else {
+																		setRemCertifications([]);
+																	}
+																} catch { setRemCertifications([]); }
+															}}
+															className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-800 text-left transition-colors border-b border-zinc-800 last:border-0 cursor-pointer"
+														>
+															{emp.photoUrl
+																? <img src={emp.photoUrl} alt="" className="size-7 rounded object-cover border border-zinc-700 shrink-0" />
+																: <div className="size-7 rounded bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 shrink-0">{emp.firstName?.[0]}{emp.lastName?.[0]}</div>
+															}
+															<div className="min-w-0">
+																<p className="text-xs font-semibold text-white truncate">{emp.firstName} {emp.lastName}</p>
+																<p className="text-[10px] text-zinc-500 truncate">{emp.email} · {emp.id}</p>
+															</div>
+														</button>
+													))}
+												</div>
+											);
+										})()}
+									</div>
+								)}
+							</div>
+
 							{/* Photo URL & Preview */}
 							<div className="space-y-2">
 								<label className="text-[10px] text-zinc-400 uppercase font-medium">Employee Photo URL</label>
@@ -2083,17 +2237,76 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								)}
 							</div>
 
+							{/* Certifications */}
+							<div className="border border-zinc-800 p-4 space-y-3 bg-zinc-950/30">
+								<div className="flex items-center justify-between">
+									<div>
+										<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Certifications <span className="text-zinc-500 normal-case font-normal">(optional)</span></span>
+										<p className="text-[10px] text-zinc-500 mt-0.5">Add certificate links (e.g. completion, achievement, course certificates).</p>
+									</div>
+									<button
+										type="button"
+										onClick={() => setRemCertifications(prev => [...prev, { title: '', url: '' }])}
+										className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 border border-indigo-800/50 bg-indigo-950/30 px-2.5 py-1 rounded cursor-pointer transition-colors"
+									>
+										+ Add Certificate
+									</button>
+								</div>
+
+								{remCertifications.length === 0 ? (
+									<p className="text-[10px] text-zinc-600 italic">No certifications added yet.</p>
+								) : (
+									<div className="space-y-2">
+										{remCertifications.map((cert, i) => (
+											<div key={i} className="grid grid-cols-[1fr_2fr_auto] gap-2 items-center">
+												<Input
+													placeholder="Certificate title"
+													className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-8"
+													value={cert.title}
+													onChange={e => {
+														const updated = [...remCertifications];
+														updated[i] = { ...updated[i], title: e.target.value };
+														setRemCertifications(updated);
+													}}
+												/>
+												<Input
+													placeholder="https://certificate-link.com/..."
+													className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-8"
+													value={cert.url}
+													onChange={e => {
+														const updated = [...remCertifications];
+														updated[i] = { ...updated[i], url: e.target.value };
+														setRemCertifications(updated);
+													}}
+												/>
+												<button
+													type="button"
+													onClick={() => setRemCertifications(prev => prev.filter((_, idx) => idx !== i))}
+													className="text-zinc-600 hover:text-red-400 transition-colors cursor-pointer text-xs px-1"
+												>
+													✕
+												</button>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+
 							<Button
 								type="submit"
 								disabled={remBusy}
 								className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
 							>
-								{remBusy ? 'Saving Remarks...' : `Save Remarks & Create Record${remBadgeTitle ? ` · Publish "${remBadgeTitle}"` : ''}`}
+								{remBusy
+									? (remSelectedEmployee ? 'Updating...' : 'Saving Remarks...')
+									: remSelectedEmployee
+										? `Update Employee Record${remBadgeTitle ? ` · Publish "${remBadgeTitle}"` : ''}`
+										: `Save Remarks & Create Record${remBadgeTitle ? ` · Publish "${remBadgeTitle}"` : ''}`
+								}
 							</Button>
 						</form>
 					</div>
 				)}
-
 				{activeTab === 'overview' && (
 					<div className="space-y-6">
 						{}
