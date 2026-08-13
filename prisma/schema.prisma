@@ -1,7 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
+
+
+
 
 generator client {
   provider   = "prisma-client-js"
@@ -29,7 +29,7 @@ model Admin {
 }
 
 model Employee {
-  id           String   @id // 6-digit alphanumeric generated code
+  id           String   @id 
   firstName    String
   middleName   String?
   lastName     String
@@ -42,10 +42,10 @@ model Employee {
   password     String?
   activeOtp    String?
   otpExpiresAt DateTime?
-  /// OTP so a colleague can view this employee's profile (read-only) after entering their employee ID
+  
   peerViewOtp           String?
   peerViewOtpExpiresAt  DateTime?
-  /// UNSPECIFIED | MALE | FEMALE
+  
   gender       String   @default("UNSPECIFIED")
   fcmToken     String?
   homeLat      Float?
@@ -53,32 +53,37 @@ model Employee {
   homePlusCode String?
   homeAddress  String?
   homeRadiusM  Int      @default(100)
-  /// After first save, false until admin allows a change again
+  
   homeEditAllowed Boolean @default(true)
-  /// Profile photo as data URL (compressed JPEG) or https URL
+  
   photoUrl     String?
-  /// Admin-uploaded employee ID card image (data URL or https)
+  
   idCardUrl    String?
-  /// Active | Inactive — set by verification-portal admins (SUPER), shown to public/company viewers.
+  
   employmentStatus String @default("Active")
-  /// Company-facing bio / about (used as "Resume Summary")
+  
   about        String?  @db.Text
-  /// Employee notes / remarks for verification companies
+  
   remarks      String?  @db.Text
-  /// JSON array: qualifications (legacy — superseded by `education`, kept for migration)
+  monthWorked  String?  @db.Text
+  companyWorkedFor String?  @db.Text
+  overallScore String?
+  conduct      String?  @db.Text
+  badges       String?  @db.Text
+  
   qualifications String? @db.Text
-  /// JSON array: certifications (optional fileUrl)
+  
   certifications String? @db.Text
-  /// JSON array: work experience
+  
   experience   String?  @db.Text
-  /// JSON array: projects
+  
   projects     String?  @db.Text
-  /// Emergency contact (EC)
+  
   emergencyContactName     String?
   emergencyContactPhone    String?
   emergencyContactRelation String?
 
-  // --- Professional profile: Personal info ---
+  
   professionalTitle String?
   city         String?
   state        String?
@@ -91,33 +96,33 @@ model Employee {
   codechefUrl  String?
   hackerrankUrl String?
 
-  // --- Professional profile: Summary ---
+  
   careerObjective   String? @db.Text
   yearsOfExperience String?
   industry          String?
 
-  // --- Professional profile: structured JSON sections ---
-  /// JSON array: education { id, institution, degree, specialization, cgpa, from, to }
+  
+  
   education      String? @db.Text
-  /// JSON object: skills by category (programmingLanguages, frontend, backend, database, cloud, devops, tools, softSkills)
+  
   skills         String? @db.Text
-  /// JSON array: achievements & awards { id, title, organization, date, description }
+  
   achievements   String? @db.Text
-  /// JSON array: internships (like experience, no employmentType)
+  
   internships    String? @db.Text
-  /// JSON array: publications & research { id, title, authors, journal, conference, year, url, abstract }
+  
   publications   String? @db.Text
-  /// JSON array: custom sections { id, title, content, fileUrl? }
+  
   customSections String? @db.Text
-  /// Optional attachments for Personal / Summary / Skills tabs (image or PDF data URL)
+  
   personalFileUrl String? @db.Text
   summaryFileUrl  String? @db.Text
   skillsFileUrl   String? @db.Text
-  /// Last known device location (continuous while app monitors / on shift)
+  
   lastLat      Float?
   lastLng      Float?
   lastLocationAt DateTime?
-  /// Admin requested personal live tracking (independent of global)
+  
   liveTrackActive Boolean @default(false)
   /// Personal shift window IST labels e.g. "04:30 PM" — null = open (any check-in, out 07:30 PM)
   shiftCheckIn  String?
@@ -137,7 +142,7 @@ model Employee {
   lateCheckInRequests LateCheckInRequest[]
 }
 
-/// Admin global live-tracking switch (start/stop all employees).
+
 model LiveTrackConfig {
   id        String    @id @default("global")
   active    Boolean   @default(false)
@@ -150,7 +155,7 @@ model SosIncident {
   id          String    @id @default(uuid())
   employeeId  String
   employee    Employee  @relation(fields: [employeeId], references: [id])
-  status      String    @default("OPEN") // OPEN | RESOLVED
+  status      String    @default("OPEN") 
   lat         Float
   lng         Float
   note        String?
@@ -166,8 +171,8 @@ model SafetyTrip {
   id          String    @id @default(uuid())
   employeeId  String
   employee    Employee  @relation(fields: [employeeId], references: [id])
-  status      String    @default("IN_TRANSIT") // IN_TRANSIT | ARRIVED_HOME | CANCELLED
-  /// IST calendar day key YYYY-MM-DD for date-wise admin filters
+  status      String    @default("IN_TRANSIT") 
+  
   dateKey     String?
   lat         Float?
   lng         Float?
@@ -182,7 +187,7 @@ model SafetyTrip {
   @@index([employeeId, dateKey])
 }
 
-/// Continuous GPS trail while a girl is going home (admin live + history).
+
 model SafetyTripPoint {
   id         String     @id @default(uuid())
   tripId     String
@@ -201,11 +206,11 @@ model Task {
   title        String
   description  String
   reportTo     String
-  assigneeId   String   // Employee ID or "ALL"
-  assigneeName String   // Employee Name or "All Employees"
+  assigneeId   String   
+  assigneeName String   
   deadline     DateTime
-  status       String   @default("Pending") // e.g. Pending, In Progress, Completed
-  mode         String   @default("Onsite")  // e.g. Remote, Onsite, Hybrid
+  status       String   @default("Pending") 
+  mode         String   @default("Onsite")  
   allocatorName String?
   allocatorRole String?
   createdAt    DateTime @default(now())
@@ -219,7 +224,7 @@ model Leave {
   endDate      DateTime
   type         String
   reason       String
-  status       String   @default("Pending") // Pending, Approved, Ignored, Cancelled
+  status       String   @default("Pending") 
   createdAt    DateTime @default(now())
 }
 
@@ -227,11 +232,11 @@ model Attendance {
   id           String   @id @default(uuid())
   employeeId   String
   employeeName String
-  date         String   // e.g. "2026-07-10"
-  checkIn      String   // e.g. "09:00 AM"
-  checkOut     String?  // e.g. "06:00 PM"
-  status       String   // e.g. Present, Checked In
-  /// True after near-checkout FCM or auto check-out (dedupe reminders)
+  date         String   
+  checkIn      String   
+  checkOut     String?  
+  status       String   
+  
   checkoutReminderSent Boolean @default(false)
   createdAt    DateTime @default(now())
 }
@@ -265,14 +270,14 @@ model LateCheckInRequest {
 
 model Message {
   id             String            @id @default(uuid())
-  channel        String            // e.g. "public", "marketing", "technical", "core", or direct "dm:A:B"
+  channel        String            
   senderId       String
   senderName     String
   content        String            @default("")
-  /// image | video | file
+  
   attachmentType String?
   attachmentName String?
-  /// data URL or https URL (keep small — Vercel body limit)
+  
   attachmentUrl  String?           @db.Text
   replyToId      String?
   replyPreview   String?
@@ -298,8 +303,8 @@ model ChannelAccessRequest {
   id           String   @id @default(uuid())
   employeeId   String
   employeeName String
-  channel      String   // "marketing", "technical", "core"
-  status       String   @default("Pending") // "Pending", "Approved", "Rejected"
+  channel      String   
+  status       String   @default("Pending") 
   createdAt    DateTime @default(now())
   @@unique([employeeId, channel])
 }
@@ -309,14 +314,14 @@ model Event {
   title               String
   description         String
   organisingCollege   String
-  representatives     String   // JSON array of { id, name } objects (max 5)
+  representatives     String   
   startDate           DateTime
   endDate             DateTime
-  startTime           String   // e.g. "09:00 AM"
-  endTime             String   // e.g. "05:00 PM"
+  startTime           String   
+  endTime             String   
   venueAddress        String
   allowed             Boolean  @default(true)
-  source              String   @default("Manual") // Manual, Student Tribe, Luma, Devfolio, Unstop
+  source              String   @default("Manual") 
   sourceUrl           String?
   imageUrl            String?
   createdAt           DateTime @default(now())
@@ -328,10 +333,10 @@ model WorkSubmission {
   employeeName String
   title        String
   description  String
-  taskId       String?  // Optional linked task ID
-  taskTitle    String?  // Optional linked task title
+  taskId       String?  
+  taskTitle    String?  
   hoursSpent   Float
-  status       String   @default("Submitted") // Submitted, Reviewed, Approved, Needs Revision
+  status       String   @default("Submitted") 
   adminNote    String?
   submittedAt  DateTime @default(now())
 }
@@ -345,15 +350,15 @@ model Lead {
   website      String?
   location     String?
   category     String?
-  source       String   // JustDial, Yelp, Sulekha, Upwork, LinkedIn, Clutch, Freelancer, etc.
+  source       String   
   sourceUrl    String?
   description  String?
   rating       String?
   reviewCount  String?
-  status       String   @default("New")   // New, Contacted, Qualified, Proposal, Won, Lost
-  priority     String   @default("Medium") // Low, Medium, High
+  status       String   @default("New")   
+  priority     String   @default("Medium") 
   notes        String?
-  assignedTo   String?  // employee ID
+  assignedTo   String?  
   allowed      Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -368,16 +373,16 @@ model HrCompany {
   hrName              String
   hrEmail             String?
   hrPhone             String?
-  source              String   @default("Manual") // Manual, Arbeitnow
+  source              String   @default("Manual") 
   sourceUrl           String?
   notes               String?
-  status              String   @default("New")    // New, Contacted, Rejected, Hired
-  allowed             Boolean  @default(true)     // false for crawled records awaiting approval
-  assignedEmployeeId  String?  // Relates to Employee.id
+  status              String   @default("New")    
+  allowed             Boolean  @default(true)     
+  assignedEmployeeId  String?  
   createdAt           DateTime @default(now())
 }
 
-/// Offices & QR for mobile geofence check-in (Neon — not Firebase)
+
 model Office {
   id           String     @id @default(uuid())
   name         String
@@ -404,7 +409,7 @@ model OfficeQr {
   @@index([officeId])
 }
 
-/// External / partner companies that use the Employee Verification portal.
+
 model VerificationCompany {
   id           String                   @id @default(uuid())
   name         String
@@ -417,13 +422,13 @@ model VerificationCompany {
   users        VerificationPortalUser[]
 }
 
-/// Logins for /employee-verification — SUPER (wrkspace) or COMPANY viewer.
+
 model VerificationPortalUser {
   id          String               @id @default(uuid())
   email       String               @unique
   password    String
   displayName String?
-  /// SUPER = full wrkspace directory · COMPANY = company-scoped verifier
+  
   role        String               @default("COMPANY")
   companyId   String?
   company     VerificationCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull)

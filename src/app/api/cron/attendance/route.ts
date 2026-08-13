@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
 import { processShiftCheckoutJobs } from '@/lib/shift-jobs';
 
-/**
- * Vercel Cron backup for Render shift jobs (checkout + check-in reminders).
- */
+
+
+
+
 export async function GET(req: NextRequest) {
 	const secret = process.env.CRON_SECRET || process.env.INTERNAL_PUSH_SECRET || '';
 	const auth = req.headers.get('authorization') || '';
@@ -12,6 +13,7 @@ export async function GET(req: NextRequest) {
 		auth === `Bearer ${secret}` ||
 		req.headers.get('x-cron-secret') === secret;
 
+	
 	if (secret && !ok) {
 		return Response.json({ error: 'Unauthorized' }, { status: 401 });
 	}

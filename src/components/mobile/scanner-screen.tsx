@@ -83,7 +83,7 @@ export function MobileScannerScreen({ onClose }: Props) {
 					.catch(() => {});
 			}
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, []);
 
 	async function stopCamera() {
@@ -93,7 +93,7 @@ export function MobileScannerScreen({ onClose }: Props) {
 			await s.stop();
 			await s.clear();
 		} catch {
-			/* ignore */
+			
 		}
 	}
 

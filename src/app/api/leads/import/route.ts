@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 
-/** Bulk-import pipeline leads from crawler JSON (same shape as website import). */
+
 export async function POST(req: NextRequest) {
 	try {
 		requireEmployee(req);

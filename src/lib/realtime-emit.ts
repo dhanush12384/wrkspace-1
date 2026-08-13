@@ -1,7 +1,7 @@
-/**
- * Fan-out attendance / safety events to Socket.IO on Render
- * so website + mobile dashboards update live when Neon APIs run on Vercel.
- */
+
+
+
+
 export async function emitAttendanceUpdate(
 	employeeId: string,
 	attendance: unknown,

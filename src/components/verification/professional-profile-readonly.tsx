@@ -2,20 +2,20 @@
 
 type Props = {
 	profile: any;
-	/** Contact / identity fields from the employee record */
+	
 	employee?: {
 		email?: string | null;
 		phone?: string | null;
 		photoUrl?: string | null;
 	};
-	/** Admin remarks — hidden for peer OTP view */
+	
 	showRemarks?: boolean;
 };
 
-/**
- * Full read-only professional profile (resume-style sections).
- * Used by admin dossier overview and peer OTP view.
- */
+
+
+
+
 export function ProfessionalProfileReadonly({ profile, employee, showRemarks = false }: Props) {
 	const p = profile || {};
 	const education = Array.isArray(p.education) ? p.education : [];

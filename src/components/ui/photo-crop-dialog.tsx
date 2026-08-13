@@ -14,7 +14,7 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
 	});
 }
 
-/** Export square JPEG from crop pixels. */
+
 export async function getCroppedDataUrl(
 	imageSrc: string,
 	pixelCrop: Area,

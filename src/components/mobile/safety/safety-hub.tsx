@@ -23,7 +23,7 @@ export function MobileSafetyHub({ employee, onOpen }: Props) {
 				const rows = await getOpenSosIncidents(Date.now());
 				setIncidents(Array.isArray(rows) ? rows : []);
 			} catch {
-				/* ignore */
+				
 			}
 			if (female) {
 				try {
@@ -49,7 +49,7 @@ export function MobileSafetyHub({ employee, onOpen }: Props) {
 		<div className="space-y-4 p-4 pb-8">
 			{female ? (
 				<div className="flex flex-col items-center rounded-[14px] border border-[#E2E8F0] bg-white p-5 text-center">
-					{/* eslint-disable-next-line @next/next/no-img-element */}
+					{}
 					<img src="/branding/girl-safety-logo.png" alt="" className="size-[72px] object-contain" />
 					<p className="mt-2 text-lg font-extrabold text-[#9D174D]">Girl Safety</p>
 					<p className="mt-1 text-xs text-[#64748B]">Commute tracking & SOS for your safety</p>

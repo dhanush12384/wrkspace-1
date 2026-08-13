@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 
-/** Employee IDs that should get admin-facing pushes (linked Admin rows + lead roles). */
+
 export async function resolveAdminEmployeeIds(): Promise<string[]> {
 	const [admins, leads] = await Promise.all([
 		db.admin.findMany({

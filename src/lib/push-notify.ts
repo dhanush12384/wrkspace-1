@@ -9,10 +9,10 @@ type PushPayload = {
 	all?: boolean;
 };
 
-/**
- * Send FCM from Vercel (Neon tokens + Firebase admin).
- * Only fall back to Render when Vercel cannot send (missing Firebase env / hard error).
- */
+
+
+
+
 export async function notifyPush(payload: PushPayload) {
 	const results: Record<string, unknown> = {};
 	const body = {
@@ -40,7 +40,7 @@ export async function notifyPush(payload: PushPayload) {
 		results.vercelError = String(e);
 	}
 
-	// Backup only when Vercel path did not run (no service account) or threw.
+	
 	if (vercelOk) return results;
 
 	const base = (process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://wrkspace-api.onrender.com').replace(

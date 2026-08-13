@@ -2,7 +2,7 @@ import { getFirebasePublicConfig } from '@/lib/firebase-public-config';
 
 export const dynamic = 'force-dynamic';
 
-/** Serves messaging SW with Firebase config from env (no secrets in git). */
+
 export async function GET() {
 	const config = getFirebasePublicConfig();
 	const body = config
@@ -52,7 +52,7 @@ self.addEventListener('notificationclick', (event) => {
 		headers: {
 			'Content-Type': 'application/javascript; charset=utf-8',
 			'Cache-Control': 'no-store',
-			// Do NOT set Service-Worker-Allowed: / — root scope breaks Android Chrome navigations.
+			
 		},
 	});
 }

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 
-/** Minimal permissions payload so Flutter session bootstrap succeeds. */
+
 export async function GET(req: NextRequest) {
   try {
     requireEmployee(req);

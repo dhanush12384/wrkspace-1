@@ -5,7 +5,7 @@ import { notifyMessagePush, resolveMessageRecipients } from '@/lib/message-push'
 import { enrichMessagesWithPhotos } from '@/lib/message-enrich';
 import { emitMessageUpdate } from '@/lib/realtime-emit';
 
-const MAX_ATTACH_CHARS = 1_800_000; // ~1.3MB binary — stay under Vercel body limits
+const MAX_ATTACH_CHARS = 1_800_000; 
 
 async function loadMessages(where: { channel?: string; OR?: any[] }, take: number) {
 	const messages = await db.message.findMany({

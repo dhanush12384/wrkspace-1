@@ -63,7 +63,7 @@ export function MobileEmergencySos({ employee }: Props) {
 								lng: p.coords.longitude,
 							});
 						} catch {
-							/* keep trying */
+							
 						}
 					})();
 				}, 12000);

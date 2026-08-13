@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 
-/** Employee tasks: assigned to them or to ALL (matches website getEmployeeTasks). */
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

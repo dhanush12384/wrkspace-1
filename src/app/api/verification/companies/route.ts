@@ -10,7 +10,7 @@ function requireSuper(req: NextRequest) {
 	return user;
 }
 
-/** List companies + portal users (SUPER only). */
+
 export async function GET(req: NextRequest) {
 	try {
 		requireSuper(req);
@@ -50,15 +50,15 @@ export async function GET(req: NextRequest) {
 	}
 }
 
-/**
- * Create company and/or company verifier login.
- * body: {
- *   action: 'create_company' | 'create_user' | 'set_active'
- *   name?, contactEmail?, contactPhone?, notes?
- *   email?, password?, displayName?, companyId?, role?
- *   userId?, active?
- * }
- */
+
+
+
+
+
+
+
+
+
 export async function POST(req: NextRequest) {
 	try {
 		const actor = requireSuper(req);

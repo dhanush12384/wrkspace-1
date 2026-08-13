@@ -4,7 +4,7 @@ import { jsonError } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-const FRESH_MS = 5 * 60 * 1000; // seen in last 5 min = live
+const FRESH_MS = 5 * 60 * 1000; 
 
 async function requireAdminEmail(req: NextRequest) {
 	const email = String(
@@ -30,9 +30,9 @@ async function getOrCreateConfig() {
 	});
 }
 
-/** Snapshot of employees with last known GPS for admin live map.
- * Each pin is that employee's own lastLat/lastLng from their phone — never office center.
- */
+
+
+
 export async function GET(req: NextRequest) {
 	try {
 		await requireAdminEmail(req);
@@ -140,9 +140,9 @@ export async function GET(req: NextRequest) {
 	}
 }
 
-/**
- * body: { email, action: 'start_all' | 'stop_all' | 'start_one' | 'stop_one', employeeId? }
- */
+
+
+
 export async function POST(req: NextRequest) {
 	try {
 		const admin = await requireAdminEmail(req);
@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
 				create: { id: 'global', active: false },
 				update: { active: false },
 			});
-			// Also clear personal flags so nothing keeps pinging
+			
 			await db.employee.updateMany({
 				where: { liveTrackActive: true },
 				data: { liveTrackActive: false },

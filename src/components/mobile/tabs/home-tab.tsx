@@ -25,7 +25,7 @@ import {
 } from '@/app/admin/actions';
 import { cn } from '@/lib/utils';
 
-/** Never pass Date/objects into JSX — React #31 crash on Android. */
+
 function asText(value: unknown, fallback = '—'): string {
 	if (value == null || value === '') return fallback;
 	if (value instanceof Date) {
@@ -93,10 +93,10 @@ export function MobileHomeTab({
 			try {
 				const st = await getCurrentAttendanceStatus(employee.id);
 				if (st?.status === 'checked_in' || st?.status === 'checked_out') {
-					/* keep API today as source of truth */
+					
 				}
 			} catch {
-				/* ignore */
+				
 			}
 		} finally {
 			setLoading(false);
@@ -114,7 +114,7 @@ export function MobileHomeTab({
 				const rows = await getOpenSosIncidents(Date.now());
 				if (alive) setOpenSos(Array.isArray(rows) ? rows : []);
 			} catch {
-				/* ignore */
+				
 			}
 		};
 		void poll();
@@ -162,7 +162,7 @@ export function MobileHomeTab({
 					const pos = await getPosition(12000);
 					await startGoingHomeTrip(employee.id, pos.coords.latitude, pos.coords.longitude);
 				} catch {
-					/* optional */
+					
 				}
 			}
 			showToast(female ? 'Checked out — tracking until home' : 'Checked out');

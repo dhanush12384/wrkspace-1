@@ -17,36 +17,43 @@ import {
 	UserPlusIcon,
 	PlusIcon,
 } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee, sendBulkAlerts } from '@/app/admin/actions';
 import { AdminLiveSafetyPanel } from './safety-panel';
 import { AdminLiveTrackingPanel } from './live-tracking-panel';
 import { AdminShiftTimingsPanel } from './admin-shift-timings-panel';
 import { AdminLateCheckinsPanel } from './admin-late-checkins-panel';
 import { AdminPayoutsPanel } from './admin-payouts-panel';
 import OfficesPanel from '@/components/ui/offices-panel';
-import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon, SendIcon, MailIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessagesView } from './messages-view';
 import { ChatAvatar } from './chat-avatar';
+import { AdminAlertSender } from './admin-alert-sender';
 
 interface AdminDashboardProps {
 	email: string;
 	onLogout: () => void;
 }
 
-type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'shift_timings' | 'late_checkins' | 'payouts';
+type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'add_remarks' | 'alert_sender';
 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
 	const isSuperAdmin = email.toLowerCase() === 'webstrixx@gmail.com';
 
-	// Super Admin admin allocation states
+	// Quick alert states
+	const [quickSubject, setQuickSubject] = useState('');
+	const [quickBody, setQuickBody] = useState('');
+	const [quickSending, setQuickSending] = useState(false);
+	const [quickMsg, setQuickMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+	
 	const [adminsList, setAdminsList] = useState<any[]>([]);
 	const [newAdminEmail, setNewAdminEmail] = useState('');
 	const [newAdminOrgName, setNewAdminOrgName] = useState('');
 	const [newAdminPassword, setNewAdminPassword] = useState('admin123');
 	const [newAdminPages, setNewAdminPages] = useState<string[]>([
-		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies', 'shift_timings', 'late_checkins', 'payouts'
+		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies', 'alert_sender'
 	]);
 	const [allocatedLink, setAllocatedLink] = useState<string | null>(null);
 	const [isAllocating, setIsAllocating] = useState(false);
@@ -101,6 +108,60 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 		loadAdminProfile();
 	}, [email]);
+
+	const getQuickPreviewHtml = () => {
+		if (!quickBody) return '<p style="color: #a1a1aa; font-style: italic; font-size: 11px;">Message body preview...</p>';
+		let html = quickBody
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+		html = html
+			.replace(/&lt;b&gt;([\s\S]*?)&lt;\/b&gt;/gi, '<strong>$1</strong>')
+			.replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/gi, '<em>$1</em>')
+			.replace(/&lt;u&gt;([\s\S]*?)&lt;\/u&gt;/gi, '<span style="text-decoration: underline;">$1</span>')
+			.replace(/&lt;strong&gt;([\s\S]*?)&lt;\/strong&gt;/gi, '<strong>$1</strong>')
+			.replace(/&lt;em&gt;([\s\S]*?)&lt;\/em&gt;/gi, '<em>$1</em>')
+			.replace(/&lt;a\s+href=&quot;([^&]+?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/gi, '<a href="$1" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">$2</a>')
+			.replace(/&lt;a\s+href=\'([^\']+?)\'&gt;([\s\S]*?)&lt;\/a&gt;/gi, '<a href="$1" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">$2</a>');
+		html = html.replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>');
+		html = html.replace(/__([\s\S]*?)__/g, '<strong>$1</strong>');
+		html = html.replace(/\*([\s\S]*?)\*/g, '<em>$1</em>');
+		html = html.replace(/_([\s\S]*?)_/g, '<span style="text-decoration: underline;">$1</span>');
+		html = html.replace(/\[([\s\S]*?)\]\((https?:\/\/[^\s\)]+?)\)/g, '<a href="$2" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">$1</a>');
+		const paragraphs = html.split(/\n\s*\n+/);
+		return paragraphs
+			.map(p => {
+				const trimmed = p.trim();
+				if (!trimmed) return '';
+				const withLineBreaks = trimmed.replace(/\n/g, '<br />');
+				return `<p style="font-size: 12px; line-height: 1.5; color: #475569; margin: 0 0 10px;">${withLineBreaks}</p>`;
+			})
+			.filter(Boolean)
+			.join('');
+	};
+
+	const handleSendQuickAlert = async () => {
+		if (!quickSubject.trim() || !quickBody.trim()) {
+			setQuickMsg({ type: 'error', text: 'Subject and body message are required.' });
+			return;
+		}
+		setQuickSending(true);
+		setQuickMsg(null);
+		try {
+			const res = await sendBulkAlerts(quickSubject, quickBody);
+			if (res.success) {
+				setQuickMsg({ type: 'success', text: `Success! Alert broadcasted to ${res.count} active employees.` });
+				setQuickSubject('');
+				setQuickBody('');
+			} else {
+				setQuickMsg({ type: 'error', text: res.error || 'Failed to send alerts.' });
+			}
+		} catch (err: any) {
+			setQuickMsg({ type: 'error', text: err.message || 'Error occurred.' });
+		} finally {
+			setQuickSending(false);
+		}
+	};
 
 	const fetchAdmins = async () => {
 		try {
@@ -263,7 +324,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [stats, setStats] = useState<any>(null);
 	const [isRefreshing, setIsRefreshing] = useState(false);
 
-	// Employee Directory States
+	
 	const [employeesList, setEmployeesList] = useState<any[]>([]);
 	const [showAddForm, setShowAddForm] = useState(false);
 	const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -276,11 +337,40 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [wingLeadName, setWingLeadName] = useState('');
 	const [empRole, setEmpRole] = useState('Employee');
 	const [empGender, setEmpGender] = useState('UNSPECIFIED');
+	const [empRemarks, setEmpRemarks] = useState('');
+	const [empMonthWorked, setEmpMonthWorked] = useState('');
+
+	// States for Add Remarks page
+	const [remPhotoUrl, setRemPhotoUrl] = useState('');
+	const [remFirstName, setRemFirstName] = useState('');
+	const [remMiddleName, setRemMiddleName] = useState('');
+	const [remLastName, setRemLastName] = useState('');
+	const [remEmail, setRemEmail] = useState('');
+	const [remPhone, setRemPhone] = useState('');
+	const [remCompanyWorkedFor, setRemCompanyWorkedFor] = useState('');
+	const [remStatus, setRemStatus] = useState('Active');
+	const [remRemarks, setRemRemarks] = useState('');
+	const [remOverallScore, setRemOverallScore] = useState('');
+	const [remConduct, setRemConduct] = useState('');
+	const [remWingName, setRemWingName] = useState('');
+	const [remWingLeadName, setRemWingLeadName] = useState('');
+	const [remRole, setRemRole] = useState('Employee');
+	const [remGender, setRemGender] = useState('UNSPECIFIED');
+	const [remMonthWorked, setRemMonthWorked] = useState('');
+	const [remMessage, setRemMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+	const [remBusy, setRemBusy] = useState(false);
+	const [remBadgeTitle, setRemBadgeTitle] = useState('');
+	const [remBadgeIcon, setRemBadgeIcon] = useState('Award');
+	const [remBadgeColor, setRemBadgeColor] = useState('blue');
+	const [remSelectedEmployee, setRemSelectedEmployee] = useState<any>(null);
+	const [remEmpSearch, setRemEmpSearch] = useState('');
+	const [remShowEmpDropdown, setRemShowEmpDropdown] = useState(false);
+	const [remCertifications, setRemCertifications] = useState<{ title: string; url: string }[]>([]);
 
 	const [addMessage, setAddMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
 
-	// Team Lead Allocation States
+	
 	const [teamLeadsList, setTeamLeadsList] = useState<any[]>([]);
 	const [showLeadForm, setShowLeadForm] = useState(false);
 	const [selectedEmpId, setSelectedEmpId] = useState('');
@@ -293,7 +383,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [editLeadPassword, setEditLeadPassword] = useState('');
 	const [editLeadAllowedPages, setEditLeadAllowedPages] = useState<string[]>([]);
 
-	// Task Allocation States
+	
 	const [tasksList, setTasksList] = useState<any[]>([]);
 	const [showTaskForm, setShowTaskForm] = useState(false);
 	const [taskTitle, setTaskTitle] = useState('');
@@ -307,13 +397,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [taskMessage, setTaskMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAddingTask, setIsAddingTask] = useState(false);
 
-	// Leaves Directory State
+	
 	const [leavesList, setLeavesList] = useState<any[]>([]);
 
-	// Attendance Logs Directory State
+	
 	const [attendanceList, setAttendanceList] = useState<any[]>([]);
 
-	// Events State
+	
 	const [eventsList, setEventsList] = useState<any[]>([]);
 	const [showEventForm, setShowEventForm] = useState(false);
 	const [eventTitle, setEventTitle] = useState('');
@@ -346,15 +436,21 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		"Delhi / Noida": ["Connaught Place", "Dwarka", "Saket", "Sector 62 Noida", "Greater Noida", "Gurugram"]
 	};
 
-	// CRUD Modals and Edit States
+	
 	const [editModalType, setEditModalType] = useState<'employee' | 'task' | 'leave' | 'attendance' | 'event' | 'submission' | 'hr_company' | null>(null);
 	const [editingItem, setEditingItem] = useState<any>(null);
+	const [badgeTitle, setBadgeTitle] = useState('');
+	const [badgeIcon, setBadgeIcon] = useState('Award');
+	const [badgeColor, setBadgeColor] = useState('blue');
+	const [badgeDescription, setBadgeDescription] = useState('');
+	const [badgeImage, setBadgeImage] = useState('');
+	const [badgeMessage, setBadgeMessage] = useState<string | null>(null);
 	const [showAddManualLeave, setShowAddManualLeave] = useState(false);
 	const [showAddManualAttendance, setShowAddManualAttendance] = useState(false);
 	const [showTodayAttendanceSummary, setShowTodayAttendanceSummary] = useState(false);
 	const [showAddManualHr, setShowAddManualHr] = useState(false);
 
-	// HR & Companies State variables
+	
 	const [hrCompaniesList, setHrCompaniesList] = useState<any[]>([]);
 	const [hrCompaniesSubTab, setHrCompaniesSubTab] = useState<'active' | 'crawler'>('active');
 	const [crawlHrCity, setCrawlHrCity] = useState('Hyderabad');
@@ -364,7 +460,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [assigningHrId, setAssigningHrId] = useState<string | null>(null);
 	const [assignHrEmployeeId, setAssignHrEmployeeId] = useState('');
 
-	// Manual HR & Company Form States
+	
 	const [manualCompanyName, setManualCompanyName] = useState('');
 	const [manualWebsite, setManualWebsite] = useState('');
 	const [manualIndustry, setManualIndustry] = useState('');
@@ -433,7 +529,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
-	// Work Submissions State
+	
 	const [submissionsList, setSubmissionsList] = useState<any[]>([]);
 	const [submissionFilter, setSubmissionFilter] = useState<string>('All');
 	const [reviewingId, setReviewingId] = useState<string | null>(null);
@@ -460,7 +556,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		setIsUpdatingStatus(false);
 	};
 
-	// CRUD Handlers
+	
 	const handleDeleteEmployee = async (id: string) => {
 		if (!confirm('Are you sure you want to delete this employee? All related attendance, tasks, leaves, and submissions will also be deleted.')) return;
 		const res = await deleteEmployee(id);
@@ -538,6 +634,44 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
+	const handleGiveBadge = async (employeeId: string) => {
+		if (!badgeTitle.trim()) {
+			setBadgeMessage('Please enter a badge title');
+			return;
+		}
+		const res = await giveBadgeToEmployee(employeeId, {
+			title: badgeTitle.trim(),
+			icon: badgeIcon,
+			color: badgeColor,
+			description: badgeDescription.trim() || undefined,
+			image: badgeImage || undefined,
+		});
+		if (res.success && res.employee) {
+			setEditingItem(res.employee);
+			fetchEmployees();
+			setBadgeTitle('');
+			setBadgeDescription('');
+			setBadgeImage('');
+			setBadgeMessage('Badge assigned successfully!');
+			setTimeout(() => setBadgeMessage(null), 3000);
+		} else {
+			alert('Failed to give badge: ' + res.error);
+		}
+	};
+
+	const handleDeleteBadge = async (employeeId: string, badgeId: string) => {
+		if (!confirm('Are you sure you want to delete this badge?')) return;
+		const res = await deleteBadgeFromEmployee(employeeId, badgeId);
+		if (res.success && res.employee) {
+			setEditingItem(res.employee);
+			fetchEmployees();
+			setBadgeMessage('Badge removed successfully.');
+			setTimeout(() => setBadgeMessage(null), 3000);
+		} else {
+			alert('Failed to delete badge: ' + res.error);
+		}
+	};
+
 	const handleSaveTaskEdit = async (id: string, updatedData: any) => {
 		const res = await updateTask(id, updatedData);
 		if (res.success) {
@@ -593,7 +727,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
-	// Leads State
+	
 	const [leadsList, setLeadsList] = useState<any[]>([]);
 	const [leadsFilter, setLeadsFilter] = useState('All');
 	const [leadsSourceFilter, setLeadsSourceFilter] = useState('All');
@@ -604,7 +738,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [importLoading, setImportLoading] = useState(false);
 	const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
 
-	// Manual Leads sub-tab & form states (Admin view)
+	
 	const [leadsSubTab, setLeadsSubTab] = useState<'pipeline' | 'manual'>('pipeline');
 	const [showManualForm, setShowManualForm] = useState(false);
 	const [manualBizName, setManualBizName] = useState('');
@@ -637,11 +771,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				description: manualDesc,
 				priority: manualPriority,
 				notes: manualNotes,
-				assignedTo: manualAssignTo || undefined, // Admins can optionally assign a lead immediately
+				assignedTo: manualAssignTo || undefined, 
 			});
 			if (result.success) {
 				setManualLeadMsg({ type: 'success', text: 'Lead manually created successfully!' });
-				// Reset inputs
+				
 				setManualBizName('');
 				setManualContact('');
 				setManualEmail('');
@@ -665,7 +799,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
-	// Automated crawling form states
+	
 	const [crawlCity, setCrawlCity] = useState('Hyderabad');
 	const [crawlCategory, setCrawlCategory] = useState('IT Services');
 	const [isCrawling, setIsCrawling] = useState(false);
@@ -1008,6 +1142,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				wingLeadName,
 				role: empRole,
 				gender: empGender,
+				remarks: empRemarks,
+				monthWorked: empMonthWorked,
 			});
 
 			if (result.success && result.employee) {
@@ -1015,7 +1151,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					type: 'success',
 					text: `Employee successfully created! Generated 6-Digit ID: ${result.employee.id}`,
 				});
-				// Clear inputs
+				
 				setFirstName('');
 				setMiddleName('');
 				setLastName('');
@@ -1025,8 +1161,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				setWingLeadName('');
 				setEmpRole('Employee');
 				setEmpGender('UNSPECIFIED');
+				setEmpRemarks('');
+				setEmpMonthWorked('');
 
-				// Refresh list
+				
 				await fetchEmployees();
 			} else {
 				setAddMessage({ type: 'error', text: 'Failed to add employee.' });
@@ -1035,6 +1173,128 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			setAddMessage({ type: 'error', text: 'An unexpected error occurred.' });
 		} finally {
 			setIsAdding(false);
+		}
+	};
+
+	const handleRemarksSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setRemBusy(true);
+		setRemMessage(null);
+
+		const certsJson = remCertifications.filter(c => c.url.trim()).length > 0
+			? JSON.stringify(remCertifications.filter(c => c.url.trim()))
+			: undefined;
+
+		const BADGE_DESC: Record<string, string> = {
+			'New Joinee': 'Welcomed as a new member of the team',
+			'Super Worker': 'Consistently delivering outstanding work',
+			'Slashing Dev': 'Exceptional speed and quality in development',
+			'Core Dev': 'Pillar of the engineering team',
+			'Pro Marketer': 'Drives growth and brand excellence',
+			'Employee of the Month': 'Recognised as the best performer this month',
+		};
+
+		try {
+			let resultEmployee: any = null;
+
+			if (remSelectedEmployee) {
+				const result = await updateEmployee(remSelectedEmployee.id, {
+					firstName: remFirstName,
+					middleName: remMiddleName,
+					lastName: remLastName,
+					email: remEmail,
+					phone: remPhone,
+					wingName: remWingName || 'Default Wing',
+					wingLeadName: remWingLeadName || 'Default Lead',
+					role: remRole || 'Employee',
+					gender: remGender,
+					remarks: remRemarks,
+					monthWorked: remMonthWorked,
+					companyWorkedFor: remCompanyWorkedFor,
+					overallScore: remOverallScore,
+					conduct: remConduct,
+					employmentStatus: remStatus,
+					photoUrl: remPhotoUrl || undefined,
+					certifications: certsJson,
+				});
+				if (result.success && result.employee) {
+					resultEmployee = result.employee;
+				} else {
+					setRemMessage({ type: 'error', text: result.error || 'Failed to update employee.' });
+					return;
+				}
+			} else {
+				const result = await addEmployee({
+					firstName: remFirstName,
+					middleName: remMiddleName,
+					lastName: remLastName,
+					email: remEmail,
+					phone: remPhone,
+					wingName: remWingName || 'Default Wing',
+					wingLeadName: remWingLeadName || 'Default Lead',
+					role: remRole || 'Employee',
+					gender: remGender,
+					remarks: remRemarks,
+					monthWorked: remMonthWorked,
+					companyWorkedFor: remCompanyWorkedFor,
+					overallScore: remOverallScore,
+					conduct: remConduct,
+					employmentStatus: remStatus,
+					photoUrl: remPhotoUrl || undefined,
+					certifications: certsJson,
+				});
+				if (result.success && result.employee) {
+					resultEmployee = result.employee;
+				} else {
+					setRemMessage({ type: 'error', text: result.error || 'Failed to create employee.' });
+					return;
+				}
+			}
+
+			if (remBadgeTitle && resultEmployee) {
+				await giveBadgeToEmployee(resultEmployee.id, {
+					title: remBadgeTitle,
+					icon: remBadgeIcon,
+					color: remBadgeColor,
+					description: BADGE_DESC[remBadgeTitle] || '',
+				});
+			}
+
+			setRemMessage({
+				type: 'success',
+				text: remSelectedEmployee
+					? `Employee "${remFirstName} ${remLastName}" updated!${remBadgeTitle ? ` · Badge "${remBadgeTitle}" assigned.` : ''}${certsJson ? ' · Certifications saved.' : ''}`
+					: `Record created! ID: ${resultEmployee.id}${remBadgeTitle ? ` · Badge "${remBadgeTitle}" assigned.` : ''}${certsJson ? ' · Certifications saved.' : ''}`,
+			});
+
+			setRemPhotoUrl('');
+			setRemFirstName('');
+			setRemMiddleName('');
+			setRemLastName('');
+			setRemEmail('');
+			setRemPhone('');
+			setRemCompanyWorkedFor('');
+			setRemStatus('Active');
+			setRemRemarks('');
+			setRemOverallScore('');
+			setRemConduct('');
+			setRemWingName('');
+			setRemWingLeadName('');
+			setRemRole('Employee');
+			setRemGender('UNSPECIFIED');
+			setRemMonthWorked('');
+			setRemBadgeTitle('');
+			setRemBadgeIcon('Award');
+			setRemBadgeColor('blue');
+			setRemSelectedEmployee(null);
+			setRemEmpSearch('');
+			setRemCertifications([]);
+
+			await fetchEmployees();
+		} catch (error: any) {
+			setRemMessage({ type: 'error', text: error.message || 'An unexpected error occurred.' });
+		} finally {
+			setRemBusy(false);
 		}
 	};
 
@@ -1048,7 +1308,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		try {
 			const text = await file.text();
 
-			// Parse CSV
+			
 			const lines = text.split(/\r?\n/);
 			if (lines.length < 2) {
 				setAddMessage({ type: 'error', text: 'file is empty or missing data rows' });
@@ -1056,7 +1316,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				return;
 			}
 
-			// Parse headers
+			
 			const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
 
 			// Map indices
@@ -1158,7 +1418,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			return;
 		}
 
-		// Capitalize starting letters helper
+		
 		const toTitleCase = (str: string) => {
 			if (!str) return '';
 			return str.split(' ').map(word => {
@@ -1167,7 +1427,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			}).join(' ');
 		};
 
-		// Create table headers and rows with starting letter capitalized (caps)
+		
 		const headers = ['Employee ID', 'Full Name', 'Wing Name', 'Wing Lead', 'Role'];
 
 		const rows = employeesList.map(emp => {
@@ -1368,7 +1628,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					type: 'success',
 					text: `Task successfully allocated! ID: ${result.task.id}`,
 				});
-				// Clear inputs
+				
 				setTaskTitle('');
 				setTaskDescription('');
 				setTaskReportTo('');
@@ -1378,7 +1638,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				setTaskMode('Onsite');
 				setAssignToAll(false);
 				
-				// Refresh list
+				
 				await fetchTasks();
 			} else {
 				setTaskMessage({ type: 'error', text: result.error || 'Failed to allocate task.' });
@@ -1442,22 +1702,24 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 	return (
 		<main className="bg-zinc-950 text-white relative flex flex-col font-sans h-screen overflow-hidden">
-			{/* Premium background radial glow */}
+			{}
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_70%)] z-0 pointer-events-none" />
 
-			{/* Full Width Top Navbar (Window Edged, premium dusty black design) */}
-			<header className="w-full border-b border-zinc-900 bg-zinc-950 sticky top-0 z-50 shadow-md shadow-black/40">
-				<div className="w-full px-6 md:px-10 h-20 flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<img src="/branding/wrkspace-logo-on-dark.png" alt="wrkspace" className="h-9 w-auto object-contain" />
-						<div className="w-px h-6 bg-zinc-800" />
-						<span className="text-sm font-semibold tracking-wider text-zinc-400 uppercase font-mono">Admin</span>
+			{}
+			<header className="w-full border-b border-white/[0.08] bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+				<div className="w-full px-6 md:px-10 h-16 sm:h-20 flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="wrkspace" className="h-8 sm:h-9 w-auto object-contain" />
+						<div className="w-px h-5 bg-white/15" />
+						<span className="text-[11px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/20 px-2.5 py-1 rounded-md border border-[#E61E32]/30">
+							Admin
+						</span>
 					</div>
 					<div className="flex items-center gap-3">
 						{isAdminTeamLead && (
-							<Button
-								variant="outline"
-								className="border-indigo-800 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 cursor-pointer rounded-none transition-all duration-200 text-xs py-2 px-3 h-9 font-mono font-medium flex items-center gap-2"
+							<button
+								type="button"
+								className="border border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10 cursor-pointer rounded-md transition-all text-xs py-2 px-3 h-9 font-medium flex items-center gap-2 shadow-xs"
 								onClick={async () => {
 									const empRes = await getEmployeeByEmail(email);
 									if (empRes.success && empRes.employee) {
@@ -1469,30 +1731,31 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								}}
 							>
 								<UserCheckIcon className="size-3.5" />
-								switch to employee portal
-							</Button>
+								Switch to Employee Portal
+							</button>
 						)}
 						<button 
 							onClick={fetchStats}
 							disabled={isRefreshing}
-							className="p-2.5 border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all rounded-none cursor-pointer disabled:opacity-50"
+							className="p-2 border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 transition-all rounded-md cursor-pointer disabled:opacity-50 h-9 w-9 flex items-center justify-center"
 							title="Refresh Stats"
 						>
-							<RefreshCwIcon className={`size-4 ${isRefreshing ? 'animate-spin text-indigo-400' : ''}`} />
+							<RefreshCwIcon className={`size-3.5 ${isRefreshing ? 'animate-spin text-[#E61E32]' : ''}`} />
 						</button>
-						<Button 
-							variant="outline" 
-							className="border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-700 cursor-pointer rounded-none transition-all duration-200 text-xs py-2.5 px-4 h-auto font-medium"
+						<button 
+							type="button"
+							className="bg-[#E61E32] hover:bg-[#c9182a] border-0 cursor-pointer rounded-md transition-all text-xs font-bold py-2 px-4 h-9 flex items-center gap-2 shadow-xs"
+							style={{ color: '#ffffff' }}
 							onClick={onLogout}
 						>
-							<LogOutIcon className="size-3.5 me-2 text-zinc-400" />
-							Logout
-						</Button>
+							<LogOutIcon className="size-3.5" style={{ color: '#ffffff' }} />
+							<span style={{ color: '#ffffff' }}>Logout</span>
+						</button>
 					</div>
 				</div>
 			</header>
 
-			{/* Full Width Subnavbar */}
+			{}
 			<div className="w-full border-b-2 border-brand-700 bg-brand-950 z-40 sticky top-20 shadow-lg shadow-brand-950/60" style={{backgroundImage: 'linear-gradient(180deg, #1a1040 0%, #0f0824 100%)'}}>
 				<div className="w-full px-6 md:px-10 flex gap-6 text-xs md:text-sm font-medium tracking-wide overflow-x-auto">
 					{(isSuperAdmin || allowedTabs.includes('overview')) && (
@@ -1527,6 +1790,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'employees' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
 						>
 							Employees
+						</button>
+					)}
+					{(isSuperAdmin || allowedTabs.includes('add_remarks')) && (
+						<button
+							onClick={() => setActiveTab('add_remarks')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'add_remarks' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Add Remarks
 						</button>
 					)}
 					{(isSuperAdmin || allowedTabs.includes('task_allocation')) && (
@@ -1607,6 +1878,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							Messages
 						</button>
 					)}
+					{(isSuperAdmin || allowedTabs.includes('alert_sender')) && (
+						<button
+							onClick={() => setActiveTab('alert_sender')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'alert_sender' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Alert Sender
+						</button>
+					)}
 					{(isSuperAdmin || allowedTabs.includes('system_status')) && (
 						<button
 							onClick={() => setActiveTab('system_status')}
@@ -1666,28 +1945,484 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				</div>
 			</div>
 
-			{/* Main Dashboard Content Area */}
+			{}
 			<div className={cn(
 				"flex-1 w-full relative z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800",
 				activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col overflow-hidden" : "max-w-[90rem] mx-auto p-6 md:p-10 space-y-8"
 			)}>
 
-				{/* Tab content: Overview */}
+				{}
 				{activeTab === 'live_safety' && <AdminLiveSafetyPanel adminEmail={email} />}
 				{activeTab === 'live_tracking' && <AdminLiveTrackingPanel adminEmail={email} />}
-				{activeTab === 'shift_timings' && (isSuperAdmin || allowedTabs.includes('shift_timings')) && (
-					<AdminShiftTimingsPanel />
-				)}
-				{activeTab === 'late_checkins' && (isSuperAdmin || allowedTabs.includes('late_checkins')) && (
-					<AdminLateCheckinsPanel />
-				)}
-				{activeTab === 'payouts' && (isSuperAdmin || allowedTabs.includes('payouts')) && (
-					<AdminPayoutsPanel />
-				)}
+				{activeTab === 'alert_sender' && <AdminAlertSender />}
 
+				{activeTab === 'add_remarks' && (
+					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-6 rounded-none max-w-4xl mx-auto">
+						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+							<div>
+								<h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+									Add Employee Remarks & Dossier
+								</h3>
+								<p className="text-xs text-zinc-400 mt-1">
+									Register or update an employee with full remarks, conduct history, and performance score.
+								</p>
+							</div>
+						</div>
+
+						{remMessage && (
+							<div className={`p-3 rounded-none text-xs border font-mono ${
+								remMessage.type === 'success'
+							? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
+									: "bg-red-950/30 border-red-800 text-red-400"
+							}`}>
+								{remMessage.text}
+							</div>
+						)}
+						<form onSubmit={handleRemarksSubmit} className="space-y-6">
+							{/* Employee Search / Select */}
+							<div className="border border-zinc-700 bg-zinc-950/60 p-4 space-y-3">
+								<div className="flex items-center justify-between">
+									<span className="text-[10px] text-white uppercase font-bold tracking-wider font-mono">
+										Select Existing Employee <span className="text-zinc-500 normal-case font-normal">(optional — auto-fills fields below)</span>
+									</span>
+									{remSelectedEmployee && (
+										<button
+											type="button"
+											onClick={() => {
+												setRemSelectedEmployee(null);
+												setRemEmpSearch('');
+												setRemPhotoUrl(''); setRemFirstName(''); setRemMiddleName(''); setRemLastName('');
+												setRemEmail(''); setRemPhone(''); setRemCompanyWorkedFor(''); setRemStatus('Active');
+												setRemRemarks(''); setRemOverallScore(''); setRemConduct('');
+												setRemWingName(''); setRemWingLeadName(''); setRemRole('Employee');
+												setRemGender('UNSPECIFIED'); setRemMonthWorked('');
+											}}
+											className="text-[10px] text-red-400 hover:text-red-300 cursor-pointer transition-colors"
+										>
+											✕ Clear selection
+										</button>
+									)}
+								</div>
+
+								{remSelectedEmployee ? (
+									<div className="flex items-center gap-3 p-2.5 bg-indigo-950/30 border border-indigo-800/50 rounded-lg">
+										{remSelectedEmployee.photoUrl && (
+											<img src={remSelectedEmployee.photoUrl} alt="" className="size-8 rounded object-cover border border-zinc-700 shrink-0" />
+										)}
+										<div className="min-w-0">
+											<p className="text-xs font-bold text-white truncate">{remSelectedEmployee.firstName} {remSelectedEmployee.lastName}</p>
+											<p className="text-[10px] text-zinc-400 truncate">{remSelectedEmployee.email} · ID: {remSelectedEmployee.id}</p>
+										</div>
+										<span className="ml-auto shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-900/50 text-indigo-300 border border-indigo-700/50 uppercase tracking-wider">Update mode</span>
+									</div>
+								) : (
+									<div className="relative">
+										<Input
+											placeholder="Search by name or email..."
+											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+											value={remEmpSearch}
+											onChange={e => { setRemEmpSearch(e.target.value); setRemShowEmpDropdown(true); }}
+											onFocus={() => setRemShowEmpDropdown(true)}
+										/>
+										{remShowEmpDropdown && remEmpSearch.trim().length > 0 && (() => {
+											const q = remEmpSearch.toLowerCase();
+											const matches = employeesList.filter((emp: any) =>
+												`${emp.firstName} ${emp.lastName}`.toLowerCase().includes(q) ||
+												emp.email?.toLowerCase().includes(q) ||
+												emp.id?.toLowerCase().includes(q)
+											).slice(0, 8);
+											if (matches.length === 0) return null;
+											return (
+												<div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-zinc-900 border border-zinc-700 shadow-xl max-h-52 overflow-y-auto">
+													{matches.map((emp: any) => (
+														<button
+															key={emp.id}
+															type="button"
+															onClick={() => {
+																setRemSelectedEmployee(emp);
+																setRemEmpSearch('');
+																setRemShowEmpDropdown(false);
+																// Auto-fill all fields
+																setRemFirstName(emp.firstName || '');
+																setRemMiddleName(emp.middleName || '');
+																setRemLastName(emp.lastName || '');
+																setRemEmail(emp.email || '');
+																setRemPhone(emp.phone || '');
+																setRemPhotoUrl(emp.photoUrl || '');
+																setRemRole(emp.role || 'Employee');
+																setRemGender(emp.gender || 'UNSPECIFIED');
+																setRemWingName(emp.wingName || '');
+																setRemWingLeadName(emp.wingLeadName || '');
+																setRemCompanyWorkedFor(emp.companyWorkedFor || '');
+																setRemStatus(emp.employmentStatus || 'Active');
+																setRemRemarks(emp.remarks || '');
+																setRemOverallScore(emp.overallScore || '');
+																setRemConduct(emp.conduct || '');
+																setRemMonthWorked(emp.monthWorked || '');
+																// Parse existing certifications if any
+																try {
+																	if (emp.certifications) {
+																		setRemCertifications(JSON.parse(emp.certifications));
+																	} else {
+																		setRemCertifications([]);
+																	}
+																} catch { setRemCertifications([]); }
+															}}
+															className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-800 text-left transition-colors border-b border-zinc-800 last:border-0 cursor-pointer"
+														>
+															{emp.photoUrl
+																? <img src={emp.photoUrl} alt="" className="size-7 rounded object-cover border border-zinc-700 shrink-0" />
+																: <div className="size-7 rounded bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 shrink-0">{emp.firstName?.[0]}{emp.lastName?.[0]}</div>
+															}
+															<div className="min-w-0">
+																<p className="text-xs font-semibold text-white truncate">{emp.firstName} {emp.lastName}</p>
+																<p className="text-[10px] text-zinc-500 truncate">{emp.email} · {emp.id}</p>
+															</div>
+														</button>
+													))}
+												</div>
+											);
+										})()}
+									</div>
+								)}
+							</div>
+
+							{/* Photo URL & Preview */}
+							<div className="space-y-2">
+								<label className="text-[10px] text-zinc-400 uppercase font-medium">Employee Photo URL</label>
+								<div className="flex gap-4 items-center">
+									<Input
+										placeholder="https://example.com/photo.jpg"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9 flex-1"
+										value={remPhotoUrl}
+										onChange={e => setRemPhotoUrl(e.target.value)}
+									/>
+									{remPhotoUrl.trim() && (
+										<div className="size-9 rounded-none border border-zinc-850 overflow-hidden bg-zinc-950 shrink-0">
+											<img src={remPhotoUrl} alt="Preview" className="size-full object-cover" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+										</div>
+									)}
+								</div>
+							</div>
+
+							{/* Name Section */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">First Name</label>
+									<Input
+										placeholder="First Name"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remFirstName}
+										onChange={e => setRemFirstName(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Middle Name</label>
+									<Input
+										placeholder="Middle Name (Optional)"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remMiddleName}
+										onChange={e => setRemMiddleName(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Last Name</label>
+									<Input
+										placeholder="Last Name"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remLastName}
+										onChange={e => setRemLastName(e.target.value)}
+									/>
+								</div>
+							</div>
+
+							{/* Contact Info */}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Email ID</label>
+									<Input
+										type="email"
+										placeholder="employee.email@company.com"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remEmail}
+										onChange={e => setRemEmail(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Phone Number</label>
+									<Input
+										type="tel"
+										placeholder="+1 (555) 000-0000"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remPhone}
+										onChange={e => setRemPhone(e.target.value)}
+									/>
+								</div>
+							</div>
+
+							{/* Work & Status */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Company Worked For</label>
+									<Input
+										placeholder="e.g. Google / WrkSpace"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remCompanyWorkedFor}
+										onChange={e => setRemCompanyWorkedFor(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+									<Input
+										placeholder="e.g. October 2026, or 12 Months"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remMonthWorked}
+										onChange={e => setRemMonthWorked(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
+									<select
+										className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+										value={remStatus}
+										onChange={e => setRemStatus(e.target.value)}
+									>
+										<option value="Active">Active</option>
+										<option value="Terminated">Terminated</option>
+										<option value="Inactive">Inactive</option>
+									</select>
+								</div>
+							</div>
+
+							{/* Department / Wing Info */}
+							<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+								<div className="space-y-1 col-span-2">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Wing Name</label>
+									<Input
+										placeholder="Engineering / Sales"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remWingName}
+										onChange={e => setRemWingName(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Role</label>
+									<Input
+										placeholder="Engineer"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remRole}
+										onChange={e => setRemRole(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Gender</label>
+									<select
+										className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+										value={remGender}
+										onChange={e => setRemGender(e.target.value)}
+									>
+										<option value="UNSPECIFIED">Not set</option>
+										<option value="FEMALE">Female</option>
+										<option value="MALE">Male</option>
+									</select>
+								</div>
+							</div>
+
+							{/* Score & Conduct */}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Overall Score</label>
+									<Input
+										placeholder="e.g. 9.5/10, A+, Excellent"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remOverallScore}
+										onChange={e => setRemOverallScore(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Conduct Assessment</label>
+									<Input
+										placeholder="e.g. Exemplary, Punctual, Good team player"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remConduct}
+										onChange={e => setRemConduct(e.target.value)}
+									/>
+								</div>
+							</div>
+
+							{/* Remarks */}
+							<div className="space-y-1">
+								<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+								<textarea
+									placeholder="Provide complete remarks about the employee..."
+									required
+									rows={4}
+									className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white p-2.5 rounded-none outline-none focus:border-zinc-700 placeholder:text-zinc-650"
+									value={remRemarks}
+									onChange={e => setRemRemarks(e.target.value)}
+								/>
+							</div>
+
+							{/* Badge Picker */}
+							<div className="border border-zinc-800 p-4 space-y-3 bg-zinc-950/30">
+								<div>
+									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Assign a Badge <span className="text-zinc-500 normal-case font-normal">(optional)</span></span>
+									<p className="text-[10px] text-zinc-500 mt-0.5">Select one to automatically publish it to this employee when the record is created.</p>
+								</div>
+
+								{(() => {
+									const PRESET_BADGES = [
+										{ title: 'New Joinee',          icon: 'Star',    color: 'blue',   emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/e59cb781-ca16-4699-bf99-c5f16fd55383.svg' },
+										{ title: 'Employee Completion', icon: 'Award',   color: 'green',  emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/14b964b5-5848-4a81-bf4d-fb5e2a6f423c.svg' },
+										{ title: 'Employee Badge',      icon: 'Shield',  color: 'orange', emoji: '🏷️', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+										{ title: 'Super Worker',        icon: 'Trophy',  color: 'yellow', emoji: '🏆', image: 'https://ik.imagekit.io/dypkhqxip/a40ea919-c9e6-4b41-973c-ee0205dbe244.svg' },
+										{ title: 'Slashing Dev',        icon: 'Zap',     color: 'purple', emoji: '⚡', image: 'https://ik.imagekit.io/dypkhqxip/c250a00f-8bd7-43e9-81b5-9d10618e8446.svg' },
+										{ title: 'Core Dev',            icon: 'Shield',  color: 'green',  emoji: '🛡️' },
+										{ title: 'Pro Marketer',        icon: 'Flame',   color: 'orange', emoji: '🔥' },
+									];
+									return (
+										<div className="grid grid-cols-3 gap-2">
+											{PRESET_BADGES.map((badge) => {
+												const isSelected = remBadgeTitle === badge.title;
+												const ringColor =
+													badge.color === 'blue'   ? 'ring-blue-500/70 bg-blue-950/30 border-blue-800/50' :
+													badge.color === 'yellow' ? 'ring-yellow-500/70 bg-yellow-950/30 border-yellow-800/50' :
+													badge.color === 'purple' ? 'ring-purple-500/70 bg-purple-950/30 border-purple-800/50' :
+													badge.color === 'green'  ? 'ring-emerald-500/70 bg-emerald-950/30 border-emerald-800/50' :
+													badge.color === 'orange' ? 'ring-amber-500/70 bg-amber-950/30 border-amber-800/50' :
+													'ring-rose-500/70 bg-rose-950/30 border-rose-800/50';
+												const textColor =
+													badge.color === 'blue'   ? 'text-blue-300' :
+													badge.color === 'yellow' ? 'text-yellow-300' :
+													badge.color === 'purple' ? 'text-purple-300' :
+													badge.color === 'green'  ? 'text-emerald-300' :
+													badge.color === 'orange' ? 'text-amber-300' :
+													'text-rose-300';
+												return (
+													<button
+														key={badge.title}
+														type="button"
+														onClick={() => {
+															if (remBadgeTitle === badge.title) {
+																setRemBadgeTitle('');
+																setRemBadgeIcon('Award');
+																setRemBadgeColor('blue');
+															} else {
+																setRemBadgeTitle(badge.title);
+																setRemBadgeIcon(badge.icon);
+																setRemBadgeColor(badge.color);
+															}
+														}}
+														className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
+															isSelected ? `ring-2 ${ringColor}` : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
+														}`}
+													>
+														<span className="text-xl leading-none flex items-center justify-center h-8">
+															{badge.image ? (
+																<img src={badge.image} alt={badge.title} className="w-8 h-8 object-contain" />
+															) : (
+																badge.emoji
+															)}
+														</span>
+														<span className={`text-[10px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-400'}`}>
+															{badge.title}
+														</span>
+													</button>
+												);
+											})}
+										</div>
+									);
+								})()}
+
+								{remBadgeTitle && (
+									<div className="flex items-center justify-between p-2 bg-zinc-900 border border-zinc-800 rounded-lg">
+										<span className="text-[10px] text-zinc-400">Badge selected: <strong className="text-white">{remBadgeTitle}</strong></span>
+										<button type="button" onClick={() => setRemBadgeTitle('')} className="text-[10px] text-zinc-500 hover:text-red-400 cursor-pointer transition-colors">✕ Clear</button>
+									</div>
+								)}
+							</div>
+
+							{/* Certifications */}
+							<div className="border border-zinc-800 p-4 space-y-3 bg-zinc-950/30">
+								<div className="flex items-center justify-between">
+									<div>
+										<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Certifications <span className="text-zinc-500 normal-case font-normal">(optional)</span></span>
+										<p className="text-[10px] text-zinc-500 mt-0.5">Add certificate links (e.g. completion, achievement, course certificates).</p>
+									</div>
+									<button
+										type="button"
+										onClick={() => setRemCertifications(prev => [...prev, { title: '', url: '' }])}
+										className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 border border-indigo-800/50 bg-indigo-950/30 px-2.5 py-1 rounded cursor-pointer transition-colors"
+									>
+										+ Add Certificate
+									</button>
+								</div>
+
+								{remCertifications.length === 0 ? (
+									<p className="text-[10px] text-zinc-600 italic">No certifications added yet.</p>
+								) : (
+									<div className="space-y-2">
+										{remCertifications.map((cert, i) => (
+											<div key={i} className="grid grid-cols-[1fr_2fr_auto] gap-2 items-center">
+												<Input
+													placeholder="Certificate title"
+													className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-8"
+													value={cert.title}
+													onChange={e => {
+														const updated = [...remCertifications];
+														updated[i] = { ...updated[i], title: e.target.value };
+														setRemCertifications(updated);
+													}}
+												/>
+												<Input
+													placeholder="https://certificate-link.com/..."
+													className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-8"
+													value={cert.url}
+													onChange={e => {
+														const updated = [...remCertifications];
+														updated[i] = { ...updated[i], url: e.target.value };
+														setRemCertifications(updated);
+													}}
+												/>
+												<button
+													type="button"
+													onClick={() => setRemCertifications(prev => prev.filter((_, idx) => idx !== i))}
+													className="text-zinc-600 hover:text-red-400 transition-colors cursor-pointer text-xs px-1"
+												>
+													✕
+												</button>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+
+							<Button
+								type="submit"
+								disabled={remBusy}
+								className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+							>
+								{remBusy
+									? (remSelectedEmployee ? 'Updating...' : 'Saving Remarks...')
+									: remSelectedEmployee
+										? `Update Employee Record${remBadgeTitle ? ` · Publish "${remBadgeTitle}"` : ''}`
+										: `Save Remarks & Create Record${remBadgeTitle ? ` · Publish "${remBadgeTitle}"` : ''}`
+								}
+							</Button>
+						</form>
+					</div>
+				)}
 				{activeTab === 'overview' && (
 					<div className="space-y-6">
-						{/* Stats Grid */}
+						{}
 						<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
@@ -1763,10 +2498,112 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<p className="text-[10px] text-emerald-400 font-medium">Uptime: {stats.uptime}</p>
 							</div>
 						</div>
+
+						{/* Quick Alert Sender widget down the stats */}
+						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 rounded-none mt-6 space-y-4">
+							<div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+								<div className="flex items-center gap-2">
+									<MailIcon className="size-4 text-brand-400" />
+									<div>
+										<h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+											Quick Alert Broadcast
+										</h3>
+										<p className="text-[10px] text-zinc-500 mt-0.5">
+											Compose and dispatch email notices to all active employees instantly.
+										</p>
+									</div>
+								</div>
+								<button
+									type="button"
+									onClick={() => setActiveTab('alert_sender')}
+									className="text-[11px] text-brand-400 hover:text-brand-300 font-semibold transition-colors cursor-pointer hover:underline"
+								>
+									Advanced Panel →
+								</button>
+							</div>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								<div className="space-y-4">
+									<div className="space-y-1.5">
+										<label className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block font-mono">
+											Alert Subject
+										</label>
+										<input
+											type="text"
+											placeholder="e.g. Critical Update Required"
+											value={quickSubject}
+											onChange={(e) => setQuickSubject(e.target.value)}
+											className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-zinc-700 transition-colors"
+										/>
+									</div>
+									<div className="space-y-1.5">
+										<label className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block font-mono">
+											Alert Message Body
+										</label>
+										<textarea
+											rows={5}
+											placeholder="Compose email body message here... Markdown tags (**bold**, *italic*, _underline_, and links) are supported."
+											value={quickBody}
+											onChange={(e) => setQuickBody(e.target.value)}
+											className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-zinc-700 transition-colors font-sans resize-y leading-relaxed"
+										/>
+									</div>
+
+									{quickMsg && (
+										<div className={`p-2 rounded text-xs border font-mono ${
+											quickMsg.type === 'success'
+												? 'bg-emerald-950/20 border-emerald-800/60 text-emerald-400'
+												: 'bg-rose-950/20 border-rose-800/60 text-rose-400'
+										}`}>
+											{quickMsg.text}
+										</div>
+									)}
+
+									<button
+										type="button"
+										onClick={handleSendQuickAlert}
+										disabled={quickSending}
+										className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:from-zinc-850 disabled:to-zinc-850 text-white text-xs font-semibold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed"
+									>
+										<SendIcon className="size-3.5" />
+										{quickSending ? 'Sending Quick Alerts...' : 'Broadcast Alert to All Employees'}
+									</button>
+								</div>
+
+								{/* Live Preview pane */}
+								<div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800/60 flex flex-col justify-between max-h-[340px] overflow-y-auto">
+									<div>
+										<span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block mb-3 text-center border-b border-zinc-900 pb-1.5">
+											Live Email Preview
+										</span>
+										<div 
+											style={{
+												fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+												fontSize: "12px",
+												lineHeight: "1.5",
+												color: "#475569",
+												background: "#ffffff",
+												padding: "16px",
+												borderRadius: "8px",
+												border: "1px solid #e2e8f0"
+											}}
+										>
+											<div style={{ textAlign: "center", marginBottom: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+												<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style={{ height: "24px", width: "auto" }} />
+											</div>
+											<h4 style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b", margin: "0 0 10px" }}>
+												{quickSubject || 'No Subject'}
+											</h4>
+											<div dangerouslySetInnerHTML={{ __html: getQuickPreviewHtml() }} />
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				)}
 
-				{/* Tab content: Leaves */}
+				{}
 				{activeTab === 'leaves' && (
 					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none">
 						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
@@ -1789,7 +2626,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Manual Leave Form */}
+						{}
 						{showAddManualLeave && (
 							<form 
 								onSubmit={async (e) => {
@@ -1975,7 +2812,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Attendance Logs */}
+				{}
 				{activeTab === 'attendance' && (() => {
 					const { presentList, absentList, onLeaveList } = getTodayAttendanceSummary();
 					return (
@@ -2015,7 +2852,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							</div>
 
-							{/* Manual Attendance Form */}
+							{}
 							{showAddManualAttendance && (
 								<form 
 									onSubmit={async (e) => {
@@ -2076,7 +2913,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 							{showTodayAttendanceSummary ? (
 								<div className="space-y-6">
-									{/* Top Stat Cards */}
+									{}
 									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 										<div className="border border-emerald-800 bg-emerald-950/20 p-4 space-y-1 rounded-none">
 											<h4 className="text-[10px] uppercase tracking-wider text-emerald-400 font-mono font-semibold">Present Today</h4>
@@ -2092,9 +2929,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									{/* Detailed Columns */}
+									{}
 									<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-										{/* Present Column */}
+										{}
 										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
 											<h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
 												<span>Present Employees</span>
@@ -2121,7 +2958,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											)}
 										</div>
 
-										{/* Absent Column */}
+										{}
 										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
 											<h4 className="text-xs font-bold text-red-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
 												<span>Absent Employees</span>
@@ -2145,7 +2982,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											)}
 										</div>
 
-										{/* On Leave Column */}
+										{}
 										<div className="border border-zinc-800 bg-zinc-950/40 p-4 space-y-4 rounded-none">
 											<h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider border-b border-zinc-800 pb-2 flex justify-between items-center">
 												<span>On Approved Leave</span>
@@ -2242,17 +3079,17 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					);
 				})()}
 
-				{/* Tab content: Clients */}
+				{}
 				{activeTab === 'clients' && (
 					<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none min-h-[200px] flex items-center justify-center text-zinc-500 italic text-sm">
 						Clients panel is ready. Content will be added soon.
 					</div>
 				)}
 
-				{/* Tab content: System Status */}
+				{}
 				{activeTab === 'system_status' && (
 					<div className="space-y-8">
-						{/* Stats Grid */}
+						{}
 						<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
 							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
@@ -2300,7 +3137,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Lifecycle Logs Table */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
@@ -2333,7 +3170,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Messages */}
+				{}
 				{activeTab === 'messages' && (
 					<MessagesView 
 						currentUser={{
@@ -2346,7 +3183,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					/>
 				)}
 
-				{/* Tab content: Task/Work Allocation */}
+				{}
 				{activeTab === 'task_allocation' && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -2370,7 +3207,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</Button>
 						</div>
 
-						{/* Notification message */}
+						{}
 						{taskMessage && (
 							<div className={cn(
 								"p-3 rounded-none text-xs border font-mono",
@@ -2382,7 +3219,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						)}
 
-						{/* Allocate Task Form Card */}
+						{}
 						{showTaskForm && (
 							<form onSubmit={handleCreateTask} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
 								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
@@ -2424,11 +3261,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-									{/* Whom you want to send dropdown */}
+									{}
 									<div className="space-y-1 md:col-span-2">
 										<div className="flex items-center justify-between">
 											<label className="text-[10px] text-zinc-400 uppercase font-medium">Whom you want to send</label>
-											{/* Send to all toggle option */}
+											{}
 											<button
 												type="button"
 												onClick={() => setAssignToAll(!assignToAll)}
@@ -2457,7 +3294,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 
-									{/* Deadline Date */}
+									{}
 									<div className="space-y-1">
 										<label className="text-[10px] text-zinc-400 uppercase font-medium">Deadline Date</label>
 										<Input
@@ -2469,7 +3306,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										/>
 									</div>
 
-									{/* Mode of the task */}
+									{}
 									<div className="space-y-1">
 										<label className="text-[10px] text-zinc-400 uppercase font-medium">Mode</label>
 										<select
@@ -2485,7 +3322,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									{/* Status of the task */}
+									{}
 									<div className="space-y-1">
 										<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
 										<select
@@ -2499,7 +3336,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 
-									{/* Submit button */}
+									{}
 									<div className="flex items-end">
 										<Button
 											type="submit"
@@ -2513,7 +3350,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Task List Table */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
 							<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
 								Allocated Tasks Directory
@@ -2621,7 +3458,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Employees Directory */}
+				{}
 				{activeTab === 'employees' && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -2690,7 +3527,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Notification message */}
+						{}
 						{addMessage && (
 							<div className={cn(
 								"p-3 rounded-none text-xs border font-mono",
@@ -2702,7 +3539,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						)}
 
-						{/* Add Employee Form Card */}
+						{}
 						{showAddForm && (
 							<form onSubmit={handleAddEmployee} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
 								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
@@ -2810,6 +3647,27 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								</div>
 
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+										<Input
+											placeholder="e.g. October 2026, or 6 Months"
+											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											value={empMonthWorked}
+											onChange={e => setEmpMonthWorked(e.target.value)}
+										/>
+									</div>
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+										<Input
+											placeholder="e.g. Outstanding performance, punctual"
+											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											value={empRemarks}
+											onChange={e => setEmpRemarks(e.target.value)}
+										/>
+									</div>
+								</div>
+
 								<Button
 									type="submit"
 									disabled={isAdding}
@@ -2820,7 +3678,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Employee List Table */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
 							<table className="w-full min-w-[1800px] text-left text-xs text-zinc-300 font-mono">
 								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
@@ -2834,13 +3692,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<th className="p-4 font-semibold w-64">Wing Lead</th>
 										<th className="p-4 font-semibold w-64">Role</th>
 										<th className="p-4 font-semibold w-40">Gender</th>
+										<th className="p-4 font-semibold w-48">Month Worked</th>
+										<th className="p-4 font-semibold w-64">Remarks</th>
 										<th className="p-4 font-semibold text-right w-32">Actions</th>
 									</tr>
 								</thead>
 								<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
 									{employeesList.length === 0 ? (
 										<tr>
-											<td colSpan={10} className="p-8 text-center text-zinc-550 text-xs italic font-sans">
+											<td colSpan={12} className="p-8 text-center text-zinc-550 text-xs italic font-sans">
 												No employees registered in directory. Click "Add New Employee" to get started.
 											</td>
 										</tr>
@@ -2882,6 +3742,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															? 'Male'
 															: 'Not set'}
 												</td>
+												<td className="p-4 text-zinc-200 truncate max-w-[150px]" title={emp.monthWorked || ''}>{emp.monthWorked || '—'}</td>
+												<td className="p-4 text-zinc-300 truncate max-w-[200px]" title={emp.remarks || ''}>{emp.remarks || '—'}</td>
 												<td className="p-4 text-right">
 													<div className="inline-flex items-center justify-end gap-2 flex-wrap">
 														{String(emp.gender || '').toUpperCase() === 'FEMALE' && (
@@ -2932,7 +3794,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* TAB: EVENTS */}
+				{}
 				{activeTab === 'events' && (() => {
 					const activeEvents = eventsList.filter(e => e.allowed !== false);
 					const crawledEvents = eventsList.filter(e => e.allowed === false);
@@ -2940,7 +3802,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{/* Header */}
+							{}
 							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 								<div>
 									<h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -2991,7 +3853,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* Create Event Form */}
+							{}
 							{eventsSubTab === 'active' && showEventForm && (
 								<form onSubmit={handleCreateEvent} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-5">
 									<h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider border-b border-zinc-800 pb-3">New Event Details</h3>
@@ -3136,10 +3998,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Events Crawler Subtab */}
+							{}
 							{eventsSubTab === 'crawler' && (
 								<div className="space-y-6">
-									{/* Crawler control panel */}
+									{}
 									<form onSubmit={handleEventsCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
 										<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
 											<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Automated Events Crawler</h3>
@@ -3198,7 +4060,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										)}
 									</form>
 
-									{/* Stats Grid */}
+									{}
 									<div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
 										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
 											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Total Scraped</p>
@@ -3222,7 +4084,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									{/* Table Control Buttons */}
+									{}
 									{crawledEvents.length > 0 && (
 										<div className="flex gap-2 justify-end">
 											<button
@@ -3242,7 +4104,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* Events List Views */}
+							{}
 							{eventsSubTab === 'active' ? (
 								activeEvents.length === 0 ? (
 									<div className="text-center py-16 text-zinc-600 border border-zinc-900">
@@ -3258,7 +4120,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											const endD = new Date(event.endDate);
 											return (
 												<div key={event.id} className="bg-zinc-900/30 border border-zinc-800/80 flex flex-col hover:border-brand-900/60 transition-all duration-305 shadow-lg group relative">
-													{/* Image Banner */}
+													{}
 													<div className="h-40 w-full relative overflow-hidden bg-zinc-950 flex items-center justify-center border-b border-zinc-800/50">
 														{event.imageUrl ? (
 															<img 
@@ -3273,7 +4135,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															</div>
 														)}
 														
-														{/* Absolute Badge */}
+														{}
 														<span className="absolute top-3 right-3 text-[10px] bg-brand-950/80 border border-brand-800/60 text-brand-400 backdrop-blur-sm px-2 py-1 font-mono uppercase tracking-wider whitespace-nowrap">
 															{event.source || 'Event'}
 														</span>
@@ -3359,7 +4221,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								)
 							) : (
-								/* Scraped/Crawled Events Table View */
+								
 								crawledEvents.length === 0 ? (
 									<div className="text-center py-16 text-zinc-600 border border-zinc-900/60 font-mono text-xs italic">
 										No crawled events. Specify Target City & Area above and run the events scraper.
@@ -3433,10 +4295,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					);
 				})()}
 
-				{/* TAB: WORK SUBMISSIONS */}
+				{}
 				{activeTab === 'work_submissions' && (
 					<div className="space-y-6">
-						{/* Header */}
+						{}
 						<div className="flex items-center justify-between flex-wrap gap-3">
 							<div>
 								<h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -3445,7 +4307,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</h2>
 								<p className="text-zinc-400 text-sm mt-0.5">Review and approve employee work submissions</p>
 							</div>
-							{/* Filter pills */}
+							{}
 							<div className="flex items-center gap-2 flex-wrap">
 								{['All', 'Submitted', 'Reviewed', 'Approved', 'Needs Revision'].map(f => (
 									<button
@@ -3464,7 +4326,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Stats bar */}
+						{}
 						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 							{[
 								{ label: 'Total', count: submissionsList.length, color: 'text-zinc-300' },
@@ -3479,7 +4341,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							))}
 						</div>
 
-						{/* Submissions list */}
+						{}
 						{submissionsList.filter(s => submissionFilter === 'All' || s.status === submissionFilter).length === 0 ? (
 							<div className="text-center py-16 text-zinc-600 border border-zinc-900">
 								<FileTextIcon className="size-10 mx-auto mb-3 opacity-40" />
@@ -3532,7 +4394,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 													</div>
 												)}
 
-												{/* Review panel */}
+												{}
 												{isReviewing ? (
 													<div className="space-y-3 pt-2 border-t border-zinc-800">
 														<textarea
@@ -3598,7 +4460,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* TAB: LEADS */}
+				{}
 				{activeTab === 'leads' && (() => {
 					const STATUS_COLOURS: Record<string, string> = {
 						New:        'bg-zinc-800/60 border-zinc-700 text-zinc-300',
@@ -3632,7 +4494,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{/* Header */}
+							{}
 							<div className="flex items-start justify-between gap-4 flex-wrap">
 								<div>
 									<h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -3643,7 +4505,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								
 								<div className="flex items-center gap-2 flex-wrap">
-									{/* Sub-tab selection */}
+									{}
 									<div className="bg-zinc-950 border border-zinc-800 p-0.5 flex gap-0.5 font-mono">
 										<button
 											onClick={() => { setLeadsSubTab('pipeline'); setLeadsFilter('All'); setLeadsSourceFilter('All'); }}
@@ -3659,7 +4521,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</button>
 									</div>
 
-									{/* Action buttons conditional on subtab */}
+									{}
 									{leadsSubTab === 'pipeline' ? (
 										<label className={cn(
 											"flex items-center gap-2 text-xs font-semibold px-4 py-2 cursor-pointer transition-colors border",
@@ -3692,7 +4554,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* Feed Manual Lead Form (Admin View) */}
+							{}
 							{leadsSubTab === 'manual' && showManualForm && (
 								<form onSubmit={handleCreateManualLead} className="bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
@@ -3830,7 +4692,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Crawl leads panel */}
+							{}
 							{leadsSubTab === 'pipeline' && (
 								<form onSubmit={handleLeadCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
 									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
@@ -3878,7 +4740,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Stats bar */}
+							{}
 							<div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
 								{Object.entries(STATUS_COLOURS).map(([status, cls]) => (
 									<button key={status} onClick={() => setLeadsFilter(leadsFilter === status ? 'All' : status)}
@@ -3892,7 +4754,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								))}
 							</div>
 
-							{/* Search + Source filter */}
+							{}
 							<div className="flex gap-3 flex-wrap items-center justify-between">
 								<div className="flex gap-3 flex-1 flex-wrap items-center">
 									<input
@@ -3934,7 +4796,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							</div>
 
-							{/* Leads list */}
+							{}
 							{filtered.length === 0 ? (
 								<div className="text-center py-16 border border-zinc-900 text-zinc-600">
 									<BarChart2Icon className="size-10 mx-auto mb-3 opacity-30" />
@@ -4078,7 +4940,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														</div>
 														{lead.description && <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2">{lead.description}</p>}
 														
-														{/* Assignment info */}
+														{}
 														<div className="text-[11px] text-zinc-400 mt-2 flex items-center gap-2 flex-wrap">
 															<UserCheckIcon className="size-3.5 text-zinc-500" />
 															{isAssigning ? (
@@ -4203,7 +5065,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{/* Sub-tab navigation */}
+							{}
 							<div className="flex items-center justify-between border-b border-zinc-800 pb-3">
 								<div className="flex gap-4 text-xs font-mono">
 									<button
@@ -4230,7 +5092,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								)}
 							</div>
 
-							{/* Add Manual Form (Inline) */}
+							{}
 							{showAddManualHr && (
 								<form onSubmit={handleAddManualHr} className="bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
@@ -4370,10 +5232,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							)}
 
-							{/* Active Registry sub-tab view */}
+							{}
 							{hrCompaniesSubTab === 'active' && (
 								<div className="space-y-4">
-									{/* Search bar */}
+									{}
 									<div className="w-full">
 										<Input
 											type="text"
@@ -4507,7 +5369,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{/* HR Crawler sub-tab view */}
+							{}
 							{hrCompaniesSubTab === 'crawler' && (
 								<div className="space-y-6">
 									<form onSubmit={handleHrCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
@@ -4546,7 +5408,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										)}
 									</form>
 
-									{/* Crawled statistics */}
+									{}
 									<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
 											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Total Scraped</p>
@@ -4578,7 +5440,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									{/* Crawled Approval Review Table */}
+									{}
 									{crawledCompanies.length === 0 ? (
 										<div className="text-center py-10 bg-zinc-900/10 border border-zinc-800/40 text-xs italic text-zinc-500">
 											No crawled company records are currently awaiting approval.
@@ -4688,7 +5550,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						)}
 
 						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-							{/* Allocation Form */}
+							{}
 							<div className="lg:col-span-1 bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 								<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800 pb-2 font-mono">Allocate New Admin</h3>
 								<form onSubmit={handleAllocateAdmin} className="space-y-4">
@@ -4726,7 +5588,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										/>
 									</div>
 
-									{/* Permission Toggles */}
+									{}
 									<div className="space-y-2">
 										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold block font-mono">Select Allowed Pages</label>
 										<div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto border border-zinc-850 p-2.5 bg-zinc-950/40">
@@ -4770,7 +5632,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</form>
 							</div>
 
-							{/* Directory list */}
+							{}
 							<div className="lg:col-span-2 bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
 								<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800 pb-2 font-mono">Active Admin Directories</h3>
 								<div className="overflow-x-auto">
@@ -4835,7 +5697,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{/* Tab content: Team Leads */}
+				{}
 				{activeTab === 'team_leads' && (isSuperAdmin || allowedTabs.includes('team_leads')) && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -4864,7 +5726,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</Button>
 						</div>
 
-						{/* Notification message */}
+						{}
 						{leadMsg && (
 							<div className={cn(
 								"p-3 rounded-none text-xs border font-mono",
@@ -4876,7 +5738,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						)}
 
-						{/* Allocate Team Lead Form Card */}
+						{}
 						{showLeadForm && (
 							<form onSubmit={handleAllocateTeamLead} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
 								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
@@ -4916,7 +5778,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								</div>
 
-								{/* Checkbox select for Dedicated allowed pages */}
+								{}
 								<div className="space-y-2">
 									<label className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold block font-mono">DEDICATE ALLOWED PAGES *</label>
 									<div className="grid grid-cols-2 md:grid-cols-4 gap-3 border border-zinc-850 p-4 bg-zinc-950/40">
@@ -4957,7 +5819,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Team Leads Table list */}
+						{}
 						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
 							<table className="w-full min-w-[1200px] text-left text-xs text-zinc-300 font-mono">
 								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
@@ -5033,7 +5895,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 			</div>
 
-			{/* CRUD Edit Modals */}
+			{}
 			{editModalType && editingItem && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
 					<div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 p-6 space-y-4 shadow-2xl relative">
@@ -5049,10 +5911,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</button>
 						</div>
 
-						{/* Employee Edit Form */}
+						{}
 						{editModalType === 'employee' && (
-							<form 
-								onSubmit={async (e) => {
+							<div className="max-h-[70vh] overflow-y-auto pr-1.5 space-y-6 scrollbar-thin scrollbar-thumb-zinc-800">
+								<form 
+									onSubmit={async (e) => {
 									e.preventDefault();
 									const formData = new FormData(e.currentTarget);
 									await handleSaveEmployeeEdit(editingItem.id, {
@@ -5065,6 +5928,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										wingLeadName: formData.get('wingLeadName') as string,
 										role: formData.get('role') as string,
 										gender: formData.get('gender') as string,
+										remarks: formData.get('remarks') as string,
+										monthWorked: formData.get('monthWorked') as string,
 									});
 								}}
 								className="space-y-4"
@@ -5121,11 +5986,21 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 								</div>
+								<div className="grid grid-cols-2 gap-2">
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+										<Input name="monthWorked" defaultValue={editingItem.monthWorked || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+									</div>
+									<div className="space-y-1">
+										<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+										<Input name="remarks" defaultValue={editingItem.remarks || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+									</div>
+								</div>
 								<div className="space-y-2 pt-2 border-t border-zinc-800">
 									<label className="text-[10px] text-zinc-400 uppercase font-medium">Employee ID card</label>
 									<p className="text-[11px] text-zinc-500">Upload the complete ID card image. Employee will see it in Mobile More → ID card and Website ID card tab.</p>
 									{editingItem.idCardUrl ? (
-										// eslint-disable-next-line @next/next/no-img-element
+										
 										<img src={editingItem.idCardUrl} alt="ID card" className="w-full max-h-40 object-contain border border-zinc-800 bg-zinc-950" />
 									) : (
 										<div className="text-[11px] text-zinc-600 border border-dashed border-zinc-800 p-3">No ID card uploaded yet</div>
@@ -5190,9 +6065,171 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 								</div>
 							</form>
+
+							{/* BADGE MANAGEMENT SECTION */}
+							<div className="border-t border-zinc-800 pt-6 space-y-4">
+								<div>
+									<h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+										Badge Management
+									</h4>
+									<p className="text-[11px] text-zinc-400 mt-1">
+										Award professional badges to this employee. These badges will appear on their verification dossier.
+									</p>
+								</div>
+
+								{badgeMessage && (
+									<div className="p-2.5 bg-indigo-950/40 border border-indigo-900 text-indigo-400 text-xs font-mono">
+										{badgeMessage}
+									</div>
+								)}
+
+								{/* List of current badges */}
+								<div className="space-y-2">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Assigned Badges</label>
+									{(() => {
+										let badgesList: any[] = [];
+										try {
+											if (editingItem.badges) {
+												badgesList = JSON.parse(editingItem.badges);
+											}
+										} catch {}
+
+										if (badgesList.length === 0) {
+											return (
+												<p className="text-[11px] text-zinc-500 italic">No badges assigned yet.</p>
+											);
+										}
+
+										return (
+											<div className="grid grid-cols-1 gap-2">
+												{badgesList.map((b: any) => (
+													<div 
+														key={b.id} 
+														className="flex items-center justify-between p-2.5 bg-zinc-950 border border-zinc-850 rounded-none text-xs"
+													>
+														<div className="flex items-center gap-2">
+															<span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm ${
+																b.color === 'blue' ? 'bg-blue-900/30 text-blue-400 border border-blue-800/50' :
+																b.color === 'green' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800/50' :
+																b.color === 'purple' ? 'bg-purple-900/30 text-purple-400 border border-purple-800/50' :
+																b.color === 'orange' ? 'bg-amber-900/30 text-amber-400 border border-amber-800/50' :
+																b.color === 'red' ? 'bg-rose-900/30 text-rose-400 border border-rose-800/50' :
+																b.color === 'yellow' ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800/50' :
+																'bg-zinc-850 text-zinc-300'
+															}`}>
+																{b.title}
+															</span>
+															{b.description && (
+																<span className="text-[10px] text-zinc-400 truncate max-w-[180px]">
+																	— {b.description}
+																</span>
+															)}
+														</div>
+														<button
+															type="button"
+															onClick={() => handleDeleteBadge(editingItem.id, b.id)}
+															className="text-[10px] font-semibold text-red-400 hover:text-red-300 cursor-pointer"
+														>
+															Remove
+														</button>
+													</div>
+												))}
+											</div>
+										);
+									})()}
+								</div>
+
+								{/* Preset badge picker */}
+								<div className="space-y-3">
+									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Select a Badge to Issue</span>
+
+									{(() => {
+										const PRESET_BADGES = [
+											{ title: 'New Joinee',          icon: 'Star',        color: 'blue',   description: 'Welcomed as a new member of the team', emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/e59cb781-ca16-4699-bf99-c5f16fd55383.svg' },
+											{ title: 'Employee Completion', icon: 'Award',        color: 'green',  description: 'Successfully completed the project / milestones', emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/14b964b5-5848-4a81-bf4d-fb5e2a6f423c.svg' },
+											{ title: 'Employee Badge',      icon: 'Shield',      color: 'orange', description: 'Awarded official verified employee credentials badge', emoji: '🏷️', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+											{ title: 'Super Worker',        icon: 'Trophy',      color: 'yellow', description: 'Consistently delivering outstanding work', emoji: '🏆', image: 'https://ik.imagekit.io/dypkhqxip/a40ea919-c9e6-4b41-973c-ee0205dbe244.svg' },
+											{ title: 'Slashing Dev',        icon: 'Zap',         color: 'purple', description: 'Exceptional speed and quality in development', emoji: '⚡', image: 'https://ik.imagekit.io/dypkhqxip/c250a00f-8bd7-43e9-81b5-9d10618e8446.svg' },
+											{ title: 'Core Dev',            icon: 'Shield',      color: 'green',  description: 'Pillar of the engineering team', emoji: '🛡️' },
+											{ title: 'Pro Marketer',        icon: 'Flame',       color: 'orange', description: 'Drives growth and brand excellence', emoji: '🔥' },
+										];
+
+										return (
+											<div className="grid grid-cols-2 gap-2">
+												{PRESET_BADGES.map((badge) => {
+													const isSelected = badgeTitle === badge.title;
+													const ringColor =
+														badge.color === 'blue'   ? 'ring-blue-500/70 bg-blue-950/30 border-blue-800/50' :
+														badge.color === 'yellow' ? 'ring-yellow-500/70 bg-yellow-950/30 border-yellow-800/50' :
+														badge.color === 'purple' ? 'ring-purple-500/70 bg-purple-950/30 border-purple-800/50' :
+														badge.color === 'green'  ? 'ring-emerald-500/70 bg-emerald-950/30 border-emerald-800/50' :
+														badge.color === 'orange' ? 'ring-amber-500/70 bg-amber-950/30 border-amber-800/50' :
+														badge.color === 'red'    ? 'ring-rose-500/70 bg-rose-950/30 border-rose-800/50' :
+														'ring-zinc-600/50 bg-zinc-900 border-zinc-700';
+													const textColor =
+														badge.color === 'blue'   ? 'text-blue-300' :
+														badge.color === 'yellow' ? 'text-yellow-300' :
+														badge.color === 'purple' ? 'text-purple-300' :
+														badge.color === 'green'  ? 'text-emerald-300' :
+														badge.color === 'orange' ? 'text-amber-300' :
+														badge.color === 'red'    ? 'text-rose-300' :
+														'text-zinc-200';
+													return (
+														<button
+															key={badge.title}
+															type="button"
+															onClick={() => {
+																setBadgeTitle(badge.title);
+																setBadgeIcon(badge.icon);
+																setBadgeColor(badge.color);
+																setBadgeDescription(badge.description || '');
+																setBadgeImage((badge as any).image || '');
+															}}
+															className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
+																isSelected
+																	? `ring-2 ${ringColor}`
+																	: 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
+															}`}
+														>
+															<span className="text-xl leading-none flex items-center justify-center h-8">
+																{badge.image ? (
+																	<img src={badge.image} alt={badge.title} className="w-8 h-8 object-contain" />
+																) : (
+																	badge.emoji
+																)}
+															</span>
+															<span className={`text-[11px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-300'}`}>
+																{badge.title}
+															</span>
+														</button>
+													);
+												})}
+											</div>
+										);
+									})()}
+
+									{badgeTitle && (
+										<div className="flex items-center gap-2 p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg">
+											<span className="text-[10px] text-zinc-400">Selected:</span>
+											<span className="text-[11px] font-bold text-white">{badgeTitle}</span>
+										</div>
+									)}
+
+									<Button
+										type="button"
+										disabled={!badgeTitle}
+										onClick={() => handleGiveBadge(editingItem.id)}
+										className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold h-9 cursor-pointer border border-indigo-700/50 flex items-center justify-center gap-2 rounded-lg transition-all"
+									>
+										<span>🚀</span> Publish Badge to Employee
+									</Button>
+								</div>
+							</div>
+
+							</div>
 						)}
 
-						{/* Task Edit Form */}
+						{}
 						{editModalType === 'task' && (
 							<form 
 								onSubmit={async (e) => {
@@ -5269,7 +6306,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Attendance Edit Form */}
+						{}
 						{editModalType === 'attendance' && (
 							<form 
 								onSubmit={async (e) => {
@@ -5314,7 +6351,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{/* Event Edit Form */}
+						{}
 						{editModalType === 'event' && (() => {
 							return (
 								<form 
@@ -5531,7 +6568,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				</div>
 			)}
 
-			{/* Edit Team Lead Modal */}
+			{}
 			{showEditLeadModal && editingLead && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
 					<div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 p-6 space-y-4 shadow-2xl relative">

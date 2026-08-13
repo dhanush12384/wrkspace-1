@@ -51,9 +51,9 @@ interface EmployeeDashboardProps {
 	employee: any;
 	onLogout: () => void;
 	onEmployeeUpdate?: (next: any) => void;
-	/** When set, show only this tab (Flutter More → feature panel). */
+	
 	mobilePanelTab?: EmpTabType;
-	/** More → Attendance logs: hide clock-in UI, show logs only. */
+	
 	mobileLogsOnly?: boolean;
 }
 
@@ -61,12 +61,13 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 	const [activeTab, setActiveTab] = useState<EmpTabType>(mobilePanelTab || 'overview');
 	const [empTasks, setEmpTasks] = useState<any[]>([]);
 	const [isTasksLoading, setIsTasksLoading] = useState(false);
+	const [moreMenuOpen, setMoreMenuOpen] = useState(false);
 
 	useEffect(() => {
 		if (mobilePanelTab) setActiveTab(mobilePanelTab);
 	}, [mobilePanelTab]);
 
-	// Employee Dashboard attendance states
+	
 	const [attendanceStatus, setAttendanceStatus] = useState<'checked_out' | 'checked_in'>('checked_out');
 	const [attendanceLogs, setAttendanceLogs] = useState<any[]>([]);
 	const [currentTime, setCurrentTime] = useState(new Date());
@@ -87,7 +88,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 	const [leaveChoiceOpen, setLeaveChoiceOpen] = useState(false);
 	const [leaveChoiceBusy, setLeaveChoiceBusy] = useState(false);
 
-	// Events state
+	
 	const [eventsList, setEventsList] = useState<any[]>([]);
 	const [eventsLoading, setEventsLoading] = useState(false);
 
@@ -103,7 +104,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 		}
 	};
 
-	// Live attendance via Socket.IO (Render) when JWT is in session
+	
 	useEffect(() => {
 		const token =
 			(typeof window !== 'undefined' &&
@@ -125,10 +126,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 			});
 		})();
 		return () => stop?.();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [employee?.id]);
 
-	// Work Submission state
+	
 	const [mySubmissions, setMySubmissions] = useState<any[]>([]);
 	const [subTitle, setSubTitle] = useState('');
 	const [subDescription, setSubDescription] = useState('');
@@ -231,7 +232,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 		setSubMessage({ type: 'error', text: result.error || 'Could not edit submission.' });
 	};
 
-	// Leads state
+	
 	const [leadsList, setLeadsList] = useState<any[]>([]);
 	const [leadsFilter, setLeadsFilter] = useState('All');
 	const [leadsSourceFilter, setLeadsSourceFilter] = useState('All');
@@ -240,7 +241,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 	const [importLoading, setImportLoading] = useState(false);
 	const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
 
-	// Manual Leads sub-tab & form states
+	
 	const [leadsSubTab, setLeadsSubTab] = useState<'pipeline' | 'manual'>('pipeline');
 	const [showManualForm, setShowManualForm] = useState(false);
 	const [manualBizName, setManualBizName] = useState('');
@@ -272,11 +273,11 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 				description: manualDesc,
 				priority: manualPriority,
 				notes: manualNotes,
-				assignedTo: employee.id, // Manually added leads are assigned to the employee who added them
+				assignedTo: employee.id, 
 			});
 			if (result.success) {
 				setManualLeadMsg({ type: 'success', text: 'Lead manually created successfully!' });
-				// Reset inputs
+				
 				setManualBizName('');
 				setManualContact('');
 				setManualEmail('');
@@ -391,7 +392,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 	const ALLOWED_RADIUS_METERS = 250;
 
 	const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-		const R = 6371e3; // Earth's radius in meters
+		const R = 6371e3; 
 		const phi1 = (lat1 * Math.PI) / 180;
 		const phi2 = (lat2 * Math.PI) / 180;
 		const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
@@ -405,7 +406,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 				Math.sin(deltaLambda / 2);
 		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-		return R * c; // Distance in meters
+		return R * c; 
 	};
 
 	useEffect(() => {
@@ -652,27 +653,38 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 		);
 	}
 
+	const getTabStyle = (tabName: string) => {
+		const isActive = activeTab === tabName;
+		return {
+			color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+			borderBottomColor: isActive ? '#ffffff' : 'transparent',
+			fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
+		};
+	};
+
 	return (
 			<main className={cn(
 			"employee-portal bg-[#e8edf5] text-slate-900 relative flex flex-col font-sans",
 			mobilePanelTab ? "min-h-0 h-full overflow-y-auto" : activeTab === 'messages' ? "h-screen overflow-hidden" : "min-h-screen overflow-y-auto"
 		)}>
-			{/* Soft dim wash — less glare than pure white */}
+			{}
 			<div className="absolute inset-0 z-0 pointer-events-none" />
 
-			{/* Full Width Top Navbar */}
+			{}
 			{!mobilePanelTab && (
 			<>
-			<header className="w-full border-b border-slate-400 bg-slate-50 sticky top-0 z-50 shadow-sm">
-				<div className="w-full px-6 md:px-10 h-20 flex items-center justify-between">
+			<header className="w-full border-b border-black/[0.06] dark:border-white/[0.08] bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-xs">
+				<div className="w-full px-6 md:px-10 h-16 sm:h-20 flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<img
-							src="/branding/wrkspace-logo.png?v=20260717b"
+							src="https://ik.imagekit.io/dypkhqxip/wrkspacenew"
 							alt="wrkspace"
-							className="emp-logo-mark"
+							className="h-8 sm:h-9 w-auto object-contain"
 						/>
-						<div className="w-px h-7 bg-slate-400" />
-						<span className="text-xs font-bold uppercase tracking-widest text-slate-800 font-mono">Employee</span>
+						<div className="w-px h-5 bg-black/15 dark:bg-white/15" />
+						<span className="text-[11px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/10 dark:bg-[#E61E32]/20 px-2.5 py-1 rounded-md border border-[#E61E32]/20">
+							Employee
+						</span>
 					</div>
 					<div className="flex items-center gap-3">
 						<ProfilePhotoEditor
@@ -682,281 +694,341 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								`${(employee.firstName?.[0] || '').toUpperCase()}${(employee.lastName?.[0] || '').toUpperCase()}` || 'U'
 							}
 							size="md"
-							className="!size-10 !text-sm border-slate-400 shadow-sm"
+							className="!size-10 !text-xs border-0 rounded-full shadow-none bg-transparent"
 							onUpdated={(photoUrl) => onEmployeeUpdate?.({ ...employee, photoUrl })}
 						/>
 						{employee.role === 'Team Lead' && (
-							<Button
-								variant="outline"
-								className="border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-500 cursor-pointer rounded-none transition-all duration-200 text-xs py-2 px-3 h-9 font-mono font-medium flex items-center gap-2"
+							<button
+								type="button"
+								className="border border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 cursor-pointer rounded-md transition-all text-xs py-2 px-3 h-9 font-medium flex items-center gap-2 shadow-xs"
 								onClick={() => {
 									localStorage.setItem('wrkspace_admin_session', JSON.stringify({ email: employee.email }));
 									window.location.href = '/admin';
 								}}
 							>
 								<UserCheckIcon className="size-3.5" />
-								switch to lead portal
-							</Button>
+								Switch to Lead Portal
+							</button>
 						)}
-						<Button 
-							variant="outline" 
-							className="border-slate-600 bg-white text-slate-900 hover:bg-slate-200 hover:text-black hover:border-slate-800 cursor-pointer rounded-none transition-all duration-200 text-sm py-2.5 px-4 h-auto font-bold"
+						<button 
+							type="button"
+							className="bg-[#E61E32] hover:bg-[#c9182a] border-0 cursor-pointer rounded-md transition-all text-xs font-bold py-2 px-4 h-9 flex items-center gap-2 shadow-xs"
+							style={{ color: '#ffffff' }}
 							onClick={onLogout}
 						>
-							<LogOutIcon className="size-4 me-2 text-red-600" />
-							Logout
-						</Button>
+							<LogOutIcon className="size-3.5" style={{ color: '#ffffff' }} />
+							<span style={{ color: '#ffffff' }}>Logout</span>
+						</button>
 					</div>
 				</div>
 			</header>
 
-			{/* Subnavbar */}
-			<div className="w-full border-b-2 border-[var(--subnav-border-color)] bg-[var(--subnav-bg-fallback)] z-40 sticky top-20 shadow-sm shadow-zinc-200/60" style={{backgroundImage: 'var(--subnav-bg)'}}>
-				<div className="w-full px-6 md:px-10 flex gap-5 md:gap-6 text-sm font-semibold tracking-wide overflow-x-auto">
-					<button 
-						onClick={() => setActiveTab('overview')}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'overview' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Overview
-					</button>
-					{/* All employees: open SOS inbox. Girl Safety trigger/home = female only (inside panel). */}
-					<button
-						onClick={() => setActiveTab('safety')}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'safety' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						{String(employee?.gender || '').toUpperCase() === 'FEMALE' ? 'Girl Safety' : 'SOS alerts'}
-					</button>
-					<button 
-						onClick={() => {
-							setActiveTab('tasks');
-							loadEmployeeTasks(employee.id);
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'tasks' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						My Allocated Tasks ({empTasks.length})
-					</button>
-					<button 
-						onClick={() => {
-							setActiveTab('attendance');
-							loadEmployeeAttendance(employee.id);
-							loadEmployeeAttendanceStatus(employee.id);
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'attendance' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Attendance logs
-					</button>
-					<button 
-						onClick={() => {
-							setActiveTab('leaves');
-							loadEmployeeLeaves(employee.id);
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'leaves' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Apply Leaves
-					</button>
-					<button 
-						onClick={() => {
-							setActiveTab('messages');
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'messages' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Messages
-					</button>
-						<button 
-						onClick={() => {
-							setActiveTab('events');
-							loadEvents();
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'events' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Events
-					</button>
-					<button 
-						onClick={() => {
-							setActiveTab('work_submission');
-							loadMySubmissions();
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer",
-							activeTab === 'work_submission' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-							Submissions
-					</button>
-					<button
-						onClick={() => {
-							setActiveTab('leads');
-							loadLeads();
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-							activeTab === 'leads' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Leads
-					</button>
-					<button
-						onClick={() => {
-							setActiveTab('hr_companies');
-							loadEmployeeHrCompanies();
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-							activeTab === 'hr_companies' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Companies
-					</button>
-					<button
-						onClick={() => {
-							setActiveTab('profile');
-						}}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-							activeTab === 'profile' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						Profile
-					</button>
-					<button
-						onClick={() => setActiveTab('id_card')}
-						className={cn(
-							"py-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-							activeTab === 'id_card' ? 'border-[var(--subnav-border-active)] text-[var(--subnav-text-active)] font-semibold' : 'border-transparent text-[var(--subnav-text-inactive)] hover:text-[var(--subnav-text-hover)]'
-						)}
-					>
-						ID card
-					</button>
-				</div>
-			</div>
+			{}
+			{(() => {
+				const isDropdownActive = ['leaves', 'events', 'work_submission', 'leads', 'hr_companies', 'profile', 'id_card'].includes(activeTab);
+				return (
+					<div className="w-full bg-[#E61E32] z-40 sticky top-16 sm:top-20 shadow-xs border-b border-[#E61E32]" style={{ backgroundColor: '#E61E32' }}>
+						<div className="w-full px-6 md:px-10 flex items-center justify-between overflow-visible relative">
+							<div className="flex gap-5 md:gap-6 text-sm font-semibold tracking-wide overflow-x-auto no-scrollbar">
+								<button 
+									onClick={() => setActiveTab('overview')}
+									className="py-2.5 border-b-2 transition-all cursor-pointer font-bold whitespace-nowrap"
+									style={getTabStyle('overview')}
+								>
+									Overview
+								</button>
+								<button
+									onClick={() => setActiveTab('safety')}
+									className="py-2.5 border-b-2 transition-all cursor-pointer font-bold whitespace-nowrap"
+									style={getTabStyle('safety')}
+								>
+									{String(employee?.gender || '').toUpperCase() === 'FEMALE' ? 'Girl Safety' : 'SOS alerts'}
+								</button>
+								<button 
+									onClick={() => {
+										setActiveTab('tasks');
+										loadEmployeeTasks(employee.id);
+									}}
+									className="py-2.5 border-b-2 transition-all cursor-pointer font-bold whitespace-nowrap"
+									style={getTabStyle('tasks')}
+								>
+									Tasks ({empTasks.length})
+								</button>
+								<button 
+									onClick={() => {
+										setActiveTab('attendance');
+										loadEmployeeAttendance(employee.id);
+										loadEmployeeAttendanceStatus(employee.id);
+									}}
+									className="py-2.5 border-b-2 transition-all cursor-pointer font-bold whitespace-nowrap"
+									style={getTabStyle('attendance')}
+								>
+									Attendance
+								</button>
+								<button 
+									onClick={() => {
+										setActiveTab('messages');
+									}}
+									className="py-2.5 border-b-2 transition-all cursor-pointer font-bold whitespace-nowrap"
+									style={getTabStyle('messages')}
+								>
+									Messages
+								</button>
+							</div>
+
+							<div className="relative z-50">
+								<button
+									onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+									className="py-2.5 border-b-2 transition-all cursor-pointer font-bold flex items-center gap-1 whitespace-nowrap select-none"
+									style={{
+										color: isDropdownActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+										borderBottomColor: isDropdownActive ? '#ffffff' : 'transparent',
+										fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
+									}}
+								>
+									<span>More</span>
+									<svg viewBox="0 0 20 20" fill="currentColor" className="size-4 opacity-85 mt-0.5" style={{ color: '#ffffff' }}>
+										<path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+									</svg>
+								</button>
+
+								{moreMenuOpen && (
+									<>
+										<div 
+											className="fixed inset-0 z-40 bg-transparent" 
+											onClick={() => setMoreMenuOpen(false)}
+										/>
+										<div className="absolute right-0 mt-1 w-48 bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 rounded-lg shadow-lg z-50 py-1 overflow-hidden">
+											{[
+												{ id: 'leaves' as const, label: 'Apply Leaves', onClick: () => loadEmployeeLeaves(employee.id) },
+												{ id: 'events' as const, label: 'Events', onClick: () => loadEvents() },
+												{ id: 'work_submission' as const, label: 'Submissions', onClick: () => loadMySubmissions() },
+												{ id: 'leads' as const, label: 'Leads', onClick: () => loadLeads() },
+												{ id: 'hr_companies' as const, label: 'Companies', onClick: () => loadEmployeeHrCompanies() },
+												{ id: 'profile' as const, label: 'Profile' },
+												{ id: 'id_card' as const, label: 'ID card' },
+											].map((item) => (
+												<button
+													key={item.id}
+													onClick={() => {
+														setActiveTab(item.id);
+														item.onClick?.();
+														setMoreMenuOpen(false);
+													}}
+													className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer flex items-center justify-between"
+													style={{
+														color: activeTab === item.id ? '#E61E32' : undefined,
+														fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
+													}}
+												>
+													<span>{item.label}</span>
+													{activeTab === item.id && (
+														<span className="size-1.5 rounded-full bg-[#E61E32]" />
+													)}
+												</button>
+											))}
+										</div>
+									</>
+								)}
+							</div>
+						</div>
+					</div>
+				);
+			})()}
 			</>
 			)}
 
-			{/* Main dashboard content container */}
+			{}
 			<div className={cn(
 				"flex-1 w-full relative z-10",
 				mobilePanelTab
-					? "px-4 py-4 space-y-6"
-					: activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col" : "max-w-[90rem] mx-auto px-6 md:px-10 py-8 space-y-6"
+					? "px-4 py-4 space-y-5"
+					: activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col" : "max-w-[90rem] mx-auto px-6 md:px-10 py-5 space-y-5"
 			)}>
 
-				{/* TAB: OVERVIEW */}
+				{}
 				{activeTab === 'overview' && (
-					<div className="space-y-6">
-						{/* Welcome banner */}
-						<div className="bg-zinc-900/30 border border-zinc-800/80 p-8 rounded-none space-y-4">
-							<h2 className="text-xl md:text-2xl font-bold text-foreground">Welcome back, <span className="text-brand-400 font-extrabold">{employee.firstName}</span>!</h2>
-							<p className="text-zinc-400 text-xs md:text-sm max-w-2xl leading-relaxed">
-								Access your personal workspace telemetry dashboard console. Below is your directory profile classification registry and active lead status assignment.
-							</p>
-							<div className="border border-zinc-800 bg-zinc-950/40 grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-zinc-800 rounded-none">
-								<div className="p-4 space-y-1">
-									<span className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Registered ID</span>
-									<p className="font-mono text-brand-400 text-sm font-bold">{employee.id}</p>
+					<div className="space-y-5" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
+						{/* WELCOME BANNER CARD */}
+						<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-5 md:p-6 rounded-xl shadow-xs space-y-4 relative overflow-hidden">
+							<div>
+								<h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+									Welcome back, <span className="text-[#E61E32] font-extrabold">{employee.firstName}</span>!
+								</h2>
+								<p className="text-slate-500 dark:text-zinc-400 text-xs md:text-sm max-w-2xl leading-relaxed mt-1">
+									Access your personal workspace telemetry dashboard console. Below is your directory profile classification registry and active lead status assignment.
+								</p>
+							</div>
+							
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
+									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Registered ID</span>
+									<p className="font-mono text-[#E61E32] text-xs font-bold truncate">{employee.id}</p>
 								</div>
-								<div className="p-4 space-y-1">
-									<span className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Allocated Wing</span>
-									<p className="text-foreground text-sm font-semibold">{employee.wingName}</p>
+								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
+									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Allocated Wing</span>
+									<p className="text-slate-800 dark:text-zinc-200 text-xs font-semibold truncate">{employee.wingName}</p>
 								</div>
-								<div className="p-4 space-y-1">
-									<span className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Wing Lead</span>
-									<p className="text-foreground text-sm font-medium">{employee.wingLeadName}</p>
+								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
+									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Wing Lead</span>
+									<p className="text-slate-800 dark:text-zinc-200 text-xs font-medium truncate">{employee.wingLeadName}</p>
 								</div>
-								<div className="p-4 space-y-1">
-									<span className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Registry Date</span>
-									<p className="text-foreground font-mono text-sm">{new Date(employee.createdAt).toLocaleDateString()}</p>
+								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
+									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Registry Date</span>
+									<p className="text-slate-800 dark:text-zinc-200 font-mono text-xs truncate">{new Date(employee.createdAt).toLocaleDateString()}</p>
 								</div>
 							</div>
 						</div>
 
-						<StipendCard
-							variant="dashboard"
-							employee={employee}
-							onEmployeeUpdate={onEmployeeUpdate}
-						/>
-
-						{/* Stats grids */}
+						{/* STATS GRID */}
 						<div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
-								<div className="flex items-center gap-1.5 text-zinc-400">
-									<BriefcaseIcon className="size-3.5 text-indigo-400" />
-									<span className="text-[10px] font-semibold uppercase tracking-wider">My Tasks</span>
+							{/* MY TASKS */}
+							<div 
+								onClick={() => {
+									setActiveTab('tasks');
+									loadEmployeeTasks(employee.id);
+								}}
+								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-[#E61E32]/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
+							>
+								<div className="flex items-start justify-between">
+									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">My Tasks</span>
+									<div className="size-8 rounded-lg bg-[#E61E32]/10 flex items-center justify-center text-[#E61E32] group-hover:bg-[#E61E32] group-hover:text-white transition-all duration-200">
+										<BriefcaseIcon className="size-4" />
+									</div>
 								</div>
-								<p className="text-xl font-bold text-foreground">{empTasks.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">{empTasks.filter(t => t.status === 'Pending').length} Pending</p>
+								<div className="mt-2">
+									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{empTasks.length}</p>
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
+										<span className="inline-block size-1.5 rounded-full bg-[#E61E32]/80" />
+										{empTasks.filter(t => t.status === 'Pending').length} Pending
+									</p>
+								</div>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
-								<div className="flex items-center gap-1.5 text-zinc-400">
-									<ClockIcon className="size-3.5 text-emerald-400" />
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Attendance</span>
+							{/* ATTENDANCE */}
+							<div 
+								onClick={() => {
+									setActiveTab('attendance');
+									loadEmployeeAttendance(employee.id);
+									loadEmployeeAttendanceStatus(employee.id);
+								}}
+								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-emerald-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
+							>
+								<div className="flex items-start justify-between">
+									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Attendance</span>
+									<div className="size-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-200">
+										<ClockIcon className="size-4" />
+									</div>
 								</div>
-								<p className={cn(
-									"text-xl font-bold",
-									attendanceStatus === 'checked_in' ? 'text-emerald-400' : 'text-zinc-400'
-								)}>
-									{attendanceStatus === 'checked_in' ? 'Clocked In' : 'Clocked Out'}
-								</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Today's status</p>
+								<div className="mt-2">
+									<p className={cn(
+										"text-lg font-bold leading-none tracking-tight truncate",
+										attendanceStatus === 'checked_in' ? 'text-emerald-500' : 'text-slate-900 dark:text-white'
+									)}>
+										{attendanceStatus === 'checked_in' ? 'Clocked In' : 'Clocked Out'}
+									</p>
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
+										<span className={cn(
+											"inline-block size-1.5 rounded-full",
+											attendanceStatus === 'checked_in' ? 'bg-emerald-500' : 'bg-slate-400'
+										)} />
+										Today's status
+									</p>
+								</div>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
-								<div className="flex items-center gap-1.5 text-zinc-400">
-									<CalendarIcon className="size-3.5 text-amber-400" />
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Leaves</span>
+							{/* LEAVES */}
+							<div 
+								onClick={() => {
+									setActiveTab('leaves');
+									loadEmployeeLeaves(employee.id);
+								}}
+								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-amber-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
+							>
+								<div className="flex items-start justify-between">
+									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Leaves</span>
+									<div className="size-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all duration-200">
+										<CalendarIcon className="size-4" />
+									</div>
 								</div>
-								<p className="text-xl font-bold text-foreground">
-									{leaveRequests.filter(req => req.status === 'Pending').length}
-								</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Pending Requests</p>
+								<div className="mt-2">
+									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">
+										{leaveRequests.filter(req => req.status === 'Pending').length}
+									</p>
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
+										<span className="inline-block size-1.5 rounded-full bg-amber-500/80" />
+										Pending Requests
+									</p>
+								</div>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
-								<div className="flex items-center gap-1.5 text-zinc-400">
-									<RefreshCwIcon className="size-3.5 text-sky-400" />
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Submissions</span>
+							{/* SUBMISSIONS */}
+							<div 
+								onClick={() => {
+									setActiveTab('work_submission');
+									loadMySubmissions();
+								}}
+								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-sky-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
+							>
+								<div className="flex items-start justify-between">
+									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Submissions</span>
+									<div className="size-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-all duration-200">
+										<RefreshCwIcon className="size-4" />
+									</div>
 								</div>
-								<p className="text-xl font-bold text-foreground">{mySubmissions.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">{mySubmissions.filter(s => s.status === 'Submitted').length} Pending</p>
+								<div className="mt-2">
+									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{mySubmissions.length}</p>
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
+										<span className="inline-block size-1.5 rounded-full bg-sky-500/80" />
+										{mySubmissions.filter(s => s.status === 'Submitted').length} Pending
+									</p>
+								</div>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
-								<div className="flex items-center gap-1.5 text-zinc-400">
-									<BarChart2Icon className="size-3.5 text-brand-400" />
-									<span className="text-[10px] font-semibold uppercase tracking-wider">My Leads</span>
+							{/* LEADS */}
+							<div 
+								onClick={() => {
+									setActiveTab('leads');
+									loadLeads();
+								}}
+								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-rose-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
+							>
+								<div className="flex items-start justify-between">
+									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">My Leads</span>
+									<div className="size-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all duration-200">
+										<BarChart2Icon className="size-4" />
+									</div>
 								</div>
-								<p className="text-xl font-bold text-foreground">{leadsList.filter(l => l.assignedTo === employee.id).length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Active pipeline</p>
+								<div className="mt-2">
+									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{leadsList.filter(l => l.assignedTo === employee.id).length}</p>
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
+										<span className="inline-block size-1.5 rounded-full bg-rose-500/80" />
+										Active pipeline
+									</p>
+								</div>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-1 rounded-none">
-								<div className="flex items-center gap-1.5 text-zinc-400">
-									<Grid2x2PlusIcon className="size-3.5 text-indigo-400" />
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Events</span>
+							{/* EVENTS */}
+							<div 
+								onClick={() => {
+									setActiveTab('events');
+									loadEvents();
+								}}
+								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-indigo-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
+							>
+								<div className="flex items-start justify-between">
+									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Events</span>
+									<div className="size-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-200">
+										<Grid2x2PlusIcon className="size-4" />
+									</div>
 								</div>
-								<p className="text-xl font-bold text-foreground">{eventsList.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Total Planned</p>
+								<div className="mt-2">
+									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{eventsList.length}</p>
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
+										<span className="inline-block size-1.5 rounded-full bg-indigo-500/80" />
+										Total Planned
+									</p>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -964,26 +1036,26 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 				{/* TAB: TASKS */}
 				{activeTab === 'tasks' && (
-					<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
-						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-							<h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+					<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-4 rounded-xl shadow-xs" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
+						<div className="flex justify-between items-center border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
+							<h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
 								My Tasks Directory
 							</h3>
 							<button 
 								onClick={() => loadEmployeeTasks(employee.id)}
-								className="p-1 border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all rounded-none cursor-pointer"
+								className="p-1.5 border border-black/[0.06] dark:border-white/[0.08] bg-slate-50 dark:bg-zinc-850 hover:bg-slate-100 dark:hover:bg-zinc-750 text-slate-500 dark:text-zinc-400 transition-all rounded-md cursor-pointer"
 							>
 								<RefreshCwIcon className={cn("size-3.5", isTasksLoading && "animate-spin")} />
 							</button>
 						</div>
 
 						{empTasks.length === 0 ? (
-							<p className="text-zinc-500 text-xs italic py-6 text-center">No tasks are currently allocated to you.</p>
+							<p className="text-slate-500 dark:text-zinc-400 text-xs italic py-6 text-center">No tasks are currently allocated to you.</p>
 						) : (
 							<div className="overflow-x-auto">
 								<table className="w-full text-left text-xs border-collapse">
 									<thead>
-										<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px] bg-zinc-950/40">
+										<tr className="border-b border-black/[0.06] dark:border-white/[0.08] text-slate-500 dark:text-zinc-400 uppercase font-mono text-[10px] bg-slate-50/50 dark:bg-zinc-950/40">
 											<th className="p-3">Task Details</th>
 											<th className="p-3">Reporting Manager</th>
 											<th className="p-3">Deadline</th>
@@ -991,35 +1063,35 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 											<th className="p-3">Status</th>
 										</tr>
 									</thead>
-									<tbody className="divide-y divide-zinc-800/50">
+									<tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.08]">
 										{empTasks.map((task: any) => (
 											<tr 
 												key={task.id} 
 												className={cn(
 													"transition-colors duration-150 border-l-2",
 													task.allocatorRole === 'CTO'
-														? "bg-rose-950/15 border-l-rose-500 hover:bg-rose-950/25"
+														? "bg-rose-500/5 border-l-rose-500 hover:bg-rose-500/10"
 														: task.status === 'Completed' 
-															? "bg-emerald-600/15 border-l-transparent hover:bg-emerald-600/25" 
+															? "bg-emerald-500/5 border-l-transparent hover:bg-emerald-500/10" 
 															: task.status === 'In Progress'
-																? "bg-blue-600/15 border-l-transparent hover:bg-blue-600/25"
-																: "border-l-transparent hover:bg-zinc-900/20"
+																? "bg-blue-500/5 border-l-transparent hover:bg-blue-500/10"
+																: "border-l-transparent hover:bg-slate-50/50 dark:hover:bg-zinc-800/20"
 												)}
 											>
 												<td className="p-3">
-													<div className="font-bold text-white">{task.title}</div>
-													<div className="text-[10px] text-zinc-550 mt-1 max-w-lg leading-relaxed">{task.description}</div>
+													<div className="font-bold text-slate-900 dark:text-white text-sm">{task.title}</div>
+													<div className="text-[11px] text-slate-500 dark:text-zinc-450 mt-1 max-w-lg leading-relaxed">{task.description}</div>
 													
 													{(task.allocatorName || task.allocatorRole) ? (
 														<div className="mt-2.5 flex items-center gap-1.5">
-															<span className="text-[9px] text-zinc-500 font-mono">Assigned by:</span>
+															<span className="text-[9px] text-slate-400 dark:text-zinc-500 font-mono">Assigned by:</span>
 															<span className={cn(
-																"text-[9px] font-semibold font-mono px-1.5 py-0.5 rounded-none",
+																"text-[9px] font-semibold font-mono px-1.5 py-0.5 rounded-md",
 																task.allocatorRole === 'CTO' 
-																	? "bg-rose-950/50 text-rose-450 border border-rose-900/50 font-bold" 
+																	? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold" 
 																	: task.allocatorRole === 'Team Lead'
-																		? "bg-indigo-950/30 text-indigo-405 border border-indigo-900/30"
-																		: "bg-zinc-900 text-zinc-400 border border-zinc-800"
+																		? "bg-[#E61E32]/10 text-[#E61E32] border border-[#E61E32]/20"
+																		: "bg-slate-100 dark:bg-zinc-800 text-slate-650 dark:text-zinc-450 border border-black/5 dark:border-white/5"
 															)}>
 																{task.allocatorName} ({task.allocatorRole})
 															</span>
@@ -1027,22 +1099,22 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 													) : (
 														task.reportTo && (
 															<div className="mt-2.5 flex items-center gap-1.5">
-																<span className="text-[9px] text-zinc-500 font-mono">Assigned by:</span>
-																<span className="text-[9px] font-semibold font-mono px-1.5 py-0.5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-none">
+																<span className="text-[9px] text-slate-400 dark:text-zinc-500 font-mono">Assigned by:</span>
+																<span className="text-[9px] font-semibold font-mono px-1.5 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-650 dark:text-zinc-450 border border-black/5 dark:border-white/5 rounded-md">
 																	{task.reportTo}
 																</span>
 															</div>
 														)
 													)}
 												</td>
-												<td className="p-3 whitespace-nowrap text-zinc-300 font-medium">{task.reportTo || '—'}</td>
-												<td className="p-3 whitespace-nowrap font-mono text-zinc-450">{new Date(task.deadline).toLocaleDateString()}</td>
+												<td className="p-3 whitespace-nowrap text-slate-700 dark:text-zinc-300 font-medium">{task.reportTo || '—'}</td>
+												<td className="p-3 whitespace-nowrap font-mono text-slate-500 dark:text-zinc-450">{new Date(task.deadline).toLocaleDateString()}</td>
 												<td className="p-3 whitespace-nowrap">
 													<span className={cn(
-														"px-2 py-0.5 text-[10px] uppercase font-bold border",
-														task.mode === 'Remote' && "bg-cyan-950/20 text-cyan-400 border-cyan-900/50",
-														task.mode === 'Onsite' && "bg-amber-950/20 text-amber-400 border-amber-900/50",
-														task.mode === 'Hybrid' && "bg-purple-950/20 text-purple-400 border-purple-900/50"
+														"px-2 py-0.5 text-[10px] uppercase font-bold border rounded-md",
+														task.mode === 'Remote' && "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+														task.mode === 'Onsite' && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+														task.mode === 'Hybrid' && "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
 													)}>
 														{task.mode}
 													</span>
@@ -1060,15 +1132,15 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 															}
 														}}
 														className={cn(
-															"px-2 py-1 text-[10px] uppercase font-mono font-bold border bg-zinc-950 text-white outline-none cursor-pointer focus:border-zinc-700 transition-colors rounded-none",
-															task.status === 'Completed' && "text-emerald-400 border-emerald-900/50",
-															task.status === 'In Progress' && "text-blue-400 border-blue-900/50",
-															task.status === 'Pending' && "text-yellow-400 border-yellow-900/50"
+															"px-2.5 py-1 text-[10px] uppercase font-mono font-bold border bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 outline-none cursor-pointer focus:ring-1 focus:ring-[#E61E32]/40 transition-colors rounded-md",
+															task.status === 'Completed' && "text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+															task.status === 'In Progress' && "text-blue-600 dark:text-blue-400 border-blue-500/30",
+															task.status === 'Pending' && "text-amber-600 dark:text-amber-450 border-amber-500/30"
 														)}
 													>
-														<option value="Pending" className="bg-zinc-950 text-yellow-400 font-bold">Pending</option>
-														<option value="In Progress" className="bg-zinc-950 text-blue-400 font-bold">In Progress</option>
-														<option value="Completed" className="bg-zinc-950 text-emerald-400 font-bold">Completed</option>
+														<option value="Pending" className="bg-white dark:bg-zinc-950 text-amber-600 dark:text-amber-450 font-bold">Pending</option>
+														<option value="In Progress" className="bg-white dark:bg-zinc-950 text-blue-600 dark:text-blue-400 font-bold">In Progress</option>
+														<option value="Completed" className="bg-white dark:bg-zinc-950 text-emerald-600 dark:text-emerald-400 font-bold">Completed</option>
 													</select>
 												</td>
 											</tr>
@@ -1082,12 +1154,12 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 				{/* TAB: ATTENDANCE */}
 				{activeTab === 'attendance' && (
-					<div className="space-y-6">
+					<div className="space-y-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 						{leaveChoiceOpen && !(mobilePanelTab && mobileLogsOnly) && (
 							<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-								<div className="w-full max-w-md border border-zinc-700 bg-zinc-950 p-5 space-y-4">
-									<h3 className="text-sm font-semibold text-white">Leaving office?</h3>
-									<p className="text-xs text-zinc-400 leading-relaxed">
+								<div className="w-full max-w-md border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-zinc-900 p-6 space-y-4 rounded-xl shadow-lg">
+									<h3 className="text-sm font-semibold text-slate-900 dark:text-white">Leaving office?</h3>
+									<p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">
 										{String(employee?.gender || '').toUpperCase() === 'FEMALE'
 											? 'Office work keeps you checked in. Going home checks you out and starts home tracking (use the mobile app for live GPS until you arrive).'
 											: 'Office work keeps you checked in. Going home checks you out.'}
@@ -1096,21 +1168,21 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 										<Button
 											disabled={leaveChoiceBusy}
 											onClick={() => applyLeaveChoice('office_work')}
-											className="flex-1 rounded-none bg-zinc-800 hover:bg-zinc-700 text-white text-xs h-10"
+											className="flex-1 rounded-md bg-slate-800 dark:bg-zinc-800 hover:bg-slate-700 dark:hover:bg-zinc-700 text-white text-xs h-10 transition-colors cursor-pointer"
 										>
 											Office work
 										</Button>
 										<Button
 											disabled={leaveChoiceBusy}
 											onClick={() => applyLeaveChoice('going_home')}
-											className="flex-1 rounded-none bg-brand-600 hover:bg-brand-500 text-white text-xs h-10"
+											className="flex-1 rounded-md bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs h-10 transition-colors cursor-pointer"
 										>
 											Going home
 										</Button>
 										<Button
 											disabled={leaveChoiceBusy}
 											onClick={() => setLeaveChoiceOpen(false)}
-											className="rounded-none bg-transparent border border-zinc-700 text-zinc-300 text-xs h-10"
+											className="rounded-md bg-transparent border border-black/[0.1] dark:border-white/[0.1] text-slate-700 dark:text-zinc-300 text-xs h-10 transition-colors cursor-pointer"
 										>
 											Cancel
 										</Button>
@@ -1127,44 +1199,29 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 						) : null}
 
 						{geofenceError && !(mobilePanelTab && mobileLogsOnly) && (
-							<div className="bg-red-600/10 border border-red-600/25 p-4 rounded-none text-xs text-red-400 font-mono flex flex-col gap-2 transition-all">
-								<div className="flex items-start gap-2.5">
-									<span className="font-bold uppercase bg-red-600 text-white px-1.5 py-0.5 text-[9px] tracking-wider shrink-0">Alert</span>
-									<span>{geofenceError}</span>
-								</div>
-								{latePermissionNote ? (
-									<p className="text-sky-300">{latePermissionNote}</p>
-								) : null}
-								{canRequestLatePermission ? (
-									<button
-										type="button"
-										disabled={latePermissionBusy}
-										onClick={() => void requestLatePermission()}
-										className="self-start rounded-none bg-sky-600 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white disabled:opacity-60"
-									>
-										{latePermissionBusy ? 'Sending…' : 'Request late permission'}
-									</button>
-								) : null}
+							<div className="bg-[#E61E32]/10 border border-[#E61E32]/20 p-4 rounded-xl text-xs text-[#E61E32] flex items-start gap-2.5 transition-all shadow-xs font-semibold">
+								<span className="font-bold uppercase bg-[#E61E32] text-white px-1.5 py-0.5 text-[9px] tracking-wider shrink-0 rounded">Geofence Alert</span>
+								<span>{geofenceError}</span>
 							</div>
 						)}
 
 						{/* Top Timer & Action Container */}
 						{!(mobilePanelTab && mobileLogsOnly) && (
-						<div className="bg-zinc-900/30 border border-zinc-800 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-none">
+						<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl shadow-xs">
 							<div className="flex items-center gap-4 text-start">
-								<div className="bg-brand-950/40 border border-brand-900/50 p-3 flex items-center justify-center">
-									<ClockIcon className="size-6 text-brand-400" />
+								<div className="bg-[#E61E32]/10 p-3 rounded-lg flex items-center justify-center text-[#E61E32]">
+									<ClockIcon className="size-6" />
 								</div>
 								<div>
-									<p className="text-[10px] text-zinc-550 uppercase font-mono tracking-wider font-bold">Workspace Standard Clock</p>
-									<p className="text-xl md:text-2xl font-bold font-mono text-white tracking-wider">
+									<p className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Workspace Standard Clock</p>
+									<p className="text-xl md:text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-wider">
 										{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
 									</p>
-									<p className="text-[10px] text-zinc-400 mt-0.5">
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5">
 										{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 									</p>
-									<div className="flex items-center gap-1 text-[9px] text-indigo-400 mt-1 uppercase font-mono tracking-wider font-semibold">
-										<MapPinIcon className="size-3 text-indigo-400" />
+									<div className="flex items-center gap-1.5 text-[9px] text-[#E61E32] bg-[#E61E32]/15 px-2 py-0.5 rounded-md mt-1.5 w-fit font-bold font-mono">
+										<MapPinIcon className="size-3 text-[#E61E32]" />
 										<span>Geofence Perim: STUDENT FORGE Kompally Office (Hyderabad)</span>
 									</div>
 								</div>
@@ -1174,24 +1231,24 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								{attendanceStatus === 'checked_out' ? (
 									<Button 
 										onClick={handleCheckIn}
-										className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-6 rounded-none cursor-pointer h-12 w-full sm:w-auto transition-colors"
+										className="bg-emerald-600 hover:bg-emerald-555 text-white text-xs font-bold py-2.5 px-6 rounded-md cursor-pointer h-11 w-full sm:w-auto transition-colors shadow-sm"
 									>
 										Clock In Shift
 									</Button>
 								) : (
 									<Button 
 										onClick={handleCheckOut}
-										className="bg-red-600 hover:bg-red-500 text-white text-xs font-semibold py-2.5 px-6 rounded-none cursor-pointer h-12 w-full sm:w-auto transition-colors"
+										className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-bold py-2.5 px-6 rounded-md cursor-pointer h-11 w-full sm:w-auto transition-colors shadow-sm"
 									>
 										Clock Out Shift
 									</Button>
 								)}
-								<label className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono select-none cursor-pointer mt-1">
+								<label className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-450 font-mono select-none cursor-pointer mt-1.5">
 									<input 
 										type="checkbox" 
 										checked={bypassGeofence}
 										onChange={e => setBypassGeofence(e.target.checked)}
-										className="accent-brand-600 size-3 bg-zinc-950 border border-zinc-800 rounded-none cursor-pointer focus:outline-none"
+										className="accent-[#E61E32] size-3.5 bg-slate-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded cursor-pointer"
 									/>
 									<span>Work Remotely / Bypass Geofence</span>
 								</label>
@@ -1200,36 +1257,36 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 						)}
 
 						{/* Attendance Logs Table */}
-						<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none">
-							<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
+						<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-4 rounded-xl shadow-xs">
+							<h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
 								{mobileLogsOnly ? 'Attendance logs' : 'Attendance Shift Registry'}
 							</h3>
 							{attendanceLogs.length === 0 ? (
-								<div className="text-zinc-500 text-xs italic py-6 text-center">
+								<div className="text-slate-500 dark:text-zinc-400 text-xs italic py-6 text-center">
 									No attendance logs have been recorded in the database.
 								</div>
 							) : (
 								<div className="overflow-x-auto">
 									<table className="w-full text-left text-xs border-collapse">
 										<thead>
-											<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px] bg-zinc-950/40">
+											<tr className="border-b border-black/[0.06] dark:border-white/[0.08] text-slate-500 dark:text-zinc-400 uppercase font-mono text-[10px] bg-slate-50/50 dark:bg-zinc-950/40">
 												<th className="p-3">Date</th>
 												<th className="p-3">Check-In Time</th>
 												<th className="p-3">Check-Out Time</th>
 												<th className="p-3">Status</th>
 											</tr>
 										</thead>
-										<tbody className="divide-y divide-zinc-800/50 font-mono text-zinc-300">
+										<tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.08] font-mono text-slate-700 dark:text-zinc-300">
 											{attendanceLogs.map((log) => (
-												<tr key={log.id} className="hover:bg-zinc-900/20 transition-colors">
-													<td className="p-3 font-semibold text-white">{log.date}</td>
-													<td className="p-3 text-zinc-400">{log.checkIn}</td>
-													<td className="p-3 text-zinc-400">{log.checkOut || '--'}</td>
+												<tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/10 transition-colors">
+													<td className="p-3 font-semibold text-slate-900 dark:text-white">{log.date}</td>
+													<td className="p-3 text-slate-550 dark:text-zinc-400">{log.checkIn}</td>
+													<td className="p-3 text-slate-550 dark:text-zinc-400">{log.checkOut || '--'}</td>
 													<td className="p-3">
 														<span className={cn(
-															"px-2 py-0.5 text-[10px] font-bold border uppercase whitespace-nowrap",
-															log.status === 'Checked In' && "bg-emerald-950/30 text-emerald-400 border-emerald-900/30",
-															log.status === 'Present' && "bg-indigo-950/30 text-indigo-400 border-indigo-900/30"
+															"px-2.5 py-0.5 text-[10px] font-bold border uppercase whitespace-nowrap rounded-md",
+															log.status === 'Checked In' && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+															log.status === 'Present' && "bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 border-indigo-500/20"
 														)}>
 															{log.status}
 														</span>
@@ -1246,47 +1303,47 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 				{/* TAB: LEAVES */}
 				{activeTab === 'leaves' && (
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 						{/* Form Request block */}
-						<form onSubmit={handleRequestLeave} className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none h-fit">
-							<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
+						<form onSubmit={handleRequestLeave} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-4 rounded-xl shadow-xs h-fit">
+							<h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
 								Request Leave Time
 							</h3>
 							
 							{leaveMsg && (
-								<div className="p-2 border border-indigo-900 bg-indigo-950/20 text-indigo-300 text-xs font-mono">
+								<div className="p-2.5 border border-[#E61E32]/20 bg-[#E61E32]/5 text-[#E61E32] text-xs font-mono rounded-md">
 									{leaveMsg}
 								</div>
 							)}
 
-							<div className="space-y-1">
-								<label className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-555">Start Date</label>
+							<div className="space-y-1.5">
+								<label className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400">Start Date</label>
 								<input 
 									type="date" 
 									required
 									value={leaveStart}
 									onChange={(e) => setLeaveStart(e.target.value)}
-									className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-none p-2.5 text-xs outline-none focus:border-zinc-700 transition-colors"
+									className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 rounded-md p-2.5 text-xs outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all"
 								/>
 							</div>
 
-							<div className="space-y-1">
-								<label className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-555">End Date</label>
+							<div className="space-y-1.5">
+								<label className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400">End Date</label>
 								<input 
 									type="date" 
 									required
 									value={leaveEnd}
 									onChange={(e) => setLeaveEnd(e.target.value)}
-									className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-none p-2.5 text-xs outline-none focus:border-zinc-700 transition-colors"
+									className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 rounded-md p-2.5 text-xs outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all"
 								/>
 							</div>
 
-							<div className="space-y-1">
-								<label className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-555">Leave Category</label>
+							<div className="space-y-1.5">
+								<label className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400">Leave Category</label>
 								<select 
 									value={leaveType}
 									onChange={(e) => setLeaveType(e.target.value)}
-									className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-none p-2.5 text-xs outline-none focus:border-zinc-700 transition-colors"
+									className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 rounded-md p-2.5 text-xs outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all cursor-pointer"
 								>
 									<option value="Annual Leave">Annual Leave</option>
 									<option value="Sick Leave">Sick Leave</option>
@@ -1295,61 +1352,60 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								</select>
 							</div>
 
-							<div className="space-y-1">
-								<label className="text-[10px] uppercase font-mono tracking-wider font-semibold text-zinc-555">Reason / Justification</label>
+							<div className="space-y-1.5">
+								<label className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400">Reason / Justification</label>
 								<textarea 
 									rows={4}
 									required
 									value={leaveReason}
 									onChange={(e) => setLeaveReason(e.target.value)}
 									placeholder="Provide shift coverage justification..."
-									className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-none p-2.5 text-xs outline-none focus:border-zinc-700 transition-colors resize-none placeholder-zinc-700"
+									className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 rounded-md p-2.5 text-xs outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all resize-none placeholder-slate-400 dark:placeholder-zinc-600"
 								/>
 							</div>
 
 							<Button 
 								type="submit"
-								disabled={isLeaveSubmitting}
-								className="w-full bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-semibold py-2.5 rounded-none cursor-pointer transition-colors disabled:opacity-60"
+								className="w-full bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-bold py-2.5 rounded-md cursor-pointer transition-colors"
 							>
 								{isLeaveSubmitting ? 'Submitting…' : 'Submit Leave Request'}
 							</Button>
 						</form>
 
 						{/* Requested Leaves Registry List */}
-						<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none lg:col-span-2">
-							<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
+						<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-4 rounded-xl shadow-xs lg:col-span-2">
+							<h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
 								Requested Leaves Registry
 							</h3>
 
 							{leaveRequests.length === 0 ? (
-								<p className="text-zinc-500 text-xs italic py-6 text-center">No leave requests have been logged.</p>
+								<p className="text-slate-500 dark:text-zinc-400 text-xs italic py-6 text-center">No leave requests have been logged.</p>
 							) : (
 								<div className="overflow-x-auto">
 									<table className="w-full text-left text-xs border-collapse">
 										<thead>
-											<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px] bg-zinc-950/40">
+											<tr className="border-b border-black/[0.06] dark:border-white/[0.08] text-slate-500 dark:text-zinc-400 uppercase font-mono text-[10px] bg-slate-50/50 dark:bg-zinc-950/40">
 												<th className="p-3">Category</th>
 												<th className="p-3">Period</th>
 												<th className="p-3">Reason</th>
 												<th className="p-3 text-right">Status</th>
 											</tr>
 										</thead>
-										<tbody className="divide-y divide-zinc-800/50">
+										<tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.08] text-slate-700 dark:text-zinc-300">
 											{leaveRequests.map((req: any) => (
-												<tr key={req.id} className="hover:bg-zinc-900/20 transition-colors">
-													<td className="p-3 font-semibold text-white font-mono">{req.type}</td>
-													<td className="p-3 text-zinc-400 whitespace-nowrap font-mono">
+												<tr key={req.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/10 transition-colors">
+													<td className="p-3 font-semibold text-slate-900 dark:text-white font-mono">{req.type}</td>
+													<td className="p-3 text-slate-550 dark:text-zinc-400 whitespace-nowrap font-mono">
 														{new Date(req.startDate).toLocaleDateString()} - {new Date(req.endDate).toLocaleDateString()}
 													</td>
-													<td className="p-3 text-zinc-550 max-w-xs truncate">{req.reason}</td>
+													<td className="p-3 text-slate-500 dark:text-zinc-400 max-w-xs truncate">{req.reason}</td>
 													<td className="p-3 text-right">
 														<span className={cn(
-															"px-2 py-0.5 text-[10px] font-bold border uppercase whitespace-nowrap font-mono",
-															req.status === 'Approved' && "bg-emerald-950/30 text-emerald-450 border-emerald-900/30",
-															req.status === 'Pending' && "bg-yellow-950/30 text-yellow-450 border-yellow-900/30",
-															req.status === 'Ignored' && "bg-zinc-900 text-zinc-400 border-zinc-800",
-															req.status === 'Cancelled' && "bg-red-950/30 text-red-450 border-red-900/30"
+															"px-2.5 py-0.5 text-[10px] font-bold border uppercase whitespace-nowrap font-mono rounded-md",
+															req.status === 'Approved' && "bg-emerald-500/10 text-emerald-650 dark:text-emerald-400 border-emerald-500/20",
+															req.status === 'Pending' && "bg-amber-500/10 text-amber-650 dark:text-amber-400 border-amber-500/20",
+															req.status === 'Ignored' && "bg-slate-100 dark:bg-zinc-800 text-slate-650 dark:text-zinc-450 border border-black/5 dark:border-white/5",
+															req.status === 'Cancelled' && "bg-red-500/10 text-red-650 dark:text-red-400 border-red-500/20"
 														)}>
 															{req.status}
 														</span>
@@ -1370,7 +1426,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 						currentUser={{
 							id: employee.id,
 							name: `${employee.firstName} ${employee.lastName}`,
-							email: employee.email,
+email: employee.email,
 							role: 'Employee',
 							photoUrl: (employee as { photoUrl?: string | null }).photoUrl ?? null,
 						}}
@@ -1379,23 +1435,23 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 				{/* TAB: EVENTS */}
 				{activeTab === 'events' && (
-					<div className="space-y-6">
+					<div className="space-y-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 						<div>
-							<h2 className="text-xl font-bold text-white flex items-center gap-2">
-								<CalendarIcon className="size-5 text-brand-400" />
+							<h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+								<CalendarIcon className="size-5 text-[#E61E32]" />
 								Company Events
 							</h2>
-							<p className="text-zinc-400 text-sm mt-0.5">Events where you are listed as a representative</p>
+							<p className="text-slate-500 dark:text-zinc-400 text-sm mt-0.5">Events where you are listed as a representative</p>
 						</div>
 
 						{eventsLoading ? (
-							<div className="text-center py-16 text-zinc-600">
-								<p className="text-sm">Loading events...</p>
+							<div className="text-center py-16 text-slate-400">
+								<p className="text-sm animate-pulse">Loading events...</p>
 							</div>
 						) : eventsList.length === 0 ? (
-							<div className="text-center py-16 text-zinc-600 border border-zinc-900">
-								<CalendarIcon className="size-10 mx-auto mb-3 opacity-40" />
-								<p className="text-sm font-medium">No events assigned to you</p>
+							<div className="text-center py-16 text-slate-400 border border-dashed border-black/10 dark:border-white/10 rounded-xl">
+								<CalendarIcon className="size-10 mx-auto mb-3 opacity-30 text-slate-400" />
+								<p className="text-sm font-semibold">No events assigned to you</p>
 								<p className="text-xs mt-1">You only see events where admin added you as a representative</p>
 							</div>
 						) : (
@@ -1409,44 +1465,44 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									const isOngoing = startD <= now && endD >= now;
 
 									return (
-										<div key={event.id} className="bg-zinc-900/30 border border-zinc-800/80 flex flex-col hover:border-brand-900/60 transition-all duration-305 shadow-lg group relative">
+										<div key={event.id} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] flex flex-col hover:border-[#E61E32]/40 transition-all duration-300 shadow-sm rounded-xl overflow-hidden group relative">
 											{/* Image Banner */}
-											<div className="h-40 w-full relative overflow-hidden bg-zinc-950 flex items-center justify-center border-b border-zinc-800/50">
+											<div className="h-40 w-full relative overflow-hidden bg-slate-50 dark:bg-zinc-950 flex items-center justify-center border-b border-black/[0.06] dark:border-white/[0.08]">
 												{event.imageUrl ? (
 													<img 
 														src={event.imageUrl} 
 														alt={event.title} 
-														className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-500" 
+														className="h-full w-full object-contain group-hover:scale-102 transition-transform duration-500" 
 													/>
 												) : (
-													<div className="h-full w-full bg-gradient-to-br from-indigo-950 via-zinc-900 to-black relative flex items-center justify-center border-b border-zinc-800">
-														<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_70%)]" />
-														<CalendarIcon className="size-10 text-brand-500/20" />
+													<div className="h-full w-full bg-gradient-to-br from-red-950/10 via-slate-50 to-slate-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 relative flex items-center justify-center">
+														<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(230,30,50,0.04),transparent_70%)]" />
+														<CalendarIcon className="size-10 text-[#E61E32]/10" />
 													</div>
 												)}
 												
 												{/* Absolute Badge */}
-												<span className={`absolute top-3 right-3 text-[9px] px-2 py-0.5 font-mono uppercase tracking-wider whitespace-nowrap border ${
+												<span className={`absolute top-3 right-3 text-[9px] px-2 py-0.5 font-bold uppercase tracking-wider whitespace-nowrap border rounded-md ${
 													isOngoing
-														? 'bg-emerald-950/80 border-emerald-800/60 text-emerald-400 backdrop-blur-sm'
+														? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-450 backdrop-blur-xs'
 														: isUpcoming
-														? 'bg-brand-950/80 border-brand-800/60 text-brand-400 backdrop-blur-sm'
-														: 'bg-zinc-900/80 border-zinc-700/60 text-zinc-500 backdrop-blur-sm'
+														? 'bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32] backdrop-blur-xs'
+														: 'bg-slate-100 dark:bg-zinc-800 border-black/10 dark:border-white/10 text-slate-500 dark:text-zinc-400 backdrop-blur-xs'
 												}`}>
 													{isOngoing ? 'Ongoing' : isUpcoming ? 'Upcoming' : 'Past'}
 												</span>
 											</div>
 
 											{/* Basic Info Container */}
-											<div className="p-4 flex-1 flex flex-col justify-between space-y-4 bg-zinc-950/30">
+											<div className="p-4 flex-1 flex flex-col justify-between space-y-4 bg-white dark:bg-zinc-900">
 												<div className="space-y-1.5">
-													<p className="text-[10px] text-brand-400 font-bold uppercase tracking-wider font-mono">{event.organisingCollege}</p>
-													<h3 className="text-base font-bold text-white leading-snug">{event.title}</h3>
-													<p className="text-xs text-zinc-450 line-clamp-2 leading-relaxed">{event.description}</p>
+													<p className="text-[10px] text-[#E61E32] font-bold uppercase tracking-wider font-mono">{event.organisingCollege}</p>
+													<h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug">{event.title}</h3>
+													<p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">{event.description}</p>
 												</div>
 
-												<div className="pt-3 border-t border-zinc-900 text-[11px] text-zinc-400 flex items-center justify-between">
-													<span className="font-mono">{fmt(startD)}</span>
+												<div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08] text-[11px] text-slate-500 dark:text-zinc-450 flex items-center justify-between">
+													<span className="font-mono font-medium">{fmt(startD)}</span>
 													<button
 														onClick={() => {
 															const url = `/events/${event.id}`;
@@ -1456,7 +1512,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 																window.location.href = url;
 															}
 														}}
-														className="text-brand-600 hover:text-brand-800 font-bold text-xs uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
+														className="text-[#E61E32] hover:text-[#c9182a] font-bold text-xs uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
 													>
 														View Details →
 													</button>
@@ -1470,34 +1526,34 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 					</div>
 				)}
 
-			{/* TAB: WORK SUBMISSION */}
+				{/* TAB: WORK SUBMISSION */}
 				{activeTab === 'work_submission' && (
-					<div className="space-y-8">
+					<div className="space-y-8" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 						{/* Submit Work Form */}
 						<div className="space-y-4">
 							<div>
-								<h2 className="text-xl font-bold text-white flex items-center gap-2">
-									<BriefcaseIcon className="size-5 text-brand-400" />
+								<h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+									<BriefcaseIcon className="size-5 text-[#E61E32]" />
 									Submit Your Work
 								</h2>
-								<p className="text-zinc-400 text-sm mt-0.5">Report completed work for admin review and approval</p>
+								<p className="text-slate-500 dark:text-zinc-400 text-sm mt-0.5">Report completed work for admin review and approval</p>
 							</div>
 
 							{subMessage && (
 								<div className={cn(
-									"p-3 text-xs border font-mono",
-									subMessage.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400"
+									"p-3 text-xs border font-mono rounded-md",
+									subMessage.type === 'success' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
 								)}>
 									{subMessage.text}
 								</div>
 							)}
 
-							<form onSubmit={handleWorkSubmit} className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-5">
-								<h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider border-b border-zinc-800 pb-3">Work Details</h3>
+							<form onSubmit={handleWorkSubmit} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-5 rounded-xl shadow-xs">
+								<h3 className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider border-b border-black/[0.06] dark:border-white/[0.08] pb-3">Work Details</h3>
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Work Title *</label>
+										<label className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Work Title *</label>
 										<input
 											type="text"
 											value={subTitle}
@@ -1505,11 +1561,11 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 											required
 											disabled={isSubmitting}
 											placeholder="e.g. Completed landing page redesign"
-											className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 focus:outline-none focus:ring-1 focus:ring-brand-600"
+											className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 placeholder:text-slate-400 dark:placeholder-zinc-650 rounded-md text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all"
 										/>
 									</div>
 									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Hours Spent *</label>
+										<label className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Hours Spent *</label>
 										<input
 											type="number"
 											value={subHours}
@@ -1519,32 +1575,32 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 											min="0.5"
 											step="0.5"
 											placeholder="e.g. 3.5"
-											className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 focus:outline-none focus:ring-1 focus:ring-brand-600"
+											className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 placeholder:text-slate-400 dark:placeholder-zinc-650 rounded-md text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all"
 										/>
 									</div>
 								</div>
 
 								<div className="space-y-1.5">
-									<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Description of Work Done *</label>
+									<label className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Description of Work Done *</label>
 									<textarea
 										value={subDescription}
 										onChange={e => setSubDescription(e.target.value)}
 										required
-											disabled={isSubmitting}
+										disabled={isSubmitting}
 										rows={4}
 										placeholder="Describe what you accomplished, challenges overcome, and deliverables produced..."
-										className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
+										className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 placeholder:text-slate-400 dark:placeholder-zinc-650 rounded-md text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all resize-none"
 									/>
 								</div>
 
 								{empTasks.length > 0 && (
 									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Link to Task (Optional)</label>
+										<label className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">Link to Task (Optional)</label>
 										<select
 											value={subTaskId}
 											onChange={e => setSubTaskId(e.target.value)}
 											disabled={isSubmitting}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-none text-sm p-3 focus:outline-none focus:ring-1 focus:ring-brand-600 cursor-pointer"
+											className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 rounded-md text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all cursor-pointer"
 										>
 											<option value="">— No linked task —</option>
 											{empTasks.map((task: any) => (
@@ -1556,11 +1612,11 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									</div>
 								)}
 
-								<div className="flex justify-end pt-2 border-t border-zinc-800">
+								<div className="flex justify-end pt-3 border-t border-black/[0.06] dark:border-white/[0.08]">
 									<button
 										type="submit"
 										disabled={isSubmitting}
-										className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-6 py-2.5 rounded-none cursor-pointer transition-colors disabled:opacity-50"
+										className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-bold px-6 py-2.5 rounded-md cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
 									>
 										{isSubmitting ? 'Submitting...' : 'Submit Work'}
 									</button>
@@ -1570,49 +1626,49 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 						{/* My Submission History */}
 						<div className="space-y-4">
-							<h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2 border-b border-zinc-800 pb-3">
-								<ClockIcon className="size-4 text-zinc-500" />
+							<h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
+								<ClockIcon className="size-4 text-slate-500" />
 								My Submission History
 							</h3>
 							{mySubmissions.length === 0 ? (
-								<div className="text-center py-12 text-zinc-600 border border-zinc-900">
+								<div className="text-center py-12 text-slate-400 border border-dashed border-black/10 dark:border-white/10 rounded-xl">
 									<p className="text-sm">No submissions yet. Submit your first work above.</p>
 								</div>
 							) : (
 								<div className="space-y-3">
 									{mySubmissions.map((sub: any) => {
 										const statusColors: Record<string, string> = {
-											'Submitted': 'bg-amber-950/30 border-amber-900/40 text-amber-300',
-											'Reviewed': 'bg-blue-950/30 border-blue-900/40 text-blue-300',
-											'Approved': 'bg-emerald-950/30 border-emerald-900/40 text-emerald-300',
-											'Needs Revision': 'bg-red-950/30 border-red-900/40 text-red-300',
+											'Submitted': 'bg-amber-500/10 border-amber-500/25 text-amber-600 dark:text-amber-400',
+											'Reviewed': 'bg-blue-500/10 border-blue-500/25 text-blue-600 dark:text-blue-400',
+											'Approved': 'bg-emerald-500/10 border-emerald-500/25 text-emerald-600 dark:text-emerald-400',
+											'Needs Revision': 'bg-red-500/10 border-red-500/25 text-red-600 dark:text-red-400',
 										};
 										const canDelete = canDeleteSubmission(sub);
 										const canEdit = canEditSubmission(sub);
 										return (
-											<div key={sub.id} className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-2">
+											<div key={sub.id} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-4.5 space-y-2.5 rounded-xl shadow-xs">
 												<div className="flex items-start justify-between gap-3 flex-wrap">
 													<div>
-														<h4 className="text-sm font-semibold text-white">{sub.title}</h4>
-														<p className="text-xs text-zinc-500 mt-0.5">
+														<h4 className="text-sm font-bold text-slate-900 dark:text-white">{sub.title}</h4>
+														<p className="text-xs text-slate-500 dark:text-zinc-500 mt-1">
 															{new Date(sub.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
 															{' · '}
-															<span className="text-brand-400 font-medium">{sub.hoursSpent}h</span>
-															{sub.taskTitle && <span> · Task: <span className="text-zinc-300">{sub.taskTitle}</span></span>}
+															<span className="text-[#E61E32] font-semibold">{sub.hoursSpent}h</span>
+															{sub.taskTitle && <span> · Task: <span className="text-slate-800 dark:text-zinc-300 font-medium">{sub.taskTitle}</span></span>}
 														</p>
 													</div>
-													<span className={cn("text-[10px] px-2 py-1 font-mono uppercase tracking-wider border", statusColors[sub.status] || 'bg-zinc-800/40 border-zinc-700/40 text-zinc-400')}>
+													<span className={cn("text-[9px] px-2.5 py-0.5 font-mono uppercase font-bold tracking-wider border rounded-md", statusColors[sub.status] || 'bg-slate-100 dark:bg-zinc-800 border-black/10 dark:border-white/10 text-slate-500 dark:text-zinc-400')}>
 														{sub.status}
 													</span>
 												</div>
-												<p className="text-xs text-zinc-500 leading-relaxed">{sub.description}</p>
+												<p className="text-xs text-slate-650 dark:text-zinc-400 leading-relaxed">{sub.description}</p>
 												{(canDelete || canEdit) && (
-													<div className="flex justify-end">
+													<div className="flex justify-end pt-1">
 														{canEdit && (
 															<button
 																type="button"
 																onClick={() => void handleEditMySubmission(sub)}
-																className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 border border-indigo-900/50 text-indigo-300 hover:bg-indigo-950/30 cursor-pointer me-2"
+																className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 border border-black/[0.1] dark:border-white/[0.1] bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 rounded-md cursor-pointer me-2 transition-colors"
 															>
 																<PencilIcon className="size-3.5" />
 																Edit (10m)
@@ -1621,7 +1677,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 														<button
 															type="button"
 															onClick={() => handleDeleteMySubmission(sub.id)}
-															className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 border border-red-900/50 text-red-300 hover:bg-red-950/30 cursor-pointer"
+															className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-650 dark:text-red-400 rounded-md cursor-pointer transition-colors"
 														>
 															<Trash2Icon className="size-3.5" />
 															Delete (10m)
@@ -1629,8 +1685,8 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 													</div>
 												)}
 												{sub.adminNote && (
-													<div className="bg-zinc-900/60 border border-zinc-800 px-3 py-2 text-xs text-zinc-400 italic mt-1">
-														<span className="text-zinc-500 not-italic font-semibold">Admin: </span>{sub.adminNote}
+													<div className="bg-slate-50 dark:bg-zinc-950 border border-black/[0.06] dark:border-white/[0.08] px-3.5 py-2.5 rounded-lg text-xs text-slate-500 dark:text-zinc-400 italic mt-1.5">
+														<span className="text-slate-800 dark:text-zinc-300 not-italic font-bold">Admin: </span>{sub.adminNote}
 													</div>
 												)}
 											</div>
@@ -1638,31 +1694,31 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									})}
 								</div>
 							)}
-							</div>
 					</div>
-				)}
+				</div>
+			)}
 
 				{/* TAB: LEADS */}
 				{activeTab === 'leads' && (() => {
 					const STATUS_COLOURS: Record<string, string> = {
-						New:        'bg-zinc-800/60 border-zinc-700 text-zinc-300',
-						Contacted:  'bg-blue-950/40 border-blue-800/60 text-blue-300',
-						Qualified:  'bg-amber-950/40 border-amber-800/60 text-amber-300',
-						Proposal:   'bg-violet-950/40 border-violet-800/60 text-violet-300',
-						Won:        'bg-emerald-950/40 border-emerald-800/60 text-emerald-300',
-						Lost:       'bg-red-950/40 border-red-800/60 text-red-300',
+						New:        'bg-slate-100 dark:bg-zinc-800 border-black/10 dark:border-white/10 text-slate-500 dark:text-zinc-400',
+						Contacted:  'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400',
+						Qualified:  'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400',
+						Proposal:   'bg-purple-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400',
+						Won:        'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',
+						Lost:       'bg-red-500/10 border-red-500/20 text-red-650 dark:text-red-405',
 					};
 					const SOURCE_COLOURS: Record<string, string> = {
-						JustDial:   'text-orange-400',
-						Sulekha:    'text-amber-400',
-						Yelp:       'text-red-400',
-						Clutch:     'text-brand-400',
-						Upwork:     'text-green-400',
-						Freelancer: 'text-teal-400',
-						IndiaMART:  'text-yellow-400',
-						'Google Maps': 'text-sky-400',
-						LinkedIn:   'text-blue-400',
-						Behance:    'text-cyan-400',
+						JustDial:   'text-orange-500',
+						Sulekha:    'text-amber-505',
+						Yelp:       'text-red-500',
+						Clutch:     'text-[#E61E32]',
+						Upwork:     'text-green-500',
+						Freelancer: 'text-teal-500',
+						IndiaMART:  'text-yellow-600 dark:text-yellow-400',
+						'Google Maps': 'text-sky-500',
+						LinkedIn:   'text-blue-500',
+						Behance:    'text-cyan-500',
 					};
 
 					const allSources = ['All', ...Array.from(new Set(leadsList.map(l => l.source)))];
@@ -1675,29 +1731,29 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 					});
 
 					return (
-						<div className="space-y-6">
+						<div className="space-y-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 							{/* Header */}
 							<div className="flex items-start justify-between gap-4 flex-wrap">
 								<div>
-									<h2 className="text-xl font-bold text-white flex items-center gap-2">
-										<BarChart2Icon className="size-5 text-brand-400" />
+									<h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+										<BarChart2Icon className="size-5 text-[#E61E32]" />
 										Leads Pipeline
 									</h2>
-									<p className="text-zinc-400 text-sm mt-0.5">{leadsList.filter(l => leadsSubTab === 'pipeline' ? l.source !== 'Manual' : l.source === 'Manual').length} total leads · {filtered.length} shown</p>
+									<p className="text-slate-500 dark:text-zinc-400 text-sm mt-0.5">{leadsList.filter(l => leadsSubTab === 'pipeline' ? l.source !== 'Manual' : l.source === 'Manual').length} total leads · {filtered.length} shown</p>
 								</div>
 								
 								<div className="flex items-center gap-2 flex-wrap">
 									{/* Sub-tab selection */}
-									<div className="bg-zinc-950 border border-zinc-800 p-0.5 flex gap-0.5">
+									<div className="bg-slate-100 dark:bg-zinc-950 border border-black/5 dark:border-white/5 p-0.5 rounded-lg flex gap-0.5">
 										<button
 											onClick={() => { setLeadsSubTab('pipeline'); setLeadsFilter('All'); setLeadsSourceFilter('All'); }}
-											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", leadsSubTab === 'pipeline' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+											className={cn("text-[10px] px-3.5 py-1.5 font-semibold cursor-pointer rounded-md transition-all", leadsSubTab === 'pipeline' ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white")}
 										>
 											Pipeline Leads
 										</button>
 										<button
 											onClick={() => { setLeadsSubTab('manual'); setLeadsFilter('All'); setLeadsSourceFilter('All'); }}
-											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", leadsSubTab === 'manual' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+											className={cn("text-[10px] px-3.5 py-1.5 font-semibold cursor-pointer rounded-md transition-all", leadsSubTab === 'manual' ? "bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xs" : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white")}
 										>
 											Manual Leads
 										</button>
@@ -1706,8 +1762,8 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									{/* Action button conditional on subtab */}
 									{leadsSubTab === 'pipeline' ? (
 										<label className={cn(
-											"flex items-center gap-2 text-[10px] font-semibold px-3 py-2.5 cursor-pointer transition-colors border",
-											importLoading ? "bg-zinc-800 border-zinc-700 text-zinc-500 cursor-wait" : "bg-brand-700 hover:bg-brand-600 border-brand-600 text-white"
+											"flex items-center gap-2 text-[10px] font-semibold px-4 py-2.5 rounded-md cursor-pointer transition-colors border shadow-xs",
+											importLoading ? "bg-slate-100 dark:bg-zinc-850 border-black/10 dark:border-white/10 text-slate-400 dark:text-zinc-500 cursor-wait" : "bg-[#E61E32] hover:bg-[#c9182a] border-[#E61E32] text-white"
 										)}>
 											<UploadIcon className="size-3.5" />
 											{importLoading ? 'Importing…' : 'Import leads_latest.json'}
@@ -1716,7 +1772,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									) : (
 										<button
 											onClick={() => setShowManualForm(!showManualForm)}
-											className="bg-brand-600 hover:bg-brand-500 border border-brand-500 text-white text-[10px] font-semibold px-3 py-2.5 cursor-pointer transition-colors"
+											className="bg-[#E61E32] hover:bg-[#c9182a] border border-[#E61E32] text-white text-[10px] font-semibold px-4 py-2.5 rounded-md cursor-pointer transition-colors shadow-xs"
 										>
 											{showManualForm ? 'Hide Form' : 'Add Lead Manually'}
 										</button>
@@ -1725,109 +1781,109 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 							</div>
 
 							{importMessage && (
-								<div className={cn("p-3 text-xs border font-mono", importMessage.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400")}>
+								<div className={cn("p-3 text-xs border font-mono rounded-md", importMessage.type === 'success' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]")}>
 									{importMessage.text}
 								</div>
 							)}
 
 							{manualLeadMsg && (
-								<div className={cn("p-3 text-xs border font-mono", manualLeadMsg.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400")}>
+								<div className={cn("p-3 text-xs border font-mono rounded-md", manualLeadMsg.type === 'success' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]")}>
 									{manualLeadMsg.text}
 								</div>
 							)}
 
 							{/* Feed Manual Lead Form */}
 							{leadsSubTab === 'manual' && showManualForm && (
-								<form onSubmit={handleCreateManualLead} className="bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
-									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-										<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Feed Manual Lead</h3>
-										<button type="button" onClick={() => setShowManualForm(false)} className="text-xs text-zinc-500 hover:text-zinc-300">Cancel</button>
+								<form onSubmit={handleCreateManualLead} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-5 space-y-4 rounded-xl shadow-xs">
+									<div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-2">
+										<h3 className="text-xs font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">Feed Manual Lead</h3>
+										<button type="button" onClick={() => setShowManualForm(false)} className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200">Cancel</button>
 									</div>
 									
 									<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Business Name *</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Business Name *</label>
 											<input
 												type="text"
 												value={manualBizName}
 												onChange={e => setManualBizName(e.target.value)}
 												required
 												placeholder="e.g. Delta Corp"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Contact Person</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Contact Person</label>
 											<input
 												type="text"
 												value={manualContact}
 												onChange={e => setManualContact(e.target.value)}
 												placeholder="e.g. Jane Smith"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Category</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Category</label>
 											<input
 												type="text"
 												value={manualCat}
 												onChange={e => setManualCat(e.target.value)}
 												placeholder="e.g. Web Development"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 											/>
 										</div>
 									</div>
 
 									<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Phone Number</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Phone Number</label>
 											<input
 												type="text"
 												value={manualPhone}
 												onChange={e => setManualPhone(e.target.value)}
 												placeholder="e.g. +91 9988776655"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Email Address</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Email Address</label>
 											<input
 												type="email"
 												value={manualEmail}
 												onChange={e => setManualEmail(e.target.value)}
 												placeholder="e.g. contact@delta.com"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Website</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Website</label>
 											<input
 												type="text"
 												value={manualWeb}
 												onChange={e => setManualWeb(e.target.value)}
 												placeholder="e.g. www.delta.com"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 											/>
 										</div>
 									</div>
 
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Location / Address</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Location / Address</label>
 											<input
 												type="text"
 												value={manualLoc}
 												onChange={e => setManualLoc(e.target.value)}
 												placeholder="e.g. Gachibowli, Hyderabad"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Priority</label>
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Priority</label>
 											<select
 												value={manualPriority}
 												onChange={e => setManualPriority(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 cursor-pointer"
+												className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 cursor-pointer"
 											>
 												<option value="Low">Low</option>
 												<option value="Medium">Medium</option>
@@ -1837,21 +1893,21 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									</div>
 
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Description / Notes</label>
+										<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-semibold">Description / Notes</label>
 										<textarea
 											value={manualDesc}
 											onChange={e => setManualDesc(e.target.value)}
 											rows={2}
 											placeholder="Enter any initial details about the client, requirements, or lead description..."
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
+											className="w-full bg-slate-50 dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-900 dark:text-white text-xs p-2.5 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 										/>
 									</div>
 
-									<div className="flex justify-end pt-2 border-t border-zinc-800">
+									<div className="flex justify-end pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
 										<button
 											type="submit"
 											disabled={isSavingManualLead}
-											className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-5 py-2 cursor-pointer transition-colors disabled:opacity-50"
+											className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-bold px-5 py-2 rounded-md cursor-pointer transition-colors disabled:opacity-50"
 										>
 											{isSavingManualLead ? 'Saving...' : 'Save Lead'}
 										</button>
@@ -1863,9 +1919,9 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 							<div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
 								{Object.entries(STATUS_COLOURS).map(([status, cls]) => (
 									<button key={status} onClick={() => setLeadsFilter(leadsFilter === status ? 'All' : status)}
-										className={cn("border p-3 text-left transition-colors cursor-pointer", leadsFilter === status ? cls + " ring-1 ring-brand-500" : "bg-zinc-900/30 border-zinc-800 hover:border-zinc-700")}>
-										<p className="text-[10px] text-zinc-500 uppercase tracking-wider">{status}</p>
-										<p className="text-lg font-bold text-white">{leadsList.filter(l => {
+										className={cn("border p-3 text-left transition-colors cursor-pointer rounded-lg shadow-2xs", leadsFilter === status ? cls + " ring-1 ring-[#E61E32]" : "bg-white dark:bg-zinc-900 border-black/[0.06] dark:border-white/[0.08] hover:border-black/[0.12] dark:hover:border-white/[0.12]")}>
+										<p className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase tracking-wider">{status}</p>
+										<p className="text-lg font-bold text-slate-800 dark:text-white leading-none mt-1">{leadsList.filter(l => {
 											const subTabOk = leadsSubTab === 'pipeline' ? l.source !== 'Manual' : l.source === 'Manual';
 											return subTabOk && l.status === status;
 										}).length}</p>
@@ -1880,14 +1936,14 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									value={leadsSearch}
 									onChange={e => setLeadsSearch(e.target.value)}
 									placeholder="Search by name, location, category…"
-									className="flex-1 min-w-[220px] bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 text-xs p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-brand-600"
+									className="flex-1 min-w-[220px] bg-white dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-200 placeholder:text-slate-400 dark:placeholder-zinc-650 text-xs p-2.5 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35"
 								/>
 								{leadsSubTab === 'pipeline' && (
 									<div className="flex gap-1.5 flex-wrap">
 										{allSources.filter(s => s !== 'Manual').map(s => (
 											<button key={s} onClick={() => setLeadsSourceFilter(s)}
-												className={cn("text-[10px] px-2.5 py-1 border font-medium cursor-pointer transition-colors",
-													leadsSourceFilter === s ? "bg-brand-700 border-brand-600 text-white" : "bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700")}>
+												className={cn("text-[10px] px-2.5 py-1 border font-medium cursor-pointer transition-colors rounded-md",
+													leadsSourceFilter === s ? "bg-[#E61E32] border-[#E61E32] text-white" : "bg-slate-50 dark:bg-zinc-850 border-black/[0.06] dark:border-white/[0.08] text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800")}>
 												{s}
 											</button>
 										))}
@@ -1897,9 +1953,9 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 							{/* Leads table */}
 							{filtered.length === 0 ? (
-								<div className="text-center py-16 border border-zinc-900 text-zinc-600">
-									<BarChart2Icon className="size-10 mx-auto mb-3 opacity-30" />
-									<p className="text-sm font-medium">No leads found</p>
+								<div className="text-center py-16 border border-dashed border-black/10 dark:border-white/10 rounded-xl text-slate-400">
+									<BarChart2Icon className="size-10 mx-auto mb-3 opacity-30 text-slate-400" />
+									<p className="text-sm font-semibold">No leads found</p>
 									<p className="text-xs mt-1">
 										{leadsSubTab === 'pipeline' 
 											? 'Run the Python crawler and import the JSON file above' 
@@ -1907,10 +1963,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									</p>
 								</div>
 							) : leadsSubTab === 'manual' ? (
-								<div className="overflow-x-auto border border-zinc-800 bg-zinc-950/20">
+								<div className="overflow-x-auto border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-zinc-900 rounded-xl shadow-xs">
 									<table className="w-full text-left border-collapse text-xs">
 										<thead>
-											<tr className="bg-zinc-900/60 border-b border-zinc-800 text-zinc-400 font-mono uppercase tracking-wider text-[10px]">
+											<tr className="bg-slate-50/70 dark:bg-zinc-950/40 border-b border-black/[0.06] dark:border-white/[0.08] text-slate-500 dark:text-zinc-400 font-mono uppercase tracking-wider text-[10px]">
 												<th className="p-3 font-semibold">Business Name</th>
 												<th className="p-3 font-semibold">Contact Person</th>
 												<th className="p-3 font-semibold">Category / Location</th>
@@ -1920,18 +1976,18 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 												<th className="p-3 font-semibold text-right">Status</th>
 											</tr>
 										</thead>
-										<tbody className="divide-y divide-zinc-900">
+										<tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.08]">
 											{filtered.map((lead: any) => (
-												<tr key={lead.id} className="hover:bg-zinc-900/40 transition-colors">
-													<td className="p-3 font-bold text-white max-w-[180px] truncate">{lead.businessName}</td>
-													<td className="p-3 text-zinc-300 font-mono">{lead.contactName || '—'}</td>
-													<td className="p-3 text-zinc-400">
-														<div className="font-semibold text-zinc-300">{lead.category || '—'}</div>
-														<div className="text-[10px] text-zinc-500 mt-0.5">{lead.location || '—'}</div>
+												<tr key={lead.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/10 transition-colors">
+													<td className="p-3 font-bold text-slate-950 dark:text-white max-w-[180px] truncate">{lead.businessName}</td>
+													<td className="p-3 text-slate-700 dark:text-zinc-300 font-mono">{lead.contactName || '—'}</td>
+													<td className="p-3">
+														<div className="font-semibold text-slate-705 dark:text-zinc-300">{lead.category || '—'}</div>
+														<div className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5">{lead.location || '—'}</div>
 													</td>
-													<td className="p-3 text-zinc-400">
-														<div className="font-mono text-zinc-300">{lead.phone || '—'}</div>
-														<div className="text-[10px] text-brand-400 mt-0.5 truncate max-w-[140px]" title={lead.website}>
+													<td className="p-3">
+														<div className="font-mono text-slate-700 dark:text-zinc-300">{lead.phone || '—'}</div>
+														<div className="text-[10px] text-[#E61E32] mt-0.5 truncate max-w-[140px]" title={lead.website}>
 															{lead.website ? (
 																<a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
 																	{lead.website.replace(/^https?:\/\//, '')}
@@ -1939,15 +1995,15 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 															) : '—'}
 														</div>
 													</td>
-													<td className="p-3 text-zinc-500 max-w-[200px] truncate" title={lead.notes || lead.description || ''}>
+													<td className="p-3 text-slate-500 dark:text-zinc-500 max-w-[200px] truncate" title={lead.notes || lead.description || ''}>
 														{lead.notes || lead.description || '—'}
 													</td>
 													<td className="p-3">
 														<span className={cn(
-															"text-[9px] px-1.5 py-0.5 font-semibold font-mono",
-															lead.priority === 'High' ? 'text-red-400 bg-red-950/20 border border-red-900/40' :
-															lead.priority === 'Medium' ? 'text-amber-400 bg-amber-950/20 border border-amber-900/40' :
-															'text-zinc-400 bg-zinc-900/40 border border-zinc-800'
+															"text-[9px] px-1.5 py-0.5 font-semibold font-mono rounded-md",
+															lead.priority === 'High' ? 'text-red-600 bg-red-500/10 border border-red-500/20' :
+															lead.priority === 'Medium' ? 'text-amber-600 bg-amber-500/10 border border-amber-500/20' :
+															'text-slate-500 bg-slate-100 border border-black/10 dark:text-zinc-400 dark:bg-zinc-800 dark:border-white/10'
 														)}>
 															{lead.priority}
 														</span>
@@ -1957,7 +2013,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 															value={lead.status}
 															onChange={e => handleLeadStatusUpdate(lead.id, e.target.value)}
 															disabled={updatingLeadId === lead.id}
-															className={cn("text-[10px] px-2 py-1 border font-mono uppercase tracking-wider cursor-pointer bg-zinc-950 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors disabled:opacity-50", STATUS_COLOURS[lead.status] || 'border-zinc-700 text-zinc-400')}
+															className={cn("text-[10px] px-2 py-1 border font-mono uppercase tracking-wider cursor-pointer bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 border-black/10 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-colors disabled:opacity-50 rounded-md", STATUS_COLOURS[lead.status] || 'border-zinc-700 text-zinc-400')}
 														>
 															{['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'].map(s => (
 																<option key={s} value={s}>{s}</option>
@@ -1970,33 +2026,33 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									</table>
 								</div>
 							) : (
-								<div className="space-y-2">
+								<div className="space-y-2.5">
 									{filtered.map((lead: any) => (
-										<div key={lead.id} className="bg-zinc-900/30 border border-zinc-800/80 p-4 hover:border-zinc-700/70 transition-colors">
+										<div key={lead.id} className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-4.5 rounded-xl hover:border-black/[0.12] dark:hover:border-white/[0.12] transition-colors shadow-xs">
 											<div className="flex items-start justify-between gap-3 flex-wrap">
 												<div className="space-y-0.5 flex-1 min-w-0">
 													<div className="flex items-center gap-2 flex-wrap">
-														<h3 className="text-sm font-bold text-white truncate">{lead.businessName}</h3>
-														{lead.rating && <span className="text-[10px] text-amber-400 font-mono">★ {lead.rating}</span>}
-														{lead.reviewCount && <span className="text-[10px] text-zinc-600">({lead.reviewCount})</span>}
+														<h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{lead.businessName}</h3>
+														{lead.rating && <span className="text-[10px] text-amber-500 font-mono">★ {lead.rating}</span>}
+														{lead.reviewCount && <span className="text-[10px] text-slate-400 dark:text-zinc-550">({lead.reviewCount})</span>}
 													</div>
-													<div className="flex items-center gap-2 text-[11px] text-zinc-500 flex-wrap">
+													<div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-zinc-400 flex-wrap">
 														{lead.category && <span>{lead.category}</span>}
 														{lead.location && <><span>·</span><span>{lead.location}</span></>}
-														{lead.phone && <><span>·</span><span className="text-zinc-400">{lead.phone}</span></>}
-														{lead.website && <><span>·</span><a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline truncate max-w-[160px]">{lead.website.replace(/^https?:\/\//, '')}</a></>}
+														{lead.phone && <><span>·</span><span className="text-slate-700 dark:text-zinc-300 font-mono">{lead.phone}</span></>}
+														{lead.website && <><span>·</span><a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="text-[#E61E32] hover:underline truncate max-w-[160px]">{lead.website.replace(/^https?:\/\//, '')}</a></>}
 													</div>
-													{lead.description && <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2">{lead.description}</p>}
+													{lead.description && <p className="text-[11px] text-slate-500 dark:text-zinc-500 mt-1 line-clamp-2 leading-relaxed">{lead.description}</p>}
 												</div>
 												<div className="flex items-center gap-2 flex-shrink-0">
-													<span className={cn("text-[9px] px-1.5 py-0.5 font-semibold uppercase tracking-wider", SOURCE_COLOURS[lead.source] || 'text-zinc-400')}>
+													<span className={cn("text-[9px] px-1.5 py-0.5 font-bold uppercase tracking-wider rounded-md border", STATUS_COLOURS[lead.status] || 'border-zinc-700 text-zinc-400')}>
 														{lead.source}
 													</span>
 													<select
 														value={lead.status}
 														onChange={e => handleLeadStatusUpdate(lead.id, e.target.value)}
 														disabled={updatingLeadId === lead.id}
-														className={cn("text-[10px] px-2 py-1 border font-mono uppercase tracking-wider cursor-pointer bg-zinc-950 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors disabled:opacity-50", STATUS_COLOURS[lead.status] || 'border-zinc-700 text-zinc-400')}
+														className={cn("text-[10px] px-2 py-1 border font-mono uppercase tracking-wider cursor-pointer bg-slate-50 dark:bg-zinc-950 text-slate-800 dark:text-zinc-200 border-black/10 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-colors disabled:opacity-50 rounded-md", STATUS_COLOURS[lead.status] || 'border-zinc-700 text-zinc-400')}
 													>
 														{['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'].map(s => (
 															<option key={s} value={s}>{s}</option>
@@ -2005,12 +2061,12 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 												</div>
 											</div>
 											{lead.notes && (
-												<div className="mt-2 text-[11px] text-zinc-500 italic border-t border-zinc-800/60 pt-1.5">
+												<div className="mt-2 text-[11px] text-slate-500 dark:text-zinc-500 italic border-t border-black/[0.06] dark:border-white/[0.08] pt-1.5">
 													{lead.notes}
 												</div>
 											)}
 											{lead.sourceUrl && (
-												<a href={lead.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand-500 hover:text-brand-400 hover:underline mt-1 inline-block">
+												<a href={lead.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#E61E32] hover:text-[#c9182a] hover:underline mt-1 inline-block font-semibold">
 													View source →
 												</a>
 											)}
@@ -2024,10 +2080,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 				{activeTab === 'hr_companies' && (() => {
 					const STATUS_COLOURS: Record<string, string> = {
-						New:        'bg-zinc-800/60 border-zinc-700 text-zinc-300',
-						Contacted:  'bg-blue-950/40 border-blue-800/60 text-blue-300',
-						Rejected:   'bg-red-950/40 border-red-800/60 text-red-300',
-						Hired:      'bg-emerald-950/40 border-emerald-800/60 text-emerald-300',
+						New:        'bg-slate-100 dark:bg-zinc-800 border-black/10 dark:border-white/10 text-slate-500 dark:text-zinc-400',
+						Contacted:  'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400',
+						Rejected:   'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400',
+						Hired:      'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',
 					};
 
 					const filteredCompanies = employeeHrCompanies.filter(c => {
@@ -2041,22 +2097,22 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 					});
 
 					return (
-						<div className="space-y-6">
-							<div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+						<div className="space-y-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
+							<div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
 								<div>
-									<h2 className="text-xl font-bold text-white flex items-center gap-2 font-sans">
-										<BriefcaseIcon className="size-5 text-brand-400" />
+									<h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+										<BriefcaseIcon className="size-5 text-[#E61E32]" />
 										Assigned HR & Companies
 									</h2>
-									<p className="text-[10px] text-zinc-500 font-mono mt-0.5">Manage recruitment status and communication logs for your allocated company leads.</p>
+									<p className="text-xs text-slate-500 dark:text-zinc-450 mt-0.5">Manage recruitment status and communication logs for your allocated company leads.</p>
 								</div>
 								<button
 									onClick={loadEmployeeHrCompanies}
 									disabled={isHrLoading}
-									className="p-2 border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+									className="p-2 border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-850 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white transition-all cursor-pointer disabled:opacity-50 rounded-md shadow-2xs"
 									title="Refresh List"
 								>
-									<RefreshCwIcon className={`size-3.5 ${isHrLoading ? 'animate-spin text-brand-400' : ''}`} />
+									<RefreshCwIcon className={`size-3.5 ${isHrLoading ? 'animate-spin text-[#E61E32]' : ''}`} />
 								</button>
 							</div>
 
@@ -2067,91 +2123,89 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									placeholder="Search by company name, HR name, location, or industry…"
 									value={hrSearchQuery}
 									onChange={e => setHrSearchQuery(e.target.value)}
-									className="w-full bg-zinc-900/30 border border-zinc-800 text-white text-xs p-3 rounded-none placeholder:text-zinc-650 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono"
+									className="w-full bg-white dark:bg-zinc-950 border border-black/[0.1] dark:border-white/[0.1] text-slate-800 dark:text-zinc-205 placeholder:text-slate-400 dark:placeholder-zinc-650 text-xs p-3 rounded-md focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 transition-all"
 								/>
 							</div>
 
 							{isHrLoading && employeeHrCompanies.length === 0 ? (
-								<div className="text-center py-10 bg-zinc-900/10 border border-zinc-800/40 text-xs italic text-zinc-500 font-mono">
-									Loading allocated HR registries...
+								<div className="text-center py-12 border border-dashed border-black/10 dark:border-white/10 rounded-xl text-slate-400">
+									<p className="text-sm animate-pulse">Loading allocated HR registries...</p>
 								</div>
 							) : filteredCompanies.length === 0 ? (
-								<div className="text-center py-10 bg-zinc-900/10 border border-zinc-800/40 text-xs italic text-zinc-500 font-mono">
-									No allocated companies found matching the search criteria.
+								<div className="text-center py-12 border border-dashed border-black/10 dark:border-white/10 rounded-xl text-slate-400">
+									<p className="text-sm font-semibold">No allocated companies found matching the search criteria.</p>
 								</div>
 							) : (
-								<div className="bg-zinc-900/20 border border-zinc-800/80 overflow-hidden font-mono text-xs">
-									<div className="overflow-x-auto">
-										<table className="w-full text-left border-collapse">
-											<thead>
-												<tr className="border-b border-zinc-800 text-zinc-400 uppercase text-[9px] bg-zinc-950/40">
-													<th className="p-3">Company Details</th>
-													<th className="p-3">HR Manager</th>
-													<th className="p-3">Location & Industry</th>
-													<th className="p-3">Status</th>
-													<th className="p-3">Notes & Logs</th>
+								<div className="overflow-x-auto border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-zinc-900 rounded-xl shadow-xs">
+									<table className="w-full text-left border-collapse text-xs">
+										<thead>
+											<tr className="bg-slate-50/70 dark:bg-zinc-950/40 border-b border-black/[0.06] dark:border-white/[0.08] text-slate-500 dark:text-zinc-400 font-mono uppercase tracking-wider text-[9px]">
+												<th className="p-3">Company Details</th>
+												<th className="p-3">HR Manager</th>
+												<th className="p-3">Location & Industry</th>
+												<th className="p-3">Status</th>
+												<th className="p-3">Notes & Logs</th>
+											</tr>
+										</thead>
+										<tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.08] text-slate-700 dark:text-zinc-300">
+											{filteredCompanies.map((company) => (
+												<tr key={company.id} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/10 transition-colors">
+													<td className="p-3 space-y-0.5 align-top">
+														<div className="font-bold text-slate-900 dark:text-white text-xs">{company.companyName}</div>
+														{company.website && (
+															<a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#E61E32] hover:text-[#c9182a] hover:underline block font-semibold">
+																{company.website.replace(/^https?:\/\//, '')}
+															</a>
+														)}
+													</td>
+													<td className="p-3 space-y-0.5 align-top">
+														<div className="text-slate-800 dark:text-zinc-200 font-semibold">{company.hrName}</div>
+														<div className="text-[10px] text-slate-500 dark:text-zinc-500 flex flex-col mt-0.5 font-mono">
+															{company.hrEmail && <span>{company.hrEmail}</span>}
+															{company.hrPhone && <span>{company.hrPhone}</span>}
+														</div>
+													</td>
+													<td className="p-3 space-y-0.5 align-top">
+														<div className="text-slate-800 dark:text-zinc-300 font-semibold">{company.location || '—'}</div>
+														<div className="text-[10px] text-slate-550 dark:text-zinc-500 font-medium mt-0.5">{company.industry || '—'}</div>
+													</td>
+													<td className="p-3 align-top min-w-[140px]">
+														<select
+															value={company.status}
+															disabled={updatingHrId === company.id}
+															onChange={(e) => handleHrStatusUpdate(company.id, e.target.value)}
+															className={cn(
+																"bg-slate-50 dark:bg-zinc-950 text-slate-850 dark:text-zinc-200 border border-black/10 dark:border-white/10 text-[10px] p-1.5 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 rounded-md w-full font-bold uppercase tracking-wider transition-colors cursor-pointer",
+																updatingHrId === company.id ? "opacity-50" : ""
+															)}
+														>
+															<option value="New">New</option>
+															<option value="Contacted">Contacted</option>
+															<option value="Rejected">Rejected</option>
+															<option value="Hired">Hired</option>
+														</select>
+													</td>
+													<td className="p-3 align-top max-w-[320px] space-y-1">
+														<textarea
+															defaultValue={company.notes || ''}
+															disabled={updatingHrId === company.id}
+															placeholder="Add interaction notes..."
+															onBlur={(e) => {
+																if (e.target.value !== (company.notes || '')) {
+																	handleHrNotesUpdate(company.id, e.target.value);
+																}
+															}}
+															rows={2}
+															className="w-full bg-slate-50 dark:bg-zinc-950/60 border border-black/10 dark:border-white/10 text-[10px] p-2 text-slate-800 dark:text-zinc-300 focus:outline-none focus:ring-1 focus:ring-[#E61E32]/35 rounded-md resize-none"
+														/>
+														{updatingHrId === company.id && (
+															<span className="text-[9px] text-[#E61E32] animate-pulse block font-semibold">Saving logs...</span>
+														)}
+													</td>
 												</tr>
-											</thead>
-											<tbody className="divide-y divide-zinc-850 text-zinc-300">
-												{filteredCompanies.map((company) => (
-													<tr key={company.id} className="hover:bg-zinc-900/10 transition-colors">
-														<td className="p-3 space-y-0.5 align-top">
-															<div className="font-semibold text-white text-xs">{company.companyName}</div>
-															{company.website && (
-																<a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand-500 hover:text-brand-400 hover:underline block">
-																	{company.website}
-																</a>
-															)}
-														</td>
-														<td className="p-3 space-y-0.5 align-top">
-															<div className="text-zinc-200">{company.hrName}</div>
-															<div className="text-[10px] text-zinc-500 flex flex-col">
-																{company.hrEmail && <span>{company.hrEmail}</span>}
-																{company.hrPhone && <span>{company.hrPhone}</span>}
-															</div>
-														</td>
-														<td className="p-3 space-y-0.5 align-top">
-															<div className="text-zinc-300">{company.location || '—'}</div>
-															<div className="text-[10px] text-zinc-500">{company.industry || '—'}</div>
-														</td>
-														<td className="p-3 align-top min-w-[140px]">
-															<select
-																value={company.status}
-																disabled={updatingHrId === company.id}
-																onChange={(e) => handleHrStatusUpdate(company.id, e.target.value)}
-																className={cn(
-																	"bg-zinc-950 border text-[10px] p-1.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none w-full font-bold uppercase tracking-wider border-zinc-800 text-zinc-300",
-																	updatingHrId === company.id ? "opacity-50" : ""
-																)}
-															>
-																<option value="New">New</option>
-																<option value="Contacted">Contacted</option>
-																<option value="Rejected">Rejected</option>
-																<option value="Hired">Hired</option>
-															</select>
-														</td>
-														<td className="p-3 align-top max-w-[320px] space-y-1">
-															<textarea
-																defaultValue={company.notes || ''}
-																disabled={updatingHrId === company.id}
-																placeholder="Add interaction notes..."
-																onBlur={(e) => {
-																	if (e.target.value !== (company.notes || '')) {
-																		handleHrNotesUpdate(company.id, e.target.value);
-																	}
-																}}
-																rows={2}
-																className="w-full bg-zinc-950/60 border border-zinc-800 text-[10px] p-2 text-zinc-300 focus:outline-none focus:border-zinc-700 rounded-none placeholder:text-zinc-650"
-															/>
-															{updatingHrId === company.id && (
-																<span className="text-[9px] text-zinc-500 animate-pulse block">Saving logs...</span>
-															)}
-														</td>
-													</tr>
-												))}
-											</tbody>
-										</table>
-									</div>
+											))}
+										</tbody>
+									</table>
 								</div>
 							)}
 						</div>
@@ -2164,16 +2218,16 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 				)}
 
 				{activeTab === 'id_card' && (
-					<div className="space-y-6">
+					<div className="space-y-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 						<div>
-							<h2 className="text-xl font-bold text-white flex items-center gap-2">
-								<BriefcaseIcon className="size-5 text-brand-400" />
-								Employee ID card
+							<h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+								<BriefcaseIcon className="size-5 text-[#E61E32]" />
+								Employee ID Card
 							</h2>
-							<p className="text-zinc-400 text-sm mt-0.5">Your official ID card uploaded by admin</p>
+							<p className="text-slate-500 dark:text-zinc-400 text-sm mt-0.5">Your official ID card uploaded by admin</p>
 						</div>
-						<div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-none space-y-4 max-w-2xl">
-							<p className="text-sm text-zinc-300 font-semibold">
+						<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-6 rounded-xl shadow-xs space-y-4 max-w-2xl">
+							<p className="text-sm text-slate-800 dark:text-zinc-200 font-bold">
 								{employee.firstName} {employee.lastName} · ID {employee.id}
 							</p>
 							{employee.idCardUrl ? (
@@ -2181,10 +2235,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								<img
 									src={employee.idCardUrl}
 									alt="Employee ID card"
-									className="w-full border border-zinc-700 bg-white object-contain max-h-[520px]"
+									className="w-full border border-black/[0.06] dark:border-white/[0.08] bg-slate-50 dark:bg-white object-contain max-h-[520px] rounded-lg shadow-sm"
 								/>
 							) : (
-								<div className="border border-dashed border-zinc-700 p-10 text-center text-zinc-500 text-sm">
+								<div className="border border-dashed border-black/10 dark:border-white/10 rounded-xl p-10 text-center text-slate-400 text-sm">
 									No ID card uploaded yet. Ask admin to upload it from Employees → Edit employee.
 								</div>
 							)}
@@ -2193,14 +2247,14 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 				)}
 
 				{activeTab === 'profile' && (
-					<div className="space-y-6">
+					<div className="space-y-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 						{/* Header */}
 						<div>
-							<h2 className="text-xl font-bold text-white flex items-center gap-2">
-								<BriefcaseIcon className="size-5 text-brand-400" />
+							<h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+								<BriefcaseIcon className="size-5 text-[#E61E32]" />
 								Employee Profile
 							</h2>
-							<p className="text-zinc-400 text-sm mt-0.5">Your official corporate profile and organization details</p>
+							<p className="text-slate-500 dark:text-zinc-400 text-sm mt-0.5">Your official corporate profile and organization details</p>
 						</div>
 
 						<StipendCard
@@ -2210,8 +2264,8 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 						/>
 
 						{/* Main Info Card */}
-						<div className="bg-zinc-900/30 border border-zinc-800 p-8 rounded-none space-y-8">
-							<div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-zinc-800">
+						<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-8 rounded-xl shadow-sm space-y-8">
+							<div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-black/[0.06] dark:border-white/[0.08]">
 								<div className="flex flex-col items-center gap-2">
 									<ProfilePhotoEditor
 										employeeId={employee.id}
@@ -2220,18 +2274,18 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 										size="lg"
 										onUpdated={(photoUrl) => onEmployeeUpdate?.({ ...employee, photoUrl })}
 									/>
-									<p className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">
+									<p className="text-[10px] text-slate-500 dark:text-zinc-500 font-mono uppercase tracking-wider font-bold">
 										{employee.photoUrl ? 'Tap to view / change' : 'Tap pencil to upload'}
 									</p>
 								</div>
-								<div className="text-center sm:text-left space-y-1">
-									<h3 className="text-xl font-bold text-white leading-tight">
+								<div className="text-center sm:text-left space-y-1.5">
+									<h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
 										{employee.firstName} {employee.middleName ? `${employee.middleName} ` : ''}{employee.lastName}
 									</h3>
-									<p className="text-brand-400 font-mono text-xs uppercase tracking-wider font-semibold">
+									<p className="text-[#E61E32] font-mono text-xs uppercase tracking-wider font-bold">
 										{employee.role || 'Employee'}
 									</p>
-									<p className="text-zinc-500 text-xs font-mono">
+									<p className="text-slate-500 dark:text-zinc-500 text-xs font-mono">
 										Member Since: {new Date(employee.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
 									</p>
 								</div>
@@ -2240,36 +2294,36 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 								{/* Column 1: Personal Details */}
 								<div className="space-y-6">
-									<h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-2">
+									<h4 className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-widest border-b border-black/[0.06] dark:border-white/[0.08] pb-2">
 										Personal Details
 									</h4>
 									
 									<div className="grid grid-cols-1 gap-4">
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Full Name</label>
+										<div className="space-y-1.5">
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Full Name</label>
 											<input
 												type="text"
 												readOnly
 												value={`${employee.firstName} ${employee.middleName ? employee.middleName + ' ' : ''}${employee.lastName}`}
-												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-sans"
+												className="w-full bg-slate-50 dark:bg-zinc-950/40 border border-black/[0.06] dark:border-white/[0.08] text-slate-800 dark:text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-md font-sans font-medium"
 											/>
 										</div>
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Email Address</label>
+										<div className="space-y-1.5">
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Email Address</label>
 											<input
 												type="text"
 												readOnly
 												value={employee.email}
-												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono select-all"
+												className="w-full bg-slate-50 dark:bg-zinc-950/40 border border-black/[0.06] dark:border-white/[0.08] text-slate-800 dark:text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-md font-mono select-all font-medium"
 											/>
 										</div>
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Phone Number</label>
+										<div className="space-y-1.5">
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Phone Number</label>
 											<input
 												type="text"
 												readOnly
 												value={employee.phone}
-												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono"
+												className="w-full bg-slate-50 dark:bg-zinc-950/40 border border-black/[0.06] dark:border-white/[0.08] text-slate-800 dark:text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-md font-mono font-medium"
 											/>
 										</div>
 									</div>
@@ -2277,57 +2331,57 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 								{/* Column 2: Organization Details */}
 								<div className="space-y-6">
-									<h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-2">
+									<h4 className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-widest border-b border-black/[0.06] dark:border-white/[0.08] pb-2">
 										Organization Details
 									</h4>
 									
 									<div className="grid grid-cols-1 gap-4">
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Employee ID</label>
+										<div className="space-y-1.5">
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Employee ID</label>
 											<input
 												type="text"
 												readOnly
 												value={employee.id}
-												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-brand-400 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono font-bold select-all"
+												className="w-full bg-slate-50 dark:bg-zinc-950/40 border border-black/[0.06] dark:border-white/[0.08] text-[#E61E32] text-xs p-3 focus:outline-none cursor-not-allowed rounded-md font-mono font-bold select-all"
 											/>
 										</div>
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Wing Name</label>
+										<div className="space-y-1.5">
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Wing Name</label>
 											<input
 												type="text"
 												readOnly
 												value={employee.wingName}
-												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-sans"
+												className="w-full bg-slate-50 dark:bg-zinc-950/40 border border-black/[0.06] dark:border-white/[0.08] text-slate-800 dark:text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-md font-sans font-medium"
 											/>
 										</div>
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Reporting Lead</label>
+										<div className="space-y-1.5">
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Reporting Lead</label>
 											<input
 												type="text"
 												readOnly
 												value={employee.wingLeadName}
-												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-sans"
+												className="w-full bg-slate-50 dark:bg-zinc-950/40 border border-black/[0.06] dark:border-white/[0.08] text-slate-800 dark:text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-md font-sans font-medium"
 											/>
 										</div>
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Date Registered</label>
+										<div className="space-y-1.5">
+											<label className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Date Registered</label>
 											<input
 												type="text"
 												readOnly
 												value={new Date(employee.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-												className="w-full bg-zinc-950/40 border border-zinc-800/80 text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-none font-mono"
+												className="w-full bg-slate-50 dark:bg-zinc-950/40 border border-black/[0.06] dark:border-white/[0.08] text-slate-800 dark:text-zinc-300 text-xs p-3 focus:outline-none cursor-not-allowed rounded-md font-mono font-medium"
 											/>
 										</div>
 									</div>
 								</div>
 							</div>
 
-							<div className="rounded-xl border border-brand-500/30 bg-brand-500/5 px-4 py-3 flex items-start gap-2.5">
-								<BriefcaseIcon className="size-4 text-brand-400 mt-0.5 shrink-0" />
-								<p className="text-xs text-zinc-300">
+							<div className="rounded-xl border border-[#E61E32]/25 bg-[#E61E32]/5 px-4 py-3 flex items-start gap-2.5">
+								<BriefcaseIcon className="size-4 text-[#E61E32] mt-0.5 shrink-0" />
+								<p className="text-xs text-slate-650 dark:text-zinc-300">
 									Your professional profile (résumé, experience, education, skills, projects &amp;
 									more) is filled in at{' '}
-									<a href="/employee-verification" className="text-brand-400 font-semibold underline">
+									<a href="/employee-verification" className="text-[#E61E32] font-bold underline hover:text-[#c9182a]">
 										/employee-verification
 									</a>{' '}
 									— sign in there with your employee email &amp; password.

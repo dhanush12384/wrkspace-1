@@ -1,6 +1,6 @@
 'use client';
 
-/** Retry dynamic imports — Android often flakes once after cache clear / deploy. */
+
 export async function importWithRetry<T>(
 	loader: () => Promise<T>,
 	retries = 3,

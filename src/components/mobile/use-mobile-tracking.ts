@@ -6,13 +6,12 @@ import { shouldTrackLocationNow } from '@/lib/location-track-policy';
 
 const OFFICE_WATCH_MS = 60_000;
 const HOME_WATCH_MS = 25_000;
-const SCHEDULE_POLL_MS = 60_000;
-/** Exit fence fallback — indoor GPS often drifts 100–250m. */
+
 const EXIT_GEOFENCE_M = 500;
 const MAX_ACCURACY_M = 55;
-/** Need several consecutive clear outs before prompting. */
+
 const OUTSIDE_CONFIRM_TICKS = 4;
-/** Extra meters beyond fence + accuracy. */
+
 const EXIT_HYSTERESIS_M = 120;
 
 export const OFFICE_EXIT_KEY = 'wrkspace_office_exit_pending';
@@ -25,7 +24,7 @@ export function markOfficeExitPending() {
 			JSON.stringify({ at: Date.now(), status: 'pending' }),
 		);
 	} catch {
-		/* ignore */
+		
 	}
 }
 
@@ -33,7 +32,7 @@ export function clearOfficeExitPending() {
 	try {
 		sessionStorage.removeItem(OFFICE_EXIT_KEY);
 	} catch {
-		/* ignore */
+		
 	}
 }
 
@@ -41,7 +40,7 @@ export function markOfficeWorkAck(dateKey: string) {
 	try {
 		sessionStorage.setItem(OFFICE_WORK_ACK_KEY, dateKey);
 	} catch {
-		/* ignore */
+		
 	}
 }
 
@@ -49,7 +48,7 @@ export function clearOfficeWorkAck() {
 	try {
 		sessionStorage.removeItem(OFFICE_WORK_ACK_KEY);
 	} catch {
-		/* ignore */
+		
 	}
 }
 
@@ -151,7 +150,7 @@ export function useMobileTracking({
 					);
 				lastOfficesFetch.current = now;
 			} catch {
-				/* ignore */
+				
 			}
 		};
 
@@ -167,7 +166,7 @@ export function useMobileTracking({
 			if (hasOfficeWorkAck(dateKey)) return;
 			if (leavePrompted.current) return;
 
-			// Ask server first — only show UI / FCM when server agrees we are outside.
+			
 			const res = await apiPost<{ ok?: boolean; skipped?: string }>('/api/attendance/left-office', {
 				lat,
 				lng,
@@ -213,6 +212,12 @@ export function useMobileTracking({
 				errorNotified.current = false;
 				const { latitude: lat, longitude: lng, accuracy } = pos.coords;
 				await apiPost('/api/attendance/location', { lat, lng }).catch(() => {});
+
+				
+				if (typeof accuracy === 'number' && accuracy > MAX_ACCURACY_M) {
+					outsideStreak.current = 0;
+					return;
+				}
 
 				const offices = officesRef.current;
 				if (!offices.length) return;
@@ -268,7 +273,7 @@ export function useMobileTracking({
 				if (!outside) {
 					wasInsideExit.current = true;
 					outsideStreak.current = 0;
-					// Always clear stale leave UI when GPS says inside.
+					
 					dismissLeave();
 					return;
 				}
@@ -304,7 +309,7 @@ export function useMobileTracking({
 			}
 		};
 
-		// Clear any stale leave prompt from a previous false positive on mount.
+		
 		clearOfficeExitPending();
 		leavePrompted.current = false;
 		enterPrompted.current = false;
@@ -348,7 +353,7 @@ export function useMobileTracking({
 			try {
 				await apiPost('/api/attendance/location', { lat, lng });
 			} catch {
-				/* ignore */
+				
 			}
 		};
 
@@ -378,7 +383,7 @@ export function useMobileTracking({
 						lastPostedAt = 0;
 						await postFix(pos.coords.latitude, pos.coords.longitude);
 					} catch {
-						/* ignore */
+						
 					}
 				} else if (!next && shouldTrack) {
 					shouldTrack = false;
@@ -388,7 +393,7 @@ export function useMobileTracking({
 					startWatch();
 				}
 			} catch {
-				/* ignore */
+				
 			}
 		};
 

@@ -12,7 +12,7 @@ type Props = {
 	hasPhoto?: boolean;
 	size?: number;
 	className?: string;
-	/** Admin email — uses /api/admin/avatars/:id when no employee JWT */
+	
 	adminEmail?: string | null;
 };
 
@@ -55,9 +55,9 @@ function adminEmailFromStorage(): string {
 	}
 }
 
-/**
- * WhatsApp-style chat avatar — loads real profile photo by employee id.
- */
+
+
+
 export function ChatAvatar({
 	id,
 	name,
@@ -100,7 +100,7 @@ export function ChatAvatar({
 			const token = employeeToken();
 			const admin = (adminEmail || adminEmailFromStorage() || '').trim().toLowerCase();
 
-			// 1) Employee JWT → binary avatar API (best for employee portal)
+			
 			if (token) {
 				try {
 					const res = await fetch(`/api/employees/${encodeURIComponent(id)}/avatar`, {
@@ -119,7 +119,7 @@ export function ChatAvatar({
 				} catch (_) {}
 			}
 
-			// 2) Admin email → admin avatar API
+			
 			if (admin) {
 				try {
 					const res = await fetch(
@@ -138,7 +138,7 @@ export function ChatAvatar({
 				} catch (_) {}
 			}
 
-			// 3) Server action fallback (data URL)
+			
 			try {
 				const res = await loadEmployeeAvatar(id);
 				const url = (res.photoUrl || '').trim();
@@ -161,7 +161,7 @@ export function ChatAvatar({
 
 	if (src) {
 		return (
-			// eslint-disable-next-line @next/next/no-img-element
+			
 			<img
 				src={src}
 				alt={name}

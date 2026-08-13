@@ -5,7 +5,7 @@ import { linkAdminToEmployee } from '@/lib/verification-admin-employee-link';
 
 export const dynamic = 'force-dynamic';
 
-/** SUPER: resolve / refresh the linked Employee row (Admin · Technical merge). */
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireVerification(req);

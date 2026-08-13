@@ -19,10 +19,10 @@ async function requireAdminEmail(req: NextRequest) {
 	return admin;
 }
 
-/**
- * Date-wise going-home trips + GPS trail for admin.
- * Query: date=YYYY-MM-DD (IST), employeeId?, tripId?
- */
+
+
+
+
 export async function GET(req: NextRequest) {
 	try {
 		await requireAdminEmail(req);

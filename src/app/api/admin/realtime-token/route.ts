@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, signAdminToken } from '@/lib/api-auth';
 
-/** Short-lived JWT so admin UI can join Socket.IO `admins` room on Render. */
+
 export async function POST(req: NextRequest) {
 	try {
 		const body = await req.json().catch(() => ({}));

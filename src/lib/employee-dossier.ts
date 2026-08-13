@@ -1,4 +1,4 @@
-/** Heuristic company-facing insights from wrkspace history (not ML). */
+
 
 export type DossierInsight = {
 	strengths: string[];
@@ -6,7 +6,7 @@ export type DossierInsight = {
 	flags: string[];
 	priorityNotes: string[];
 	scores: {
-		attendanceReliability: number; // 0-100
+		attendanceReliability: number; 
 		taskDelivery: number;
 		submissionDiscipline: number;
 		overall: number;

@@ -9,7 +9,7 @@ type Props = {
 	onProfile?: () => void;
 };
 
-/** Flutter CorpPageHeader — flexible height (no fixed overflow). */
+
 export function CorpPageHeader({ employee, subtitle, onProfile }: Props) {
 	const name = employeeDisplayName(employee);
 	return (
@@ -24,7 +24,7 @@ export function CorpPageHeader({ employee, subtitle, onProfile }: Props) {
 			<div
 				className="px-5 pb-5"
 				style={{
-					// Shell already paints env(safe-area-inset-top) in brand blue
+					
 					paddingTop: 16,
 				}}
 			>

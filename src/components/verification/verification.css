@@ -1,14 +1,14 @@
-/* Employee Verification portal — white theme */
+
 
 .ev-root {
-	--ev-bg: #ffffff;
+	--ev-bg: #f8fafc;
 	--ev-panel: #ffffff;
-	--ev-panel-2: #f8fafc;
-	--ev-line: rgba(15, 23, 42, 0.1);
+	--ev-panel-2: #f1f5f9;
+	--ev-line: rgba(15, 23, 42, 0.08);
 	--ev-text: #0f172a;
 	--ev-muted: #64748b;
-	--ev-blue: #0047ff;
-	--ev-blue-2: #2b6bff;
+	--ev-blue: #0f172a;
+	--ev-blue-2: #1e293b;
 	--ev-good: #10b981;
 	--ev-mid: #f59e0b;
 	--ev-low: #f43f5e;
@@ -51,7 +51,7 @@
 	color: var(--ev-blue);
 }
 
-/* Login brand title — sentence case (not ALL CAPS) */
+
 .ev-login-brand .ev-brand-title {
 	margin: 0;
 	font-size: 0.95rem;
@@ -68,7 +68,7 @@
 	font-size: 12px;
 }
 
-/* —— Login —— */
+
 .ev-login-grid {
 	display: grid;
 	min-height: 100vh;
@@ -166,7 +166,7 @@
 	transform: scale(1.55);
 	transform-origin: center center;
 	background: #ffffff;
-	/* Blend light video plate into the white page so it looks embedded */
+	
 	mix-blend-mode: multiply;
 }
 
@@ -373,20 +373,21 @@
 	margin-left: auto;
 }
 
-/* —— App shell —— */
+
 .ev-topbar {
 	position: sticky;
 	top: 0;
 	z-index: 40;
-	border-bottom: 1px solid var(--ev-line);
-	backdrop-filter: blur(14px);
-	background: rgba(255, 255, 255, 0.92);
+	border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+	backdrop-filter: blur(20px);
+	background: rgba(255, 255, 255, 0.96);
 }
+
 
 .ev-topbar-inner {
 	max-width: 1280px;
 	margin: 0 auto;
-	padding: 12px 18px;
+	padding: 10px 20px;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -397,65 +398,111 @@
 .ev-topbar-brand {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 14px;
 }
 
 .ev-top-logo {
-	height: 28px;
+	height: 36px;
 	width: auto;
+	display: block;
+	flex-shrink: 0;
 }
 
 .ev-top-user {
-	margin: 2px 0 0;
-	font-size: 13px;
-	color: #475569;
+	margin: 0;
+	font-size: 12.5px;
+	font-weight: 500;
+	color: #64748b;
+	display: flex;
+	align-items: center;
+	gap: 0;
+}
+
+.ev-brand-divider {
+	width: 1px;
+	height: 22px;
+	background: rgba(0, 0, 0, 0.12);
+	flex-shrink: 0;
 }
 
 .ev-pill {
-	margin-left: 8px;
+	display: inline-flex;
+	align-items: center;
+	margin-left: 7px;
 	padding: 2px 8px;
 	border-radius: 999px;
-	background: rgba(0, 71, 255, 0.25);
-	border: 1px solid rgba(0, 71, 255, 0.4);
-	font-size: 10px;
-	font-weight: 800;
-	letter-spacing: 0.04em;
+	background: rgba(14, 165, 233, 0.1);
+	border: 1px solid rgba(14, 165, 233, 0.25);
+	color: #0369a1;
+	font-size: 9.5px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
 }
 
 .ev-topbar-actions {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 8px;
+	gap: 6px;
 }
 
 .ev-nav-btn {
-	border-radius: 999px;
-	padding: 8px 14px;
-	font-size: 12px;
-	background: #f1f5f9;
+	border-radius: 8px;
+	padding: 7px 14px;
+	font-size: 12.5px;
+	font-weight: 500;
+	background: transparent;
 	color: #475569;
 	border: 1px solid transparent;
+	transition: background 0.15s, color 0.15s, border-color 0.15s;
+	cursor: pointer;
+}
+
+.ev-nav-btn:hover {
+	background: #f1f5f9;
+	color: #0f172a;
 }
 
 .ev-nav-btn.is-active {
-	background: var(--ev-blue);
+	background: #0f172a;
 	color: white;
+	border-color: #0f172a;
 }
 
 .ev-nav-muted {
-	border-color: var(--ev-line);
+	border-color: #e2e8f0;
+	color: #94a3b8;
+}
+
+.ev-nav-muted:hover {
+	background: #fef2f2;
+	border-color: #fca5a5;
+	color: #ef4444;
+}
+
+.ev-nav-signout {
+	border-color: #fca5a5;
+	background: #fff1f2;
+	color: #ef4444;
+}
+
+.ev-nav-signout:hover {
+	background: #fee2e2;
+	border-color: #f87171;
+	color: #dc2626;
 }
 
 .ev-toast {
 	font-size: 11px;
 	color: #059669;
+	font-weight: 500;
 }
 
 .ev-shell {
 	max-width: 1280px;
 	margin: 0 auto;
-	padding: 18px;
+	padding: 24px 20px;
 }
 
 .ev-workspace {
@@ -1130,7 +1177,7 @@
 }
 
 
-/* --- Employment status pill (public/company general-info view) --- */
+
 .ev-status-pill {
 	display: inline-flex;
 	align-items: center;
@@ -1160,7 +1207,7 @@
 	vertical-align: middle;
 }
 
-/* --- Admin edit-profile tab (SUPER only) --- */
+
 .ev-admin-edit .ev-chip {
 	cursor: pointer;
 }
@@ -1169,5 +1216,9 @@
 	background: #0047ff;
 	border-color: #0047ff;
 	color: white;
+}
+
+.ev-workspace.ev-verified-workspace {
+	grid-template-columns: 1fr;
 }
 

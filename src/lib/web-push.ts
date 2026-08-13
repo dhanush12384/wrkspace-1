@@ -7,22 +7,7 @@ import { getFirebasePublicConfig } from '@/lib/firebase-public-config';
 
 let officeExitUnsub: (() => void) | null = null;
 
-function isIosSafari(): boolean {
-	if (typeof navigator === 'undefined') return false;
-	const ua = navigator.userAgent || '';
-	const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-	const webkit = /WebKit/i.test(ua);
-	const chromeIos = /CriOS/i.test(ua);
-	return iOS && webkit && !chromeIos;
-}
 
-export function isStandalonePwa(): boolean {
-	if (typeof window === 'undefined') return false;
-	const nav = window.navigator as Navigator & { standalone?: boolean };
-	return nav.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-}
-
-/** Foreground push: open leave-office dialog when type=office_exit. */
 export async function subscribeOfficeExitPush(onOfficeExit: () => void) {
 	if (typeof window === 'undefined') return;
 	try {
@@ -38,20 +23,16 @@ export async function subscribeOfficeExitPush(onOfficeExit: () => void) {
 			if (type === 'office_exit') onOfficeExit();
 		});
 	} catch {
-		/* optional */
+		
 	}
 }
 
-/**
- * Register FCM web push after login.
- * Uses a narrow SW scope (no root claim) so Android Chrome navigations stay stable.
- * iOS: only works for installed Home Screen PWA (iOS 16.4+); Safari tabs cannot receive push.
- */
-export async function registerWebPush(_employeeId?: string): Promise<{
-	ok: boolean;
-	reason?: string;
-}> {
-	if (typeof window === 'undefined') return { ok: false, reason: 'ssr' };
+
+
+
+
+export async function registerWebPush(_employeeId?: string) {
+	if (typeof window === 'undefined') return;
 	try {
 		const config = getFirebasePublicConfig();
 		if (!config) {
@@ -72,7 +53,7 @@ export async function registerWebPush(_employeeId?: string): Promise<{
 			return { ok: false, reason: 'ios_not_standalone' };
 		}
 
-		// Drop only broken placeholder / root-scope messaging SWs — keep a healthy narrow-scope SW.
+		
 		if ('serviceWorker' in navigator) {
 			const regs = await navigator.serviceWorker.getRegistrations();
 			await Promise.all(
@@ -87,7 +68,7 @@ export async function registerWebPush(_employeeId?: string): Promise<{
 						try {
 							await reg.unregister();
 						} catch {
-							/* ignore */
+							
 						}
 					}
 				}),
@@ -111,7 +92,7 @@ export async function registerWebPush(_employeeId?: string): Promise<{
 			return { ok: false, reason: 'vapid_missing' };
 		}
 
-		// Scope under /api/firebase-messaging-sw/ only — never claim the whole origin.
+		
 		const registration = await navigator.serviceWorker.register('/api/firebase-messaging-sw', {
 			scope: '/api/firebase-messaging-sw/',
 			updateViaCache: 'none',

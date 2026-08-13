@@ -95,7 +95,7 @@ export async function deleteOfficeQrAction(id: string) {
 
 export async function deleteOfficeAction(id: string) {
   try {
-    // QRs cascade if schema has onDelete; otherwise delete QRs first
+    
     await db.officeQr.deleteMany({ where: { officeId: id } });
     await db.office.delete({ where: { id } });
     return { success: true };

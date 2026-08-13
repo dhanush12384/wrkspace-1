@@ -87,7 +87,7 @@ export default function OfficesPanel() {
 			return;
 		}
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-require-imports
+			
 			const { OpenLocationCode } = require('open-location-code') as {
 				OpenLocationCode: new () => {
 					isValid: (c: string) => boolean;

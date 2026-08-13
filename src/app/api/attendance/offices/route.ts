@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 
-/** Active offices for mobile leave-office geofence (office pins only — not home). */
+
 export async function GET(req: NextRequest) {
 	try {
 		requireEmployee(req);

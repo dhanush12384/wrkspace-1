@@ -11,6 +11,7 @@ function isOpenSession(row: { checkIn?: string | null; checkOut?: string | null;
 	return out == null || String(out).trim() === '' || String(row.status || '') === 'Checked In';
 }
 
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);
@@ -25,19 +26,14 @@ export async function POST(req: NextRequest) {
 			data: { lastLat: lat, lastLng: lng, lastLocationAt: new Date() },
 		});
 
-		const date = todayKeyIST();
-		const today = await db.attendance.findFirst({
-			where: { employeeId: user.sub, date },
-			orderBy: { createdAt: 'desc' },
-		});
-		const onShift = isOpenSession(today);
-		let officeArrive = false;
-
-		if (!onShift) {
-			const offices = await db.office.findMany({ where: { active: true } });
-			const inside = offices.some((o) => {
-				const r = o.radiusMeters || 300;
-				return isInsideRadius(lat, lng, o.lat, o.lng, r).within;
+		
+		let autoCheckedOut: unknown = null;
+		try {
+			const todayStr = todayKeyIST();
+			const nowMins = nowMinutesIST();
+			const open = await db.attendance.findFirst({
+				where: { employeeId: user.sub, date: todayStr },
+				orderBy: { createdAt: 'desc' },
 			});
 			if (inside) {
 				const last = emp.officeArriveNotifiedAt ? new Date(emp.officeArriveNotifiedAt).getTime() : 0;
@@ -56,6 +52,24 @@ export async function POST(req: NextRequest) {
 					officeArrive = true;
 				}
 			}
+			
+			const stale = await db.attendance.findMany({
+				where: {
+					employeeId: user.sub,
+					date: { lt: todayStr },
+					OR: [{ checkOut: null }, { checkOut: '' }, { status: 'Checked In' }],
+				},
+				take: 5,
+			});
+			for (const log of stale) {
+				const row = await db.attendance.update({
+					where: { id: log.id },
+					data: { checkOut: '12:00 AM', status: 'Present', checkoutReminderSent: true },
+				});
+				void emitAttendanceUpdate(user.sub, row, 'auto-check-out');
+			}
+		} catch (e) {
+			console.warn('[location] auto-checkout side effect', e);
 		}
 
 		return Response.json({ ok: true, location: emp, officeArrive, autoCheckedOut: null });

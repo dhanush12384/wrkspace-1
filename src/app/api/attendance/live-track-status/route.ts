@@ -6,7 +6,7 @@ import { todayKeyIST } from '@/lib/shift-policy';
 
 export const dynamic = 'force-dynamic';
 
-/** Employee phones poll this — when true, keep posting GPS. */
+
 export async function GET(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);

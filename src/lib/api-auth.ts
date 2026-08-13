@@ -93,12 +93,12 @@ export function requireVerification(req: NextRequest): VerificationJwt {
 	return payload;
 }
 
-/**
- * Like `requireVerification`, but never throws — returns `null` for anonymous /
- * public visitors instead of rejecting the request. Used by the employee-verification
- * portal so outsiders can browse general info with zero login wall, while admins get
- * an elevated payload when a valid SUPER/COMPANY token is present.
- */
+
+
+
+
+
+
 export function tryVerification(req: NextRequest): VerificationJwt | null {
 	try {
 		return requireVerification(req);

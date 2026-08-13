@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { jsonError, requireEmployee } from '@/lib/api-auth';
 import { employeeDisplayName } from '@/lib/attendance-geo';
 
-/** List open SOS — same shape as Render GET /api/safety/sos/open */
+
 export async function GET(req: NextRequest) {
 	try {
 		requireEmployee(req);

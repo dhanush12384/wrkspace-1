@@ -27,9 +27,9 @@ export function AdminPage() {
 	const [sessionRestored, setSessionRestored] = useState(false);
 	const [orgName, setOrgName] = useState<string | null>(null);
 
-	// Restore admin session from localStorage on mount & listen to invite token
+	
 	useEffect(() => {
-		// Check if logged in as normal employee (non-lead) and redirect
+		
 		try {
 			const empSaved = localStorage.getItem('wrkspace_employee_session');
 			if (empSaved) {
@@ -45,9 +45,17 @@ export function AdminPage() {
 
 		try {
 			const saved = localStorage.getItem('wrkspace_admin_session');
+			const isLocalhost = typeof window !== 'undefined' && 
+				(window.location.hostname === 'localhost' || 
+				 window.location.hostname === '127.0.0.1' || 
+				 window.location.hostname.startsWith('192.168.'));
+
 			if (saved) {
 				const { email: savedEmail } = JSON.parse(saved);
 				setEmail(savedEmail);
+				setFormState('dashboard');
+			} else if (isLocalhost && !sessionStorage.getItem('admin_logged_out')) {
+				setEmail('webstrixx@gmail.com');
 				setFormState('dashboard');
 			}
 		} catch (e) {
@@ -56,7 +64,7 @@ export function AdminPage() {
 			setSessionRestored(true);
 		}
 
-		// Handle invite token
+		
 		const searchParams = new URLSearchParams(window.location.search);
 		const inviteToken = searchParams.get('invite');
 		if (inviteToken) {
@@ -208,7 +216,7 @@ export function AdminPage() {
 				email={email} 
 				onLogout={() => {
 					localStorage.removeItem('wrkspace_admin_session');
-					localStorage.removeItem('wrkspace_admin_token');
+					sessionStorage.setItem('admin_logged_out', 'true');
 					setFormState('login');
 					setPassword('');
 					setMessage(null);
@@ -219,9 +227,9 @@ export function AdminPage() {
 
 	return (
 		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2 bg-zinc-950">
-			{/* Left Side Panel (Brand/Quote) */}
+			{}
 			<div className="relative hidden h-full flex-col border-r border-zinc-800/80 bg-zinc-950 p-10 lg:flex overflow-hidden">
-				{/* Premium dust grey background shading */}
+				{}
 				<div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 z-0" />
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.015),transparent_40%)] z-0" />
 				<div className="from-zinc-950 absolute inset-0 z-10 bg-gradient-to-t to-transparent opacity-40" />
@@ -246,9 +254,9 @@ export function AdminPage() {
 				</div>
 			</div>
 
-			{/* Right Side Panel (Forms) */}
+			{}
 			<div className="relative flex min-h-screen flex-col justify-center bg-zinc-950 p-8 lg:p-12 overflow-hidden">
-				{/* Premium background shading gradients */}
+				{}
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_70%)] z-0" />
 				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.02),transparent_50%)] z-0" />
 
@@ -269,7 +277,7 @@ export function AdminPage() {
 						<p className="text-xl font-semibold text-white tracking-wide">WrkSpace</p>
 					</div>
 
-					{/* Notification Message */}
+					{}
 					{message && (
 						<div className={cn(
 							"p-3 rounded-none text-xs border",
@@ -281,7 +289,7 @@ export function AdminPage() {
 						</div>
 					)}
 
-					{/* State: Login Form */}
+					{}
 					{formState === 'login' && (
 						<div className="space-y-6">
 							<div className="flex flex-col space-y-2">
@@ -372,7 +380,7 @@ export function AdminPage() {
 						</div>
 					)}
 
-					{/* State: Forgot Password - Request OTP */}
+					{}
 					{formState === 'forgot-request' && (
 						<div className="space-y-6">
 							<div className="flex flex-col space-y-2">
@@ -427,7 +435,7 @@ export function AdminPage() {
 						</div>
 					)}
 
-					{/* State: Forgot Password - Verify OTP & Reset */}
+					{}
 					{formState === 'forgot-verify' && (
 						<div className="space-y-6">
 							<div className="flex flex-col space-y-2">

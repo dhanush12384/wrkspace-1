@@ -22,7 +22,7 @@ function distM(aLat: number, aLng: number, bLat: number, bLng: number) {
 	return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-/** Mobile left office geofence → FCM with Office work / Going home choice. */
+
 export async function POST(req: NextRequest) {
 	try {
 		const user = requireEmployee(req);
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 		if (Number.isFinite(lat) && Number.isFinite(lng) && offices.length) {
 			const stillInside = offices.some((o) => {
 				const r = Math.max(Number(o.geofenceM) > 0 ? Number(o.geofenceM) : 500, 500);
-				// Large soft buffer — indoor GPS noise must not send leave FCM.
+				
 				return distM(lat, lng, Number(o.lat), Number(o.lng)) <= r + 180;
 			});
 			if (stillInside) {
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
 				});
 			}
 		} else {
-			// No GPS to verify — do not fan out a leave alert.
+			
 			return Response.json({
 				ok: false,
 				skipped: 'no_gps',
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 			});
 		}
 
-		// Persist the coords used for the decision.
+		
 		await db.employee.update({
 			where: { id: user.sub },
 			data: { lastLat: lat, lastLng: lng, lastLocationAt: new Date() },

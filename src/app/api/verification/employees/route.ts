@@ -1,18 +1,21 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
-import { jsonError, requireVerification } from '@/lib/api-auth';
+import { jsonError, requireEmployee, requireVerification } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Directory of employees. Everyone must sign in first (one unified login page for
- * admins, employees & public/company accounts). A valid SUPER admin token unlocks
- * live-location data too; company/public accounts only ever get general info.
- */
 export async function GET(req: NextRequest) {
 	try {
-		const authUser = requireVerification(req);
-		if (authUser.role !== 'SUPER') {
+		let authUser: { sub: string; email: string; role: string; isSuper: boolean };
+		try {
+			const emp = requireEmployee(req);
+			authUser = { sub: emp.sub, email: emp.email, role: 'EMPLOYEE', isSuper: false };
+		} catch {
+			const v = requireVerification(req);
+			authUser = { sub: v.sub, email: v.email, role: v.role, isSuper: v.role === 'SUPER' };
+		}
+
+		if (authUser.role !== 'SUPER' && authUser.role !== 'EMPLOYEE') {
 			return jsonError('This portal is for employees and admins only', 403);
 		}
 		const q = String(req.nextUrl.searchParams.get('q') || '')
@@ -55,7 +58,7 @@ export async function GET(req: NextRequest) {
 					photoUrl: e.photoUrl,
 					joinedAt: e.createdAt,
 					employmentStatus: e.employmentStatus || 'Active',
-					// Live location is admin-only — outsiders only see general directory info.
+					
 					lastLocationAt: isAdmin ? e.lastLocationAt : null,
 				};
 			})

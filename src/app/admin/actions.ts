@@ -2,8 +2,10 @@
 
 import fs from 'fs';
 import path from 'path';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { unstable_noStore as noStore } from 'next/cache';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 import { db } from '@/lib/db';
 import { exec, execSync } from 'child_process';
 import { notifyPush } from '@/lib/push-notify';
@@ -11,10 +13,10 @@ import { notifyMessagePush } from '@/lib/message-push';
 import { resolveAdminEmployeeIds } from '@/lib/admin-recipients';
 import { eventHasRepresentative, representativeIds } from '@/lib/event-reps';
 
-// Fixed admin email address
+
 const ADMIN_EMAIL = 'webstrixx@gmail.com';
 
-// Seed admin if not present
+
 async function getOrCreateAdmin() {
   let admin = await db.admin.findUnique({
     where: { email: ADMIN_EMAIL }
@@ -51,7 +53,7 @@ export async function loginAdmin(email: string, password: string) {
   return { success: false, error: 'Invalid admin credentials' };
 }
 
-/** After Firebase Google sign-in — allow only registered Admin emails. */
+
 export async function loginAdminWithGoogle(email: string) {
   try {
     await getOrCreateAdmin();
@@ -80,11 +82,11 @@ export async function sendOtp(email: string) {
       return { success: false, error: 'Unauthorized email address' };
     }
 
-    // Generate 6-digit OTP
+    
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
 
-    // Update admin OTP details in database
+    
     await db.admin.update({
       where: { email: admin.email },
       data: {
@@ -93,30 +95,36 @@ export async function sendOtp(email: string) {
       }
     });
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
-    await transporter.sendMail({
-      from: '"WrkSpace Support" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Support <support@app.redlix.co.in>',
       to: admin.email,
       subject: 'WrkSpace Admin - Your OTP for Password Reset',
       text: `Hello, \n\nYou requested a password reset for the WrkSpace Admin panel.\n\nYour OTP is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.\n\nBest,\nWrkSpace Team`,
-      html: `<div style="font-family: sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e4e4e7;">
-        <h2 style="color: #4f46e5;">WrkSpace Admin Password Reset</h2>
-        <p>You requested a password reset for the WrkSpace Admin panel.</p>
-        <p>Your One-Time Password (OTP) is:</p>
-        <div style="font-size: 24px; font-weight: bold; background-color: #f4f4f5; padding: 15px; text-align: center; letter-spacing: 4px; color: #18181b; border: 1px solid #e4e4e7; margin: 20px 0;">
+      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+          <!--[if !mso]><!-->
+          <style>
+            @media (prefers-color-scheme: dark) {
+              .wrkspace-light-logo { display: none !important; }
+              .wrkspace-dark-logo { display: inline-block !important; }
+            }
+          </style>
+          <!--<![endif]-->
+          <img class="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: inline-block;" />
+          <!--[if !mso]><!-->
+          <img class="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: none;" />
+          <!--<![endif]-->
+        </div>
+        <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">WrkSpace Admin Password Reset</h2>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">You requested a password reset for the WrkSpace Admin panel.</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 8px;">Your One-Time Password (OTP) is:</p>
+        <div style="font-size: 24px; font-weight: 500; background-color: #f8fafc; padding: 14px; text-align: center; letter-spacing: 4px; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; font-family: monospace;">
           ${otp}
         </div>
-        <p style="color: #71717a; font-size: 14px;">This OTP will expire in 10 minutes.</p>
-        <p style="color: #71717a; font-size: 14px;">If you did not request this, please ignore this email.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.4; margin: 16px 0 0;">This OTP will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+        <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+          © 2026 Redlix Studio. All rights reserved.
+        </div>
       </div>`,
     });
 
@@ -149,7 +157,7 @@ export async function verifyOtpAndResetPassword(email: string, otp: string, newP
       return { success: false, error: 'OTP has expired' };
     }
 
-    // Update password and clear OTP
+    
     await db.admin.update({
       where: { email: admin.email },
       data: {
@@ -166,7 +174,7 @@ export async function verifyOtpAndResetPassword(email: string, otp: string, newP
   }
 }
 
-// Super Admin allocation & management actions
+
 import { randomUUID } from 'crypto';
 import { ifError } from 'assert';
 import { PassThrough } from 'stream';
@@ -316,9 +324,17 @@ export async function addEmployee(employeeData: {
   wingLeadName: string;
   role?: string;
   gender?: string;
+  remarks?: string;
+  monthWorked?: string;
+  companyWorkedFor?: string;
+  overallScore?: string;
+  conduct?: string;
+  employmentStatus?: string;
+  photoUrl?: string;
+  certifications?: string;
 }) {
   try {
-    // Generate unique 6-digit alphanumeric code
+    
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let generatedId = '';
     let isUnique = false;
@@ -356,6 +372,14 @@ export async function addEmployee(employeeData: {
         wingLeadName: employeeData.wingLeadName,
         role: employeeData.role || "Employee",
         gender,
+        remarks: employeeData.remarks || null,
+        monthWorked: employeeData.monthWorked || null,
+        companyWorkedFor: employeeData.companyWorkedFor || null,
+        overallScore: employeeData.overallScore || null,
+        conduct: employeeData.conduct || null,
+        employmentStatus: employeeData.employmentStatus || 'Active',
+        photoUrl: employeeData.photoUrl || null,
+        certifications: employeeData.certifications || null,
       }
     });
 
@@ -374,7 +398,7 @@ export async function getEmployees() {
     const employees = await db.employee.findMany({
       orderBy: { createdAt: 'desc' },
     });
-    // Strip huge base64 from list payload; keep hasPhoto for admin directory.
+    
     return employees.map((e) => {
       const { photoUrl, ...rest } = e as typeof e & { photoUrl?: string | null };
       return {
@@ -419,7 +443,7 @@ export async function loginEmployee(email: string, passwordId: string) {
   return { success: false, error: 'Invalid email address or password/Employee ID' };
 }
 
-/** After Firebase Google sign-in — link Google email to Neon employee row. */
+
 export async function loginEmployeeWithGoogle(email: string) {
   try {
     const { signEmployeeToken } = await import('@/lib/api-auth');
@@ -445,7 +469,7 @@ export async function loginEmployeeWithGoogle(email: string) {
   }
 }
 
-/** Admin: upload / clear employee ID card image. */
+
 export async function updateEmployeeIdCard(employeeId: string, idCardUrl: string | null) {
   try {
     const id = String(employeeId || '').trim();
@@ -457,7 +481,7 @@ export async function updateEmployeeIdCard(employeeId: string, idCardUrl: string
       if (s.startsWith('data:image/') && s.includes(';base64,')) {
         if (s.length > 900_000) return { success: false as const, error: 'ID card image too large' };
         next = s;
-      } else if (/^https?:\/\//i.test(s) && s.length < 2048) {
+      } else if (/^https?:\/\//.test(s)) {
         next = s;
       } else {
         return { success: false as const, error: 'Invalid ID card image format' };
@@ -475,7 +499,7 @@ export async function updateEmployeeIdCard(employeeId: string, idCardUrl: string
   }
 }
 
-/** Employee self-service: set/clear profile photo (data URL or https). */
+
 export async function updateEmployeePhoto(employeeId: string, photoUrl: string | null) {
   try {
     const id = String(employeeId || '').trim();
@@ -487,7 +511,7 @@ export async function updateEmployeePhoto(employeeId: string, photoUrl: string |
       if (s.startsWith('data:image/') && s.includes(';base64,')) {
         if (s.length > 450_000) return { success: false as const, error: 'Photo too large — try a smaller image' };
         next = s;
-      } else if (/^https?:\/\//i.test(s) && s.length < 2048) {
+      } else if (/^https?:\/\//.test(s)) {
         next = s;
       } else {
         return { success: false as const, error: 'Invalid photo format' };
@@ -512,7 +536,7 @@ export async function updateEmployeePhoto(employeeId: string, photoUrl: string |
   }
 }
 
-/** Employee self-service: about, remarks, quals, certs, experience, projects, EC. */
+
 export async function updateEmployeeProfessionalProfile(
   employeeId: string,
   payload: Record<string, unknown>
@@ -599,7 +623,7 @@ export async function setEmployeeHomeLocation(
         homePlusCode: data.plusCode ? String(data.plusCode).slice(0, 32) : null,
         homeAddress: data.address ? String(data.address).slice(0, 500) : null,
         homeRadiusM: data.homeRadiusM && data.homeRadiusM > 0 ? Math.round(data.homeRadiusM) : 100,
-        // One-time setup — admin must unlock to change again
+        
         homeEditAllowed: false,
       },
     });
@@ -610,7 +634,7 @@ export async function setEmployeeHomeLocation(
   }
 }
 
-/** Admin: yellow “Allow home setup” — employee can set/change home once more. */
+
 export async function allowEmployeeHomeSetup(employeeId: string) {
   try {
     const employee = await db.employee.update({
@@ -675,7 +699,7 @@ export async function getOpenSosIncidents(_bust?: number) {
         },
       },
     });
-    // Plain JSON so the client always gets a fresh serializable payload
+    
     return JSON.parse(JSON.stringify(rows)) as typeof rows;
   } catch (error) {
     console.error('getOpenSosIncidents', error);
@@ -708,7 +732,7 @@ export async function resolveSosIncident(incidentId: string) {
       where: { id: incidentId },
       data: { status: 'RESOLVED', resolvedAt: new Date() },
     });
-    // Tell every employee device + website lists: this SOS is closed.
+    
     void notifyPush({
       title: 'SOS resolved',
       body: 'The emergency alert was closed by admin. You can return to normal.',
@@ -805,7 +829,7 @@ export async function getLiveSystemStats() {
     console.error('Error in getLiveSystemStats DB query:', error);
   }
 
-  // Read package.json to get actual dependency count
+  
   let dependenciesCount = 0;
   let devDependenciesCount = 0;
   try {
@@ -819,12 +843,12 @@ export async function getLiveSystemStats() {
     console.error('Error reading package.json:', e);
   }
 
-  // System memory
+  
   const mem = process.memoryUsage();
   const heapUsed = Math.round(mem.heapUsed / 1024 / 1024);
   const heapTotal = Math.round(mem.heapTotal / 1024 / 1024);
 
-  // System uptime
+  
   const uptimeSeconds = Math.floor(process.uptime());
   const uptimeMin = Math.floor(uptimeSeconds / 60);
   const uptimeHr = Math.floor(uptimeMin / 60);
@@ -832,7 +856,7 @@ export async function getLiveSystemStats() {
     ? `${uptimeHr}h ${uptimeMin % 60}m`
     : `${uptimeMin}m ${uptimeSeconds % 60}s`;
 
-  // Real log entries based on actual files and DB state
+  
   const logEntries = [
     {
       event: 'Database Sync Uptime',
@@ -892,35 +916,41 @@ export async function sendEmployeeIdByEmail(email: string) {
     });
 
     if (!employee) {
-      // Return success anyway to avoid email enumeration
+      
       return { success: true };
     }
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
-    await transporter.sendMail({
-      from: '"WrkSpace Support" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Support <support@app.redlix.co.in>',
       to: employee.email,
       subject: 'WrkSpace – Your Employee Login ID',
       text: `Hello ${employee.firstName},\n\nYou requested your WrkSpace login credentials.\n\nYour 6-Digit Employee ID (used as password): ${employee.id}\n\nUse this along with your registered email to log in.\n\nIf you did not request this, please ignore this email.\n\nBest,\nWrkSpace Team`,
-      html: `<div style="font-family: sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e4e4e7;">
-        <h2 style="color: #4f46e5;">WrkSpace – Login ID Recovery</h2>
-        <p>Hello <strong>${employee.firstName}</strong>,</p>
-        <p>You requested your WrkSpace login credentials.</p>
-        <p>Your <strong>6-Digit Employee ID</strong> (used as your password):</p>
-        <div style="font-size: 28px; font-weight: bold; background-color: #f4f4f5; padding: 15px; text-align: center; letter-spacing: 6px; color: #18181b; border: 1px solid #e4e4e7; margin: 20px 0;">
+      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+          <!--[if !mso]><!-->
+          <style>
+            @media (prefers-color-scheme: dark) {
+              .wrkspace-light-logo { display: none !important; }
+              .wrkspace-dark-logo { display: inline-block !important; }
+            }
+          </style>
+          <!--<![endif]-->
+          <img class="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: inline-block;" />
+          <!--[if !mso]><!-->
+          <img class="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: none;" />
+          <!--<![endif]-->
+        </div>
+        <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">WrkSpace – Login ID Recovery</h2>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">Hello ${employee.firstName},</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">You requested your WrkSpace login credentials.</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 8px;">Your <strong>6-Digit Employee ID</strong> (used as your password):</p>
+        <div style="font-size: 24px; font-weight: 500; background-color: #f8fafc; padding: 14px; text-align: center; letter-spacing: 6px; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; font-family: monospace;">
           ${employee.id}
         </div>
-        <p style="color: #71717a; font-size: 14px;">Use this code along with your registered email (<strong>${employee.email}</strong>) to log in to WrkSpace.</p>
-        <p style="color: #71717a; font-size: 14px;">If you did not request this, please ignore this email.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.4; margin: 16px 0 0;">Use this code along with your registered email (<strong>${employee.email}</strong>) to log in to WrkSpace. If you did not request this, please ignore this email.</p>
+        <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+          © 2026 Redlix Studio. All rights reserved.
+        </div>
       </div>`,
     });
 
@@ -940,16 +970,6 @@ async function sendTaskEmail(
   allocatorRole: string
 ) {
   try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
     const logoUrl = 'https://wrkspace-coral.vercel.app/branding/wrkspace-logo.png';
     const formattedDeadline = deadline.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -957,38 +977,53 @@ async function sendTaskEmail(
       day: 'numeric'
     });
 
-    await transporter.sendMail({
-      from: '"WrkSpace Task Allocation" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Task Allocation <support@app.redlix.co.in>',
       to: toEmail,
       subject: `New Task Assigned: ${taskTitle}`,
       html: `
-        <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e4e4e7; background-color: #ffffff;">
-          <div style="text-align: center; margin-bottom: 24px; border-bottom: 1px solid #e4e4e7; padding-bottom: 16px;">
-            <img src="${logoUrl}" alt="WrkSpace Logo" style="height: 40px; width: auto; max-width: 100%;" />
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+          <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+            <!--[if !mso]><!-->
+            <style>
+              @media (prefers-color-scheme: dark) {
+                .wrkspace-light-logo { display: none !important; }
+                .wrkspace-dark-logo { display: inline-block !important; }
+              }
+            </style>
+            <!--<![endif]-->
+            <img class="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: inline-block;" />
+            <!--[if !mso]><!-->
+            <img class="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: none;" />
+            <!--<![endif]-->
           </div>
-          <h2 style="color: #4f46e5; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 8px;">New Task Allocated</h2>
-          <p style="color: #4b5563; font-size: 14px; margin-top: 0; margin-bottom: 20px;">A new task has been assigned to you in the WrkSpace system. Below are the details:</p>
+          <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 8px;">New Task Allocated</h2>
+          <p style="color: #64748b; font-size: 14px; margin-top: 0; margin-bottom: 20px; line-height: 1.5;">A new task has been assigned to you in the WrkSpace system. Below are the details:</p>
           
-          <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; padding: 16px; margin-bottom: 20px;">
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
             <div style="margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Task Title</span>
-              <strong style="font-size: 15px; color: #1f2937; display: block;">${taskTitle}</strong>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Task Title</span>
+              <strong style="font-size: 14px; color: #0f172a; font-weight: 500; display: block;">${taskTitle}</strong>
             </div>
             <div style="margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Description</span>
-              <span style="font-size: 13px; color: #4b5563; display: block; line-height: 1.5; white-space: pre-line;">${taskDesc}</span>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Description</span>
+              <span style="font-size: 13px; color: #334155; display: block; line-height: 1.5; white-space: pre-line;">${taskDesc}</span>
             </div>
             <div style="margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Assigned By</span>
-              <span style="font-size: 13px; color: #1f2937; display: block; font-weight: 600;">${allocatorName} (${allocatorRole})</span>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Assigned By</span>
+              <span style="font-size: 13px; color: #0f172a; display: block; font-weight: 500;">${allocatorName} (${allocatorRole})</span>
             </div>
             <div>
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Deadline</span>
-              <span style="font-size: 13px; color: #e11d48; display: block; font-weight: 600;">${formattedDeadline}</span>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Deadline</span>
+              <span style="font-size: 13px; color: #334155; display: block; font-weight: 500;">${formattedDeadline}</span>
             </div>
           </div>
 
-          <p style="color: #4b5563; font-size: 14px; margin-bottom: 0;">Please log into your Employee Dashboard to view task guidelines and update your progress.</p>
+          <p style="color: #64748b; font-size: 14px; margin-bottom: 20px; line-height: 1.5;">Please log into your Employee Dashboard to view task guidelines and update your progress.</p>
+          
+          <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+            © 2026 Redlix Studio. All rights reserved.
+          </div>
         </div>
       `
     });
@@ -1025,7 +1060,7 @@ export async function createTask(data: {
       }
     });
 
-    // Send email asynchronously in the background so it doesn't block the UI
+    
     if (data.assigneeId === 'ALL') {
       void notifyPush({
         title: 'New task assigned',
@@ -1103,9 +1138,9 @@ export async function sendEmployeeOtp(email: string) {
       return { success: false, error: 'No employee account is registered with this email address.' };
     }
 
-    // Generate 6-digit numeric OTP
+    
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); 
 
     await db.employee.update({
       where: { id: employee.id },
@@ -1115,30 +1150,37 @@ export async function sendEmployeeOtp(email: string) {
       }
     });
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
-    await transporter.sendMail({
-      from: '"WrkSpace Support" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Support <support@app.redlix.co.in>',
       to: employee.email,
       subject: 'WrkSpace – Employee Password Reset OTP',
       text: `Hello ${employee.firstName},\n\nYour OTP for resetting your WrkSpace password is: ${otp}\n\nThis OTP is valid for 10 minutes.\n\nBest,\nWrkSpace Team`,
-      html: `<div style="font-family: sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e4e4e7;">
-        <h2 style="color: #4f46e5;">WrkSpace – Password Reset OTP</h2>
-        <p>Hello <strong>${employee.firstName}</strong>,</p>
-        <p>You requested a password reset for your Employee account.</p>
-        <p>Your <strong>One-Time Password (OTP)</strong> is:</p>
-        <div style="font-size: 28px; font-weight: bold; background-color: #f4f4f5; padding: 15px; text-align: center; letter-spacing: 8px; color: #4f46e5; border: 1px solid #e4e4e7; margin: 20px 0;">
+      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+          <!--[if !mso]><!-->
+          <style>
+            @media (prefers-color-scheme: dark) {
+              .wrkspace-light-logo { display: none !important; }
+              .wrkspace-dark-logo { display: inline-block !important; }
+            }
+          </style>
+          <!--<![endif]-->
+          <img class="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: inline-block;" />
+          <!--[if !mso]><!-->
+          <img class="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: none;" />
+          <!--<![endif]-->
+        </div>
+        <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">WrkSpace – Password Reset OTP</h2>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">Hello ${employee.firstName},</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">You requested a password reset for your Employee account.</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 8px;">Your <strong>One-Time Password (OTP)</strong> is:</p>
+        <div style="font-size: 24px; font-weight: 500; background-color: #f8fafc; padding: 14px; text-align: center; letter-spacing: 6px; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; font-family: monospace;">
           ${otp}
         </div>
-        <p style="color: #71717a; font-size: 14px;">This code is valid for 10 minutes. If you did not request this, please ignore this email.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.4; margin: 16px 0 0;">This code is valid for 10 minutes. If you did not request this, please ignore this email.</p>
+        <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+          © 2026 Redlix Studio. All rights reserved.
+        </div>
       </div>`,
     });
 
@@ -1171,7 +1213,7 @@ export async function verifyEmployeeOtpAndResetPassword(email: string, otp: stri
       return { success: false, error: 'OTP has expired. Please request a new one.' };
     }
 
-    // Reset password
+    
     await db.employee.update({
       where: { id: employee.id },
       data: {
@@ -1335,8 +1377,11 @@ function getISTDateAndTime() {
 
 export async function runAutoCheckOut() {
   try {
-    const { processShiftCheckoutJobs } = await import('@/lib/shift-jobs');
-    await processShiftCheckoutJobs({ notify: true });
+    
+    const result = await processAttendanceCheckoutJobs({ notify: true });
+    if (result.autoCheckedOut || result.reminded) {
+      console.log('[runAutoCheckOut]', result);
+    }
   } catch (error) {
     console.error('Error in runAutoCheckOut:', error);
   }
@@ -1448,7 +1493,7 @@ export async function clockOut(employeeId: string, reason?: string) {
   }
 }
 
-/** Employee chose “Office work” — stay checked in outside office. */
+
 export async function keepCheckedIn(employeeId: string, reason = 'office_work') {
   try {
     const { todayStr } = getISTDateAndTime();
@@ -1473,7 +1518,7 @@ export async function keepCheckedIn(employeeId: string, reason = 'office_work') 
   }
 }
 
-/** Female going home from website — start live trip (optional lat/lng). */
+
 export async function startGoingHomeTrip(employeeId: string, lat?: number, lng?: number) {
   try {
     const emp = await db.employee.findUnique({ where: { id: employeeId } });
@@ -1513,7 +1558,7 @@ export async function startGoingHomeTrip(employeeId: string, lat?: number, lng?:
 
 export async function getMessages(channel: string, requestingUserId: string, requestingUserRole: string) {
   try {
-    // RBAC validation
+    
     if (requestingUserRole !== 'Admin') {
       if (channel.startsWith('dm:')) {
         const parts = channel.split(':');
@@ -1537,7 +1582,7 @@ export async function getMessages(channel: string, requestingUserId: string, req
       orderBy: { createdAt: 'asc' },
       include: { reactions: true },
     });
-    // Do not embed base64 photos here (payload too large). Client loads via loadEmployeeAvatar.
+    
     const senderIds = [...new Set(messages.map((m) => m.senderId))];
     const withPhoto = senderIds.length
       ? await db.employee.findMany({
@@ -1553,7 +1598,7 @@ export async function getMessages(channel: string, requestingUserId: string, req
   }
 }
 
-/** Load one employee profile photo (data URL) for chat avatars. */
+
 export async function loadEmployeeAvatar(employeeId: string) {
   try {
     const id = String(employeeId || '').trim();
@@ -1642,7 +1687,7 @@ export async function postMessage(channel: string, senderId: string, senderName:
       return { success: false, error: 'Message content cannot be empty' };
     }
 
-    // RBAC validation
+    
     if (senderRole !== 'Admin') {
       if (channel.startsWith('dm:')) {
         const parts = channel.split(':');
@@ -1670,7 +1715,7 @@ export async function postMessage(channel: string, senderId: string, senderName:
       }
     });
 
-    // FCM: DM → peer; public/wing → members (exclude sender)
+    
     void notifyMessagePush({
       channel,
       senderId,
@@ -1712,7 +1757,7 @@ export async function postMessageWithAttachment(
       return { success: false, error: 'Attachment too large for this endpoint' };
     }
 
-    // RBAC validation
+    
     if (senderRole !== 'Admin') {
       if (channel.startsWith('dm:')) {
         const parts = channel.split(':');
@@ -1846,7 +1891,7 @@ export async function requestChannelAccess(employeeId: string, employeeName: str
 
 export async function getChannelAccessStatus(employeeId: string, channel: string) {
   try {
-    // Admins automatically get access
+    
     if (employeeId === 'admin') {
       return { success: true, status: 'Approved' };
     }
@@ -1858,7 +1903,7 @@ export async function getChannelAccessStatus(employeeId: string, channel: string
     });
 
     if (!request) {
-      return { success: true, status: 'None' }; // No request submitted yet
+      return { success: true, status: 'None' }; 
     }
 
     return { success: true, status: request.status };
@@ -1980,7 +2025,7 @@ export async function getEvents() {
   }
 }
 
-/** Employee view: only events where they are a listed representative. */
+
 export async function getEventsForEmployee(employeeId: string) {
   try {
     const id = String(employeeId || '').trim();
@@ -1989,7 +2034,7 @@ export async function getEventsForEmployee(employeeId: string) {
       where: { allowed: true },
       orderBy: { startDate: 'asc' },
     });
-    // Serialize dates — raw Date in JSX crashes React (#31) on mobile web.
+    
     return events
       .filter((e) => eventHasRepresentative(e.representatives, id))
       .map((e) => ({
@@ -2175,7 +2220,7 @@ export async function updateSubmissionStatus(submissionId: string, status: strin
   }
 }
 
-// ─── LEADS ───────────────────────────────────────────────────────────────────
+
 
 export async function getLeads(filter?: { status?: string; source?: string; assignedTo?: string; allowed?: boolean }) {
   try {
@@ -2276,10 +2321,10 @@ function getPythonCommand(): string {
       execSync(`"${p}" --version`, { stdio: 'ignore' });
       return p;
     } catch (e) {
-      // ignore and try next
+      
     }
   }
-  return 'python3'; // fallback
+  return 'python3'; 
 }
 
 function generateRealisticLeads(city: string, category: string, count: number, sources: string[]): any[] {
@@ -2548,6 +2593,14 @@ export async function updateEmployee(id: string, data: {
   wingLeadName: string;
   role?: string;
   gender?: string;
+  remarks?: string;
+  monthWorked?: string;
+  companyWorkedFor?: string;
+  overallScore?: string;
+  conduct?: string;
+  employmentStatus?: string;
+  photoUrl?: string;
+  certifications?: string;
 }) {
   try {
     const genderRaw = String(data.gender || 'UNSPECIFIED').trim().toUpperCase();
@@ -2566,6 +2619,14 @@ export async function updateEmployee(id: string, data: {
         wingLeadName: data.wingLeadName,
         role: data.role || "Employee",
         gender,
+        remarks: data.remarks || null,
+        monthWorked: data.monthWorked || null,
+        companyWorkedFor: data.companyWorkedFor || null,
+        overallScore: data.overallScore || null,
+        conduct: data.conduct || null,
+        employmentStatus: data.employmentStatus || 'Active',
+        photoUrl: data.photoUrl || null,
+        certifications: data.certifications !== undefined ? data.certifications : undefined,
       }
     });
     return { success: true, employee: updated };
@@ -3302,7 +3363,7 @@ export async function bulkImportEmployees(employees: {
   role?: string;
 }[]) {
   try {
-    // To ensure unique random IDs, we'll fetch existing employee IDs
+    
     const existingEmployees = await db.employee.findMany({
       select: { id: true }
     });
@@ -3376,7 +3437,7 @@ export async function getTeamLeads() {
       where: { isTeamLead: true },
       orderBy: { createdAt: 'desc' }
     });
-    // For each lead, retrieve the employee info
+    
     const populated = await Promise.all(leads.map(async (lead) => {
       const emp = lead.employeeId ? await db.employee.findUnique({
         where: { id: lead.employeeId }
@@ -3413,7 +3474,7 @@ export async function allocateTeamLead(data: {
       return { success: false, error: 'Employee not found.' };
     }
 
-    // Check if employee already has an admin/lead account
+    
     const existing = await db.admin.findFirst({
       where: {
         OR: [
@@ -3427,7 +3488,7 @@ export async function allocateTeamLead(data: {
       return { success: false, error: 'A login account already exists for this employee.' };
     }
 
-    // Create Admin user linked as Team Lead
+    
     const newLead = await db.admin.create({
       data: {
         email: employee.email.toLowerCase(),
@@ -3439,7 +3500,7 @@ export async function allocateTeamLead(data: {
       }
     });
 
-    // Update the employee's role in the employee table to 'Team Lead'
+    
     await db.employee.update({
       where: { id: employee.id },
       data: { role: 'Team Lead' }
@@ -3459,14 +3520,14 @@ export async function deleteTeamLead(adminId: string) {
     });
 
     if (lead) {
-      // Revert employee role to 'Employee'
+      
       if (lead.employeeId) {
         await db.employee.update({
           where: { id: lead.employeeId },
           data: { role: 'Employee' }
         });
       }
-      // Delete the Admin record
+      
       await db.admin.delete({
         where: { id: adminId }
       });
@@ -3498,5 +3559,113 @@ export async function updateTeamLead(adminId: string, data: {
   } catch (error: any) {
     console.error('Error in updateTeamLead:', error);
     return { success: false, error: error.message };
+  }
+}
+
+export async function giveBadgeToEmployee(
+  employeeId: string,
+  badge: { title: string; icon: string; color: string; description?: string; image?: string }
+) {
+  try {
+    const employee = await db.employee.findUnique({
+      where: { id: employeeId },
+      select: { badges: true }
+    });
+
+    if (!employee) {
+      return { success: false, error: 'Employee not found' };
+    }
+
+    const currentBadges = employee.badges ? JSON.parse(employee.badges) : [];
+    const newBadge = {
+      id: Math.random().toString(36).substring(2, 9),
+      ...badge,
+      issuedAt: new Date().toISOString()
+    };
+
+    currentBadges.push(newBadge);
+
+    const updated = await db.employee.update({
+      where: { id: employeeId },
+      data: {
+        badges: JSON.stringify(currentBadges)
+      }
+    });
+
+    return { success: true, employee: updated };
+  } catch (error: any) {
+    console.error('giveBadgeToEmployee error', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteBadgeFromEmployee(employeeId: string, badgeId: string) {
+  try {
+    const employee = await db.employee.findUnique({
+      where: { id: employeeId },
+      select: { badges: true }
+    });
+
+    if (!employee) {
+      return { success: false, error: 'Employee not found' };
+    }
+
+    let currentBadges = employee.badges ? JSON.parse(employee.badges) : [];
+    currentBadges = currentBadges.filter((b: any) => b.id !== badgeId);
+
+    const updated = await db.employee.update({
+      where: { id: employeeId },
+      data: {
+        badges: JSON.stringify(currentBadges)
+      }
+    });
+
+    return { success: true, employee: updated };
+  } catch (error: any) {
+    console.error('deleteBadgeFromEmployee error', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function sendBulkAlerts(subject: string, bodyText: string, employeeIds?: string[]) {
+  try {
+    const subjectClean = String(subject || '').trim();
+    const bodyClean = String(bodyText || '').trim();
+
+    if (!subjectClean) return { success: false, error: 'Subject is required' };
+    if (!bodyClean) return { success: false, error: 'Body message is required' };
+
+    const { addAlertJobsToQueue } = await import('@/lib/queue');
+
+    let employees;
+    if (employeeIds && Array.isArray(employeeIds) && employeeIds.length > 0) {
+      employees = await db.employee.findMany({
+        where: {
+          id: { in: employeeIds },
+          employmentStatus: 'Active',
+        },
+        select: { email: true }
+      });
+    } else {
+      employees = await db.employee.findMany({
+        where: { employmentStatus: 'Active' },
+        select: { email: true }
+      });
+    }
+
+    if (employees.length === 0) {
+      return { success: false, error: 'No active employees found to notify.' };
+    }
+
+    await addAlertJobsToQueue(
+      employees.map(emp => emp.email),
+      subjectClean,
+      bodyClean
+    );
+
+    return { success: true, count: employees.length };
+  } catch (err: any) {
+    console.error('Error in sendBulkAlerts server action:', err);
+    return { success: false, error: err.message || 'Failed to dispatch alerts.' };
   }
 }
