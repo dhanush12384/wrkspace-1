@@ -338,6 +338,59 @@ export function EmployeeVerificationApp() {
 		}
 	}, []);
 
+	useEffect(() => {
+		if (!ready) return;
+		
+		const params = new URLSearchParams(window.location.search);
+		const urlQ = params.get('q');
+		if (urlQ && !searchQuery) {
+			setSearchQuery(urlQ);
+			
+			const autoSearch = async () => {
+				setSearchLoading(true);
+				setSearchError('');
+				try {
+					const res = await fetch(`/api/verification/public-search?q=${encodeURIComponent(urlQ)}`);
+					const data = await res.json();
+					if (res.ok && data.success) {
+						setSearchResults(data.employees || []);
+						if (data.employees && data.employees.length === 1) {
+							setSelectedEmployee(data.employees[0]);
+							
+							setOtpBusy(true);
+							setOtpError('');
+							try {
+								const otpRes = await fetch('/api/verification/send-search-otp', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ employeeId: data.employees[0].id })
+								});
+								const otpData = await otpRes.json();
+								if (otpRes.ok && otpData.success) {
+									setVerificationStep('otp');
+									setOtpCode('');
+								} else {
+									setSearchError(otpData.error || 'Failed to send OTP code.');
+								}
+							} catch (e) {
+								setSearchError('Failed to send OTP.');
+							} finally {
+								setOtpBusy(false);
+							}
+						}
+					} else {
+						setSearchError(data.error || 'No matching records found.');
+					}
+				} catch (err) {
+					setSearchError('Search failed.');
+				} finally {
+					setSearchLoading(false);
+				}
+			};
+			void autoSearch();
+		}
+	}, [ready]);
+
 	
 	useEffect(() => {
 		if (!ready || !session) return;
@@ -622,8 +675,9 @@ export function EmployeeVerificationApp() {
 		}
 	};
 
-	const handleShareLinkedIn = (title: string, imageUrl: string) => {
-		const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(imageUrl)}`;
+	const handleShareLinkedIn = (title: string, imageUrl: string, employeeId: string) => {
+		const publicUrl = `${window.location.origin}/employee-verification?q=${employeeId}`;
+		const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(publicUrl)}`;
 		window.open(shareUrl, '_blank', 'width=600,height=600');
 	};
 
@@ -2696,7 +2750,8 @@ export function EmployeeVerificationApp() {
 																								type="button"
 																								onClick={(e) => {
 																									e.stopPropagation();
-																									handleShareLinkedIn(b.title, resolvedImage);
+																									const empId = dossier?.employee?.id || empRecord?.id || session?.user?.id || '';
+																									handleShareLinkedIn(b.title, resolvedImage, empId);
 																								}}
 																								title="Share Badge on LinkedIn"
 																								className="p-1.5 rounded-full hover:bg-slate-100 text-[#0a66c2] hover:text-[#004182] transition-all active:scale-95 duration-100 cursor-pointer flex items-center justify-center border border-slate-100"
@@ -2707,9 +2762,12 @@ export function EmployeeVerificationApp() {
 																								type="button"
 																								onClick={(e) => {
 																									e.stopPropagation();
-																									void copyText(resolvedImage, 'Badge image URL copied!');
+																									const empId = dossier?.employee?.id || empRecord?.id || session?.user?.id || '';
+																									const publicUrl = `${window.location.origin}/employee-verification?q=${empId}`;
+																									const embedCode = `<a href="${publicUrl}" target="_blank" rel="noopener noreferrer"><img src="${resolvedImage}" width="120" alt="${b.title}" /></a>`;
+																									void copyText(embedCode, 'Badge HTML embed code copied!');
 																								}}
-																								title="Copy Badge Image Link"
+																								title="Copy HTML Embed Code"
 																								className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all active:scale-95 duration-100 cursor-pointer flex items-center justify-center border border-slate-100"
 																							>
 																								<Link className="size-3.5" />
