@@ -2,8 +2,10 @@
 
 import fs from 'fs';
 import path from 'path';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { unstable_noStore as noStore } from 'next/cache';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 import { db } from '@/lib/db';
 import { exec, execSync } from 'child_process';
 import { notifyPush } from '@/lib/push-notify';
@@ -94,18 +96,8 @@ export async function sendOtp(email: string) {
       }
     });
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
-    await transporter.sendMail({
-      from: '"WrkSpace Support" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Support <support@app.redlix.co.in>',
       to: admin.email,
       subject: 'WrkSpace Admin - Your OTP for Password Reset',
       text: `Hello, \n\nYou requested a password reset for the WrkSpace Admin panel.\n\nYour OTP is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.\n\nBest,\nWrkSpace Team`,
@@ -897,18 +889,8 @@ export async function sendEmployeeIdByEmail(email: string) {
       return { success: true };
     }
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
-    await transporter.sendMail({
-      from: '"WrkSpace Support" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Support <support@app.redlix.co.in>',
       to: employee.email,
       subject: 'WrkSpace – Your Employee Login ID',
       text: `Hello ${employee.firstName},\n\nYou requested your WrkSpace login credentials.\n\nYour 6-Digit Employee ID (used as password): ${employee.id}\n\nUse this along with your registered email to log in.\n\nIf you did not request this, please ignore this email.\n\nBest,\nWrkSpace Team`,
@@ -941,16 +923,6 @@ async function sendTaskEmail(
   allocatorRole: string
 ) {
   try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
     const logoUrl = 'https://wrkspace-coral.vercel.app/branding/wrkspace-logo.png';
     const formattedDeadline = deadline.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -958,8 +930,8 @@ async function sendTaskEmail(
       day: 'numeric'
     });
 
-    await transporter.sendMail({
-      from: '"WrkSpace Task Allocation" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Task Allocation <support@app.redlix.co.in>',
       to: toEmail,
       subject: `New Task Assigned: ${taskTitle}`,
       html: `
@@ -1116,18 +1088,8 @@ export async function sendEmployeeOtp(email: string) {
       }
     });
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'forgedigitaltechnologies@gmail.com',
-        pass: 'grty hjnq zdvh mjwx',
-      },
-    });
-
-    await transporter.sendMail({
-      from: '"WrkSpace Support" <forgedigitaltechnologies@gmail.com>',
+    await resend.emails.send({
+      from: 'WrkSpace Support <support@app.redlix.co.in>',
       to: employee.email,
       subject: 'WrkSpace – Employee Password Reset OTP',
       text: `Hello ${employee.firstName},\n\nYour OTP for resetting your WrkSpace password is: ${otp}\n\nThis OTP is valid for 10 minutes.\n\nBest,\nWrkSpace Team`,

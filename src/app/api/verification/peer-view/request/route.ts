@@ -1,21 +1,11 @@
 import { NextRequest } from 'next/server';
-import nodemailer from 'nodemailer';
 import { db } from '@/lib/db';
 import { bearerFrom, jsonError, requireEmployee, requireVerification } from '@/lib/api-auth';
+import { Resend } from 'resend';
 
 export const dynamic = 'force-dynamic';
 
-function mailer() {
-	return nodemailer.createTransport({
-		host: 'smtp.gmail.com',
-		port: 465,
-		secure: true,
-		auth: {
-			user: 'forgedigitaltechnologies@gmail.com',
-			pass: 'grty hjnq zdvh mjwx',
-		},
-	});
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function requireMember(req: NextRequest): { viewerId: string; viewerEmail: string } {
 	const token = bearerFrom(req);
@@ -85,11 +75,10 @@ export async function POST(req: NextRequest) {
 		});
 
 		const name = [target.firstName, target.lastName].filter(Boolean).join(' ') || target.email;
-		const transporter = mailer();
 
 		try {
-			await transporter.sendMail({
-				from: '"Employee Verification Portal" <forgedigitaltechnologies@gmail.com>',
+			await resend.emails.send({
+				from: 'Employee Verification Portal <support@app.redlix.co.in>',
 				to: target.email,
 				subject: `Your profile-view OTP: ${otp}`,
 				text: `Hello ${target.firstName},\n\n${viewer.viewerEmail} requested to view your employee profile (read-only) in the Employee Verification Portal.\n\nYour OTP is: ${otp}\n\nShare this code with them if you approve. Valid for 10 minutes.\n\nIf you did not expect this, ignore this email.\n`,
@@ -110,10 +99,9 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		
 		try {
-			await transporter.sendMail({
-				from: '"Employee Verification Portal" <forgedigitaltechnologies@gmail.com>',
+			await resend.emails.send({
+				from: 'Employee Verification Portal <support@app.redlix.co.in>',
 				to: viewer.viewerEmail,
 				subject: `OTP sent to ${name} — ask them for the code`,
 				text: `You requested to view ${name} (${target.id}).\n\nThe OTP was emailed to THEIR registered address (${maskEmail(target.email)}), not to you.\n\nAsk them to check their inbox (and Spam) and share the 6-digit code with you. It expires in 10 minutes.\n`,
@@ -126,7 +114,6 @@ export async function POST(req: NextRequest) {
 			});
 		} catch (notifyErr: any) {
 			console.error('peer-view notify requester failed', notifyErr);
-			
 		}
 
 		return Response.json({

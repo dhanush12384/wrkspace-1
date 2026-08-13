@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError } from '@/lib/api-auth';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,18 +32,10 @@ export async function POST(req: NextRequest) {
 			}
 		});
 
-		const transporter = nodemailer.createTransport({
-			host: 'smtp.gmail.com',
-			port: 465,
-			secure: true,
-			auth: {
-				user: 'forgedigitaltechnologies@gmail.com',
-				pass: 'grty hjnq zdvh mjwx',
-			},
-		});
+		const resend = new Resend(process.env.RESEND_API_KEY);
 
-		await transporter.sendMail({
-			from: '"WrkSpace Support" <forgedigitaltechnologies@gmail.com>',
+		await resend.emails.send({
+			from: 'WrkSpace Support <support@app.redlix.co.in>',
 			to: employee.email,
 			subject: 'WrkSpace – Employee Remarks Verification OTP',
 			text: `Hello ${employee.firstName},\n\nYour OTP for viewing your employee remarks and dossier on WrkSpace is: ${otp}\n\nThis OTP is valid for 10 minutes.\n\nBest,\nWrkSpace Team`,
