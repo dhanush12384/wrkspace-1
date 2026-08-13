@@ -2522,40 +2522,55 @@ export function EmployeeVerificationApp() {
 												}
 
 												return (
-													<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+													<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-4">
 														{employeeBadges.map((b: any) => {
-															let bgClass = "bg-slate-50 border-slate-200";
-															let textClass = "text-slate-700";
-															let pillClass = "bg-slate-200 text-slate-600";
-															if (b.color === 'blue')   { bgClass = "bg-blue-50 border-blue-200";     textClass = "text-blue-800";    pillClass = "bg-blue-100 text-blue-700"; }
-															else if (b.color === 'green')  { bgClass = "bg-emerald-50 border-emerald-200"; textClass = "text-emerald-800"; pillClass = "bg-emerald-100 text-emerald-700"; }
-															else if (b.color === 'purple') { bgClass = "bg-purple-50 border-purple-200"; textClass = "text-purple-800"; pillClass = "bg-purple-100 text-purple-700"; }
-															else if (b.color === 'orange') { bgClass = "bg-amber-50 border-amber-200";   textClass = "text-amber-800";   pillClass = "bg-amber-100 text-amber-700"; }
-															else if (b.color === 'red')    { bgClass = "bg-rose-50 border-rose-200";     textClass = "text-rose-800";    pillClass = "bg-rose-100 text-rose-700"; }
-															else if (b.color === 'yellow') { bgClass = "bg-yellow-50 border-yellow-200"; textClass = "text-yellow-800";  pillClass = "bg-yellow-100 text-yellow-700"; }
-															else if (b.color === 'pink')   { bgClass = "bg-pink-50 border-pink-200";     textClass = "text-pink-800";    pillClass = "bg-pink-100 text-pink-700"; }
-
 															const emoji = BADGE_EMOJI[b.title] || '🏷️';
+															const formattedDate = b.issuedAt 
+																? new Date(b.issuedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+																: '—';
 
 															return (
-																<div
-																	key={b.id}
-																	className={`flex flex-col items-center gap-2 p-5 rounded-2xl border ${bgClass} shadow-sm text-center`}
+																<div 
+																	key={b.id} 
+																	className="bg-[#f0f2f5] border border-slate-200/60 rounded-[28px] p-5 pt-8 pb-6 flex flex-col items-center relative select-none w-full"
 																>
-																	{b.image ? (
-																		<img src={b.image} alt={b.title} className="w-12 h-12 object-contain" />
-																	) : (
-																		<span className="text-4xl leading-none">{emoji}</span>
-																	)}
-																	<div className="space-y-0.5">
-																		<h4 className={`text-sm font-bold leading-tight ${textClass}`}>{b.title}</h4>
-																		{b.description && (
-																			<p className="text-[11px] text-slate-500 leading-relaxed">{b.description}</p>
-																		)}
-																	</div>
-																	<span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${pillClass}`}>
-																		Issued {b.issuedAt ? new Date(b.issuedAt).toLocaleDateString() : '—'}
+																	{/* Top Category Header */}
+																	<span className="text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-6 font-mono">
+																		Verified Badge
 																	</span>
+
+																	{/* White Inner Card */}
+																	<div className="bg-white rounded-2xl p-6 pt-9 pb-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100 w-full relative flex flex-col items-center">
+																		
+																		{/* Floating Badge Icon/Image */}
+																		<div className="absolute -top-7 left-1/2 -translate-x-1/2 z-10">
+																			{b.image ? (
+																				<img 
+																					src={b.image} 
+																					alt={b.title} 
+																					className="w-14 h-14 object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:scale-105 transition-transform duration-200" 
+																				/>
+																			) : (
+																				<div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-slate-150/50 hover:scale-105 transition-transform duration-200">
+																					{emoji}
+																				</div>
+																			)}
+																		</div>
+
+																		{/* Badge Details */}
+																		<div className="space-y-1 text-center w-full mt-1">
+																			<h4 className="text-sm font-bold text-slate-800 tracking-tight leading-snug">
+																				{b.title}
+																			</h4>
+																			<p className="text-[11px] text-slate-400 leading-normal max-w-[170px] mx-auto min-h-[16px] truncate" title={b.description || ''}>
+																				{b.description || 'Verified Employee badge'}
+																			</p>
+																			<span className="text-[10px] text-slate-400/90 font-medium block pt-2 border-t border-slate-100/60 mt-3">
+																				{formattedDate}
+																			</span>
+																		</div>
+
+																	</div>
 																</div>
 															);
 														})}
