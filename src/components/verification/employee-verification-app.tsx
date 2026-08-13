@@ -8,6 +8,7 @@ import { EmployeeProfessionalProfileEditor } from '@/components/ui/employee-prof
 import { PeerColleagueView } from '@/components/verification/peer-colleague-view';
 import { GrainGradient } from '@paper-design/shaders-react';
 import { EyeIcon, EyeOffIcon, ArrowLeft, CheckCircle, Mail, Phone, Calendar, Building, Award, ShieldAlert, Sparkles, RefreshCw, Shield, Trophy, Zap, Heart, Flame } from 'lucide-react';
+import InputOTP from '@/components/ui/heroui-input-otp';
 import './verification.css';
 
 
@@ -1143,14 +1144,13 @@ export function EmployeeVerificationApp() {
 																<button
 																	type="button"
 																	onClick={() => handleRequestSearchOtp(emp)}
-																	disabled={otpBusy}
-																	className="mt-3 w-full flex items-center justify-center gap-2 h-9 rounded-lg border border-black/10 bg-[#E61E32]/10 hover:bg-[#E61E32]/15 text-[#E61E32] text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+																	className="mt-3 w-full flex items-center justify-center gap-2 h-9 rounded-lg bg-gradient-to-r from-[#E61E32] to-[#ff5f6d] hover:from-[#c91a2b] hover:to-[#e84b58] text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.01]"
 																>
 																	{otpBusy && selectedEmployee?.id === emp.id ? (
 																		'Requesting OTP...'
 																	) : (
 																		<>
-																			<Sparkles className="size-3.5" />
+																			<Shield className="size-3.5" />
 																			Verify Identity via OTP to View Remarks
 																		</>
 																	)}
@@ -1166,64 +1166,77 @@ export function EmployeeVerificationApp() {
 									{/* Step 2: OTP Verification Screen */}
 									{verificationStep === 'otp' && selectedEmployee && (
 										<div className="space-y-5">
-											<div className="flex items-center gap-2 mb-2">
+
+											{/* Breadcrumb nav */}
+											<nav className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
 												<button
 													type="button"
-													onClick={() => {
-														setVerificationStep('search');
-														setOtpError('');
-													}}
-													className="p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-600 cursor-pointer"
+													onClick={() => { setVerificationStep('search'); setOtpError(''); }}
+													className="hover:text-slate-700 transition-colors cursor-pointer"
 												>
-													<ArrowLeft className="size-4" />
+													Search
 												</button>
-												<span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Back to Search</span>
-											</div>
+												<span className="text-slate-300">/</span>
+												<span className="text-slate-700 font-semibold">Verify OTP</span>
+											</nav>
 
 											<div className="text-center space-y-2">
-												<h3 className="text-lg font-bold text-slate-900">Enter Verification Code</h3>
-												<p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-													For verification, we sent a 6-digit OTP to the employee's registered email address <strong className="text-slate-800 font-semibold">{selectedEmployee.email}</strong>.
+												<div className="flex justify-center mb-3">
+													<div className="size-12 rounded-full bg-slate-100 flex items-center justify-center">
+														<Shield className="size-5 text-slate-600" />
+													</div>
+												</div>
+												<h3 className="text-base font-bold text-slate-900">Enter Verification Code</h3>
+												<p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
+													We've sent a 6-digit code to <strong className="text-slate-700">{selectedEmployee.email}</strong>
 												</p>
 											</div>
 
 											{otpError ? (
-												<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono">
+												<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono text-center">
 													{otpError}
 												</div>
 											) : null}
 
 											<form onSubmit={handleVerifySearchOtp} className="space-y-4">
-												<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
-													<input
-														type="text"
-														required
+												{/* HeroUI segmented OTP slots */}
+												<div style={{ display: 'flex', justifyContent: 'center' }}>
+													<InputOTP
 														maxLength={6}
 														value={otpCode}
-														onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-														placeholder="Enter 6-digit OTP code"
-														className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-center text-base font-bold tracking-[0.5em] outline-none placeholder:text-black/30 placeholder:tracking-normal placeholder:text-sm"
-													/>
-													<span className="shrink-0 text-slate-500 text-xs font-semibold">OTP Code</span>
-												</label>
+														onChange={(val: string) => setOtpCode(val.replace(/\D/g, ''))}
+													>
+														<InputOTP.Group>
+															<InputOTP.Slot index={0} />
+															<InputOTP.Slot index={1} />
+															<InputOTP.Slot index={2} />
+														</InputOTP.Group>
+														<InputOTP.Separator />
+														<InputOTP.Group>
+															<InputOTP.Slot index={3} />
+															<InputOTP.Slot index={4} />
+															<InputOTP.Slot index={5} />
+														</InputOTP.Group>
+													</InputOTP>
+												</div>
 
 												<button
 													type="submit"
 													disabled={otpBusy || otpCode.length !== 6}
-													className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
+													className="flex h-10 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#E61E32] to-[#ff5f6d] hover:from-[#c91a2b] hover:to-[#e84b58] text-sm font-bold text-white transition-all disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md"
 												>
-													{otpBusy ? 'Verifying...' : 'Verify OTP & Unlock Dossier'}
+													{otpBusy ? 'Verifying...' : 'Unlock Dossier'}
 												</button>
 											</form>
 
-											<div className="flex justify-center pt-2">
+											<div className="flex justify-center pt-1">
 												<button
 													type="button"
 													onClick={() => handleRequestSearchOtp(selectedEmployee)}
 													disabled={otpBusy}
-													className="text-xs font-semibold text-[#E61E32] hover:underline cursor-pointer disabled:opacity-50"
+													className="text-[11px] font-semibold text-slate-500 hover:text-[#E61E32] transition-colors cursor-pointer disabled:opacity-50"
 												>
-													Resend OTP Code
+													Didn't receive it? Resend OTP
 												</button>
 											</div>
 										</div>
