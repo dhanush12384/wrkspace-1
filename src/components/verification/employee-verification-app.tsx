@@ -783,7 +783,7 @@ export function EmployeeVerificationApp() {
 		);
 	}
 
-	if (!session) {
+	if (!session && !verifiedDossier) {
 		return (
 			<section className="min-h-screen bg-white p-3 text-black antialiased [font-synthesis:none]" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
 				<div className="grid min-h-[calc(100vh-1.5rem)] gap-6 lg:grid-cols-[1.18fr_0.82fr] xl:grid-cols-[1.22fr_0.78fr]">
@@ -1353,7 +1353,7 @@ export function EmployeeVerificationApp() {
 		);
 	}
 
-	if (session.user.role === 'EMPLOYEE') {
+	if (session && session.user.role === 'EMPLOYEE') {
 		return (
 			<main className="ev-root ev-app">
 				<header className="ev-topbar print:hidden">
@@ -1418,9 +1418,9 @@ export function EmployeeVerificationApp() {
 		);
 	}
 
-	const emp = dossier?.employee;
-	const isAdmin = session.user.role === 'SUPER';
-	const linkedEmployeeId = session.user.employeeId || empRecord?.id || null;
+	const emp = verifiedDossier || dossier?.employee;
+	const isAdmin = session ? session.user.role === 'SUPER' : false;
+	const linkedEmployeeId = session ? (session.user.employeeId || empRecord?.id || null) : null;
 	const hasOwnEmployeeProfile = Boolean(isAdmin && linkedEmployeeId);
 	const ownProfileIncomplete = Boolean(
 		hasOwnEmployeeProfile &&
@@ -1442,53 +1442,57 @@ export function EmployeeVerificationApp() {
 						/>
 						<div className="ev-brand-divider" />
 						<p className="ev-top-user">
-							{session.user.email}
-							{session.user.companyName ? ` · ${session.user.companyName}` : ''}
+							{session ? session.user.email : 'Public Verifier'}
+							{session?.user?.companyName ? ` · ${session.user.companyName}` : ''}
 							<span className="ev-pill">
-								{hasOwnEmployeeProfile ? 'Admin · Technical' : session.user.role}
+								{verifiedDossier ? 'Verified Viewer' : (hasOwnEmployeeProfile ? 'Admin · Technical' : session?.user?.role)}
 							</span>
 						</p>
 					</div>
 					<div className="ev-topbar-actions">
 						{copied ? <span className="ev-toast">{copied}</span> : null}
-						<button
-							type="button"
-							className={`ev-nav-btn ${tab === 'directory' ? 'is-active' : ''}`}
-							onClick={() => {
-								setTab('directory');
-							}}
-						>
-							Directory
-						</button>
-						{hasOwnEmployeeProfile ? (
-							<button
-								type="button"
-								className={`ev-nav-btn ${tab === 'my_profile' ? 'is-active' : ''}`}
-								onClick={() => setTab('my_profile')}
-							>
-								My professional profile
-							</button>
-						) : null}
-						{isAdmin || hasOwnEmployeeProfile ? (
-							<button
-								type="button"
-								className={`ev-nav-btn ${tab === 'peer_view' ? 'is-active' : ''}`}
-								onClick={() => setTab('peer_view')}
-							>
-								View colleague
-							</button>
-						) : null}
-						{isAdmin ? (
-							<button
-								type="button"
-								className={`ev-nav-btn ${tab === 'access' ? 'is-active' : ''}`}
-								onClick={() => setTab('access')}
-							>
-								Company access
-							</button>
-						) : null}
+						{session && (
+							<>
+								<button
+									type="button"
+									className={`ev-nav-btn ${tab === 'directory' ? 'is-active' : ''}`}
+									onClick={() => {
+										setTab('directory');
+									}}
+								>
+									Directory
+								</button>
+								{hasOwnEmployeeProfile ? (
+									<button
+										type="button"
+										className={`ev-nav-btn ${tab === 'my_profile' ? 'is-active' : ''}`}
+										onClick={() => setTab('my_profile')}
+									>
+										My professional profile
+									</button>
+								) : null}
+								{isAdmin || hasOwnEmployeeProfile ? (
+									<button
+										type="button"
+										className={`ev-nav-btn ${tab === 'peer_view' ? 'is-active' : ''}`}
+										onClick={() => setTab('peer_view')}
+									>
+										View colleague
+									</button>
+								) : null}
+								{isAdmin ? (
+									<button
+										type="button"
+										className={`ev-nav-btn ${tab === 'access' ? 'is-active' : ''}`}
+										onClick={() => setTab('access')}
+									>
+										Company access
+									</button>
+								) : null}
+							</>
+						)}
 						<button type="button" className="ev-nav-btn ev-nav-signout" onClick={logout}>
-							Sign out
+							{verifiedDossier ? 'Exit Dossier' : 'Sign out'}
 						</button>
 					</div>
 				</div>
@@ -1500,7 +1504,8 @@ export function EmployeeVerificationApp() {
 					<span className="ev-bc-item">Verification Portal</span>
 					<span className="ev-bc-sep">›</span>
 					<span className="ev-bc-item ev-bc-active">
-						{tab === 'directory' ? 'Directory'
+						{verifiedDossier ? 'Verified Dossier'
+							: tab === 'directory' ? 'Directory'
 							: tab === 'my_profile' ? 'My Profile'
 							: tab === 'peer_view' ? 'View Colleague'
 							: tab === 'access' ? 'Company Access'
@@ -1695,8 +1700,9 @@ export function EmployeeVerificationApp() {
 					)}
 				</div>
 			) : (
-				<div className="ev-shell ev-workspace">
-					<aside className="ev-sidebar print:hidden">
+				<div className={`ev-shell ev-workspace ${verifiedDossier ? 'ev-verified-workspace' : ''}`}>
+					{!verifiedDossier && (
+						<aside className="ev-sidebar print:hidden">
 						<div className="ev-sidebar-tools">
 							<div className="ev-stats-row">
 								<div className="ev-stat">
@@ -1771,6 +1777,7 @@ export function EmployeeVerificationApp() {
 							) : null}
 						</ul>
 					</aside>
+					)}
 
 					<section className="ev-main">
 						{dossierLoading ? (
@@ -1778,7 +1785,7 @@ export function EmployeeVerificationApp() {
 								<div className="ev-spinner" />
 								<p>Loading complete history…</p>
 							</div>
-						) : !dossier ? (
+						) : (!dossier && !verifiedDossier) ? (
 							<div className="ev-empty-main">
 								<div className="ev-empty-art" aria-hidden />
 								<h2>Select an employee</h2>
@@ -1807,7 +1814,7 @@ export function EmployeeVerificationApp() {
 												{emp?.role} · {emp?.wingName} · Lead: {emp?.wingLeadName}
 											</p>
 											<p className="ev-dossier-line ev-mono">
-												{emp?.email} · {emp?.phone} · ID {emp?.id} · {emp?.tenureDays}d tenure
+												{emp?.email} · {emp?.phone} · ID {emp?.id} · {emp?.tenureDays ?? (emp?.createdAt ? Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0)}d tenure
 											</p>
 											<div className="ev-inline-actions print:hidden">
 												<a className="ev-chip" href={`mailto:${emp?.email}`}>
@@ -1885,10 +1892,14 @@ export function EmployeeVerificationApp() {
 																<strong>
 																	<span
 																		className={`ev-status-pill ${
-																			emp?.employmentStatus === 'Inactive' ? 'is-inactive' : 'is-active'
+																			emp?.employmentStatus === 'Terminated'
+																				? 'bg-red-500/20 text-red-650'
+																				: emp?.employmentStatus === 'Inactive'
+																				? 'is-inactive'
+																				: 'is-active'
 																		}`}
 																	>
-																		{emp?.employmentStatus === 'Inactive' ? 'Inactive' : 'Active'}
+																		{emp?.employmentStatus || 'Active'}
 																	</span>
 																</strong>
 															</div>
@@ -1913,8 +1924,28 @@ export function EmployeeVerificationApp() {
 																<strong>{emp?.phone || '—'}</strong>
 															</div>
 															<div className="ev-info-item">
+																<span>Company worked for</span>
+																<strong>{emp?.companyWorkedFor || '—'}</strong>
+															</div>
+															<div className="ev-info-item">
+																<span>Month worked</span>
+																<strong>{emp?.monthWorked || '—'}</strong>
+															</div>
+															<div className="ev-info-item">
+																<span>Overall score</span>
+																<strong className="bg-indigo-500/25 px-1.5 py-0.5 rounded text-indigo-400 font-sans text-[11px] font-bold inline-block">
+																	{emp?.overallScore || '—'}
+																</strong>
+															</div>
+															<div className="ev-info-item">
+																<span>Conduct</span>
+																<strong className="bg-emerald-500/25 px-1.5 py-0.5 rounded text-emerald-400 font-sans text-[11px] font-bold inline-block">
+																	{emp?.conduct || '—'}
+																</strong>
+															</div>
+															<div className="ev-info-item">
 																<span>Tenure</span>
-																<strong>{emp?.tenureDays != null ? `${emp.tenureDays} days` : '—'}</strong>
+																<strong>{emp?.tenureDays != null ? `${emp.tenureDays} days` : (emp?.createdAt ? `${Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days` : '—')}</strong>
 															</div>
 															<div className="ev-info-item">
 																<span>Joined</span>
@@ -1923,7 +1954,17 @@ export function EmployeeVerificationApp() {
 																</strong>
 															</div>
 														</div>
-														<p className="ev-muted" style={{ marginTop: 12 }}>
+
+														{emp?.remarks && (
+															<div style={{ marginTop: 24, borderTop: '1px solid var(--ev-line, #e4e4e7)', paddingTop: 16 }}>
+																<span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block font-mono" style={{ fontSize: 10, textTransform: 'uppercase', color: '#71717a', fontWeight: 'bold', marginBottom: 8 }}>Official Remarks & Feedback</span>
+																<div className="bg-[#E61E32]/5 border border-[#E61E32]/10 rounded-lg p-4 font-sans italic" style={{ padding: 16, backgroundColor: 'rgba(230, 30, 50, 0.05)', border: '1px solid rgba(230, 30, 50, 0.1)', borderRadius: 8, fontStyle: 'italic', color: '#1e293b' }}>
+																	"{emp.remarks}"
+																</div>
+															</div>
+														)}
+
+														<p className="ev-muted" style={{ marginTop: 16 }}>
 															The full professional profile (résumé, experience, education, skills,
 															projects &amp; more) is only visible to portal admins.
 														</p>

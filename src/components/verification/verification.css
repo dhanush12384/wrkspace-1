@@ -1218,3 +1218,7 @@
 	color: white;
 }
 
+.ev-workspace.ev-verified-workspace {
+	grid-template-columns: 1fr;
+}
+
