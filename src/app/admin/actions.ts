@@ -3555,3 +3555,45 @@ export async function deleteBadgeFromEmployee(employeeId: string, badgeId: strin
     return { success: false, error: error.message };
   }
 }
+
+export async function sendBulkAlerts(subject: string, bodyText: string, employeeIds?: string[]) {
+  try {
+    const subjectClean = String(subject || '').trim();
+    const bodyClean = String(bodyText || '').trim();
+
+    if (!subjectClean) return { success: false, error: 'Subject is required' };
+    if (!bodyClean) return { success: false, error: 'Body message is required' };
+
+    const { addAlertJobToQueue } = await import('@/lib/queue');
+
+    let employees;
+    if (employeeIds && Array.isArray(employeeIds) && employeeIds.length > 0) {
+      employees = await db.employee.findMany({
+        where: {
+          id: { in: employeeIds },
+          employmentStatus: 'Active',
+        },
+        select: { email: true }
+      });
+    } else {
+      employees = await db.employee.findMany({
+        where: { employmentStatus: 'Active' },
+        select: { email: true }
+      });
+    }
+
+    if (employees.length === 0) {
+      return { success: false, error: 'No active employees found to notify.' };
+    }
+
+    const promises = employees.map(emp => 
+      addAlertJobToQueue(emp.email, subjectClean, bodyClean)
+    );
+    await Promise.all(promises);
+
+    return { success: true, count: employees.length };
+  } catch (err: any) {
+    console.error('Error in sendBulkAlerts server action:', err);
+    return { success: false, error: err.message || 'Failed to dispatch alerts.' };
+  }
+}

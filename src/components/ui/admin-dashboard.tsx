@@ -25,13 +25,14 @@ import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, C
 import { cn } from '@/lib/utils';
 import { MessagesView } from './messages-view';
 import { ChatAvatar } from './chat-avatar';
+import { AdminAlertSender } from './admin-alert-sender';
 
 interface AdminDashboardProps {
 	email: string;
 	onLogout: () => void;
 }
 
-type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'add_remarks';
+type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'add_remarks' | 'alert_sender';
 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -43,7 +44,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [newAdminOrgName, setNewAdminOrgName] = useState('');
 	const [newAdminPassword, setNewAdminPassword] = useState('admin123');
 	const [newAdminPages, setNewAdminPages] = useState<string[]>([
-		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies'
+		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies', 'alert_sender'
 	]);
 	const [allocatedLink, setAllocatedLink] = useState<string | null>(null);
 	const [isAllocating, setIsAllocating] = useState(false);
@@ -1786,6 +1787,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							Messages
 						</button>
 					)}
+					{(isSuperAdmin || allowedTabs.includes('alert_sender')) && (
+						<button
+							onClick={() => setActiveTab('alert_sender')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'alert_sender' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Alert Sender
+						</button>
+					)}
 					{(isSuperAdmin || allowedTabs.includes('system_status')) && (
 						<button
 							onClick={() => setActiveTab('system_status')}
@@ -1854,6 +1863,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				{}
 				{activeTab === 'live_safety' && <AdminLiveSafetyPanel adminEmail={email} />}
 				{activeTab === 'live_tracking' && <AdminLiveTrackingPanel adminEmail={email} />}
+				{activeTab === 'alert_sender' && <AdminAlertSender />}
 
 				{activeTab === 'add_remarks' && (
 					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-6 rounded-none max-w-4xl mx-auto">
