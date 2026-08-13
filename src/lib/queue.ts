@@ -60,7 +60,18 @@ export function getEmailTemplateHtml(subject: string, formattedBodyHtml: string)
 	return `
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
 	<div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
-		<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%;" />
+		<!--[if !mso]><!-->
+		<style>
+			@media (prefers-color-scheme: dark) {
+				.wrkspace-light-logo { display: none !important; }
+				.wrkspace-dark-logo { display: inline-block !important; }
+			}
+		</style>
+		<!--<![endif]-->
+		<img class="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: inline-block;" />
+		<!--[if !mso]><!-->
+		<img class="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: none;" />
+		<!--<![endif]-->
 	</div>
 	<h2 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-top: 0; margin-bottom: 16px;">${subject}</h2>
 	<div style="font-size: 14px; line-height: 1.6; color: #334155;">

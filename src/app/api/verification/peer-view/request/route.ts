@@ -84,7 +84,18 @@ export async function POST(req: NextRequest) {
 				text: `Hello ${target.firstName},\n\n${viewer.viewerEmail} requested to view your employee profile (read-only) in the Employee Verification Portal.\n\nYour OTP is: ${otp}\n\nShare this code with them if you approve. Valid for 10 minutes.\n\nIf you did not expect this, ignore this email.\n`,
 				html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
 					<div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
-						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%;" />
+						<!--[if !mso]><!-->
+						<style>
+							@media (prefers-color-scheme: dark) {
+								.wrkspace-light-logo { display: none !important; }
+								.wrkspace-dark-logo { display: inline-block !important; }
+							}
+						</style>
+						<!--<![endif]-->
+						<img class="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: inline-block;" />
+						<!--[if !mso]><!-->
+						<img class="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: none;" />
+						<!--<![endif]-->
 					</div>
 					<h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">Profile view OTP</h2>
 					<p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">Hello ${name},</p>
@@ -115,7 +126,18 @@ export async function POST(req: NextRequest) {
 				text: `You requested to view ${name} (${target.id}).\n\nThe OTP was emailed to THEIR registered address (${maskEmail(target.email)}), not to you.\n\nAsk them to check their inbox (and Spam) and share the 6-digit code with you. It expires in 10 minutes.\n`,
 				html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
 					<div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
-						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%;" />
+						<!--[if !mso]><!-->
+						<style>
+							@media (prefers-color-scheme: dark) {
+								.wrkspace-light-logo { display: none !important; }
+								.wrkspace-dark-logo { display: inline-block !important; }
+							}
+						</style>
+						<!--<![endif]-->
+						<img class="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: inline-block;" />
+						<!--[if !mso]><!-->
+						<img class="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%; display: none;" />
+						<!--<![endif]-->
 					</div>
 					<h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">OTP sent to your colleague</h2>
 					<p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">You asked to view <strong>${name}</strong> (ID ${target.id}).</p>

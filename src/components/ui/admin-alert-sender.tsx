@@ -301,7 +301,14 @@ export function AdminAlertSender() {
 								}}
 							>
 								<div style={{ textAlign: "center", marginBottom: "20px", borderBottom: "1px solid #f1f5f9", paddingBottom: "16px" }}>
-									<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style={{ height: "36px", width: "auto" }} />
+									<style>{`
+										@media (prefers-color-scheme: dark) {
+											.wrkspace-light-logo { display: none !important; }
+											.wrkspace-dark-logo { display: inline-block !important; }
+										}
+									`}</style>
+									<img className="wrkspace-light-logo" src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style={{ height: "36px", width: "auto", display: "inline-block" }} />
+									<img className="wrkspace-dark-logo" src="https://ik.imagekit.io/dypkhqxip/codered" alt="WrkSpace" style={{ height: "36px", width: "auto", display: "none" }} />
 								</div>
 								
 								<h2 style={{ fontSize: "18px", fontWeight: "600", color: "#1e293b", marginTop: "0", marginBottom: "16px" }}>
