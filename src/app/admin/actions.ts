@@ -3493,7 +3493,7 @@ export async function updateTeamLead(adminId: string, data: {
 
 export async function giveBadgeToEmployee(
   employeeId: string,
-  badge: { title: string; icon: string; color: string; description?: string }
+  badge: { title: string; icon: string; color: string; description?: string; image?: string }
 ) {
   try {
     const employee = await db.employee.findUnique({

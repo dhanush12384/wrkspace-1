@@ -2542,7 +2542,11 @@ export function EmployeeVerificationApp() {
 																	key={b.id}
 																	className={`flex flex-col items-center gap-2 p-5 rounded-2xl border ${bgClass} shadow-sm text-center`}
 																>
-																	<span className="text-4xl leading-none">{emoji}</span>
+																	{b.image ? (
+																		<img src={b.image} alt={b.title} className="w-12 h-12 object-contain" />
+																	) : (
+																		<span className="text-4xl leading-none">{emoji}</span>
+																	)}
 																	<div className="space-y-0.5">
 																		<h4 className={`text-sm font-bold leading-tight ${textClass}`}>{b.title}</h4>
 																		{b.description && (

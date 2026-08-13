@@ -375,6 +375,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [badgeIcon, setBadgeIcon] = useState('Award');
 	const [badgeColor, setBadgeColor] = useState('blue');
 	const [badgeDescription, setBadgeDescription] = useState('');
+	const [badgeImage, setBadgeImage] = useState('');
 	const [badgeMessage, setBadgeMessage] = useState<string | null>(null);
 	const [showAddManualLeave, setShowAddManualLeave] = useState(false);
 	const [showAddManualAttendance, setShowAddManualAttendance] = useState(false);
@@ -575,12 +576,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			icon: badgeIcon,
 			color: badgeColor,
 			description: badgeDescription.trim() || undefined,
+			image: badgeImage || undefined,
 		});
 		if (res.success && res.employee) {
 			setEditingItem(res.employee);
 			fetchEmployees();
 			setBadgeTitle('');
 			setBadgeDescription('');
+			setBadgeImage('');
 			setBadgeMessage('Badge assigned successfully!');
 			setTimeout(() => setBadgeMessage(null), 3000);
 		} else {
@@ -2176,12 +2179,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 								{(() => {
 									const PRESET_BADGES = [
-										{ title: 'New Joinee',      icon: 'Star',    color: 'blue',   emoji: '🌟' },
-										{ title: 'Super Worker',    icon: 'Trophy',  color: 'yellow', emoji: '🏆' },
-										{ title: 'Slashing Dev',    icon: 'Zap',     color: 'purple', emoji: '⚡' },
-										{ title: 'Core Dev',        icon: 'Shield',  color: 'green',  emoji: '🛡️' },
-										{ title: 'Pro Marketer',    icon: 'Flame',   color: 'orange', emoji: '🔥' },
-										{ title: 'Employee of the Month', icon: 'Award', color: 'red', emoji: '🏅' },
+										{ title: 'New Joinee',          icon: 'Star',    color: 'blue',   emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/b20d00f9-3ba0-47cc-bf11-a1eb7639040d.svg' },
+										{ title: 'Employee Completion', icon: 'Award',   color: 'green',  emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+										{ title: 'Employee Badge',      icon: 'Shield',  color: 'orange', emoji: '🏷️', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+										{ title: 'Super Worker',        icon: 'Trophy',  color: 'yellow', emoji: '🏆' },
+										{ title: 'Slashing Dev',        icon: 'Zap',     color: 'purple', emoji: '⚡' },
+										{ title: 'Core Dev',            icon: 'Shield',  color: 'green',  emoji: '🛡️' },
+										{ title: 'Pro Marketer',        icon: 'Flame',   color: 'orange', emoji: '🔥' },
 									];
 									return (
 										<div className="grid grid-cols-3 gap-2">
@@ -2208,17 +2212,25 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														onClick={() => {
 															if (remBadgeTitle === badge.title) {
 																setRemBadgeTitle('');
+																setRemBadgeIcon('Award');
+																setRemBadgeColor('blue');
 															} else {
 																setRemBadgeTitle(badge.title);
 																setRemBadgeIcon(badge.icon);
 																setRemBadgeColor(badge.color);
 															}
 														}}
-														className={`flex flex-col items-center gap-1 p-2.5 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
+														className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
 															isSelected ? `ring-2 ${ringColor}` : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
 														}`}
 													>
-														<span className="text-lg leading-none">{badge.emoji}</span>
+														<span className="text-xl leading-none flex items-center justify-center h-8">
+															{badge.image ? (
+																<img src={badge.image} alt={badge.title} className="w-8 h-8 object-contain" />
+															) : (
+																badge.emoji
+															)}
+														</span>
 														<span className={`text-[10px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-400'}`}>
 															{badge.title}
 														</span>
@@ -5925,12 +5937,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 									{(() => {
 										const PRESET_BADGES = [
-											{ title: 'New Joinee',      icon: 'Star',        color: 'blue',   description: 'Welcomed as a new member of the team', emoji: '🌟' },
-											{ title: 'Super Worker',    icon: 'Trophy',      color: 'yellow', description: 'Consistently delivering outstanding work', emoji: '🏆' },
-											{ title: 'Slashing Dev',    icon: 'Zap',         color: 'purple', description: 'Exceptional speed and quality in development', emoji: '⚡' },
-											{ title: 'Core Dev',        icon: 'Shield',      color: 'green',  description: 'Pillar of the engineering team', emoji: '🛡️' },
-											{ title: 'Pro Marketer',    icon: 'Flame',       color: 'orange', description: 'Drives growth and brand excellence', emoji: '🔥' },
-											{ title: 'Employee of the Month', icon: 'Award', color: 'red',    description: 'Recognised as the best performer this month', emoji: '🏅' },
+											{ title: 'New Joinee',          icon: 'Star',        color: 'blue',   description: 'Welcomed as a new member of the team', emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/b20d00f9-3ba0-47cc-bf11-a1eb7639040d.svg' },
+											{ title: 'Employee Completion', icon: 'Award',        color: 'green',  description: 'Successfully completed the project / milestones', emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+											{ title: 'Employee Badge',      icon: 'Shield',      color: 'orange', description: 'Awarded official verified employee credentials badge', emoji: '🏷️', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+											{ title: 'Super Worker',        icon: 'Trophy',      color: 'yellow', description: 'Consistently delivering outstanding work', emoji: '🏆' },
+											{ title: 'Slashing Dev',        icon: 'Zap',         color: 'purple', description: 'Exceptional speed and quality in development', emoji: '⚡' },
+											{ title: 'Core Dev',            icon: 'Shield',      color: 'green',  description: 'Pillar of the engineering team', emoji: '🛡️' },
+											{ title: 'Pro Marketer',        icon: 'Flame',       color: 'orange', description: 'Drives growth and brand excellence', emoji: '🔥' },
 										];
 
 										return (
@@ -5961,7 +5974,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																setBadgeTitle(badge.title);
 																setBadgeIcon(badge.icon);
 																setBadgeColor(badge.color);
-																setBadgeDescription(badge.description);
+																setBadgeDescription(badge.description || '');
+																setBadgeImage((badge as any).image || '');
 															}}
 															className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
 																isSelected
@@ -5969,7 +5983,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	: 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
 															}`}
 														>
-															<span className="text-xl leading-none">{badge.emoji}</span>
+															<span className="text-xl leading-none flex items-center justify-center h-8">
+																{badge.image ? (
+																	<img src={badge.image} alt={badge.title} className="w-8 h-8 object-contain" />
+																) : (
+																	badge.emoji
+																)}
+															</span>
 															<span className={`text-[11px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-300'}`}>
 																{badge.title}
 															</span>
