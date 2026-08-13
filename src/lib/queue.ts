@@ -165,10 +165,16 @@ if (isRedisAvailable && redisConnection && !globalForQueue.emailWorker) {
 		emailWorker = new Worker('emailQueue', async (job: Job) => {
 			const { to, subject, bodyText } = job.data;
 			console.log(`Processing email job ${job.id} to: ${to}`);
-			return await processEmailJob(to, subject, bodyText);
+			const result = await processEmailJob(to, subject, bodyText);
+			
+			// Introduce a 5-second time gap between email deliveries to prevent promotion classification
+			console.log(`Waiting 5 seconds before next job...`);
+			await new Promise(resolve => setTimeout(resolve, 5000));
+			
+			return result;
 		}, {
 			connection: redisConnection,
-			concurrency: 5,
+			concurrency: 1, // Process sequentially (one at a time)
 		});
 
 		emailWorker.on('completed', (job) => {
@@ -186,25 +192,37 @@ if (isRedisAvailable && redisConnection && !globalForQueue.emailWorker) {
 }
 
 // Queue producer helper with absolute fallback if Redis is offline
-export async function addAlertJobToQueue(to: string, subject: string, bodyText: string) {
+export async function addAlertJobsToQueue(recipients: string[], subject: string, bodyText: string) {
 	if (emailQueue && isRedisAvailable) {
 		try {
-			await emailQueue.add('sendAlert', { to, subject, bodyText });
-			return { success: true, queued: true };
+			for (const email of recipients) {
+				await emailQueue.add('sendAlert', { to: email, subject, bodyText });
+			}
+			return { success: true, count: recipients.length, queued: true };
 		} catch (err: any) {
-			console.warn('BullMQ enqueue failed. Falling back to direct async dispatch:', err.message);
+			console.warn('BullMQ enqueue failed. Falling back to direct sequential dispatch:', err.message);
 		}
 	}
 
-	// Fallback Mode: Direct background dispatching via setTimeout
+	// Fallback Mode: Direct background dispatching sequentially with 5-second delays
 	setTimeout(async () => {
-		try {
-			console.log(`[Fallback Direct Dispatch] Sending email alert to: ${to}`);
-			await processEmailJob(to, subject, bodyText);
-		} catch (err) {
-			console.error(`[Fallback Direct Dispatch] Failed to send email alert to: ${to}`, err);
+		console.log(`[Fallback Dispatch] Starting sequential dispatch for ${recipients.length} recipients...`);
+		for (let i = 0; i < recipients.length; i++) {
+			const email = recipients[i];
+			try {
+				console.log(`[Fallback Dispatch] Sending email (${i + 1}/${recipients.length}) to: ${email}`);
+				await processEmailJob(email, subject, bodyText);
+			} catch (err) {
+				console.error(`[Fallback Dispatch] Failed to send email to: ${email}`, err);
+			}
+			
+			if (i < recipients.length - 1) {
+				// Wait 5 seconds before sending the next email
+				await new Promise(resolve => setTimeout(resolve, 5000));
+			}
 		}
+		console.log('[Fallback Dispatch] Sequential dispatch complete.');
 	}, 10);
 
-	return { success: true, queued: false, direct: true };
+	return { success: true, count: recipients.length, queued: false, direct: true };
 }

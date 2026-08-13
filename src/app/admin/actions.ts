@@ -3608,7 +3608,7 @@ export async function sendBulkAlerts(subject: string, bodyText: string, employee
     if (!subjectClean) return { success: false, error: 'Subject is required' };
     if (!bodyClean) return { success: false, error: 'Body message is required' };
 
-    const { addAlertJobToQueue } = await import('@/lib/queue');
+    const { addAlertJobsToQueue } = await import('@/lib/queue');
 
     let employees;
     if (employeeIds && Array.isArray(employeeIds) && employeeIds.length > 0) {
@@ -3630,10 +3630,11 @@ export async function sendBulkAlerts(subject: string, bodyText: string, employee
       return { success: false, error: 'No active employees found to notify.' };
     }
 
-    const promises = employees.map(emp => 
-      addAlertJobToQueue(emp.email, subjectClean, bodyClean)
+    await addAlertJobsToQueue(
+      employees.map(emp => emp.email),
+      subjectClean,
+      bodyClean
     );
-    await Promise.all(promises);
 
     return { success: true, count: employees.length };
   } catch (err: any) {

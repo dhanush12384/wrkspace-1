@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { jsonError, requireAdmin } from '@/lib/api-auth';
-import { addAlertJobToQueue } from '@/lib/queue';
+import { addAlertJobsToQueue } from '@/lib/queue';
 
 export async function POST(req: NextRequest) {
 	try {
@@ -49,19 +49,17 @@ export async function POST(req: NextRequest) {
 			return jsonError('No active employees selected/found to notify.', 404);
 		}
 
-		// Enqueue / dispatch email alert jobs
-		const promises = employees.map(emp => 
-			addAlertJobToQueue(emp.email, subject, bodyText)
+		// Enqueue / dispatch email alert jobs in bulk
+		const result = await addAlertJobsToQueue(
+			employees.map(emp => emp.email),
+			subject,
+			bodyText
 		);
-		const results = await Promise.all(promises);
 
 		return Response.json({
 			success: true,
 			count: employees.length,
-			results: results.map((r, i) => ({
-				email: employees[i].email,
-				...r
-			}))
+			result
 		});
 	} catch (e: any) {
 		console.error('Failed to send alerts:', e);
