@@ -44,19 +44,32 @@ export async function GET(req: NextRequest) {
 				photoUrl: true,
 				createdAt: true,
 				employmentStatus: true,
-				remarks: true,
 				monthWorked: true,
 			},
 			orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
 		});
+
+		const maskEmail = (email: string) => {
+			const parts = email.split('@');
+			if (parts.length !== 2) return '***';
+			const name = parts[0];
+			const domain = parts[1];
+			if (name.length <= 2) return `${name.charAt(0)}***@${domain}`;
+			return `${name.slice(0, 2)}***@${domain}`;
+		};
+
+		const maskPhone = (phone: string) => {
+			if (phone.length <= 4) return '******';
+			return `******${phone.slice(-4)}`;
+		};
 
 		const rows = employees.map((e) => {
 			const name = [e.firstName, e.middleName, e.lastName].filter(Boolean).join(' ').trim();
 			return {
 				id: e.id,
 				name,
-				email: e.email,
-				phone: e.phone,
+				email: maskEmail(e.email),
+				phone: maskPhone(e.phone),
 				wingName: e.wingName,
 				wingLeadName: e.wingLeadName,
 				role: e.role,
@@ -64,7 +77,6 @@ export async function GET(req: NextRequest) {
 				photoUrl: e.photoUrl,
 				joinedAt: e.createdAt.toISOString(),
 				employmentStatus: e.employmentStatus || 'Active',
-				remarks: e.remarks || '',
 				monthWorked: e.monthWorked || '',
 			};
 		});

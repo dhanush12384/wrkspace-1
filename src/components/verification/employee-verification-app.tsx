@@ -7,7 +7,7 @@ import { signInWithPopup } from 'firebase/auth';
 import { EmployeeProfessionalProfileEditor } from '@/components/ui/employee-professional-profile';
 import { PeerColleagueView } from '@/components/verification/peer-colleague-view';
 import { GrainGradient } from '@paper-design/shaders-react';
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, ArrowLeft, CheckCircle, Mail, Phone, Calendar, Building, Award, ShieldAlert, Sparkles, RefreshCw } from 'lucide-react';
 import './verification.css';
 
 
@@ -187,6 +187,68 @@ export function EmployeeVerificationApp() {
 	const [searchResults, setSearchResults] = useState<any[]>([]);
 	const [searchLoading, setSearchLoading] = useState(false);
 	const [searchError, setSearchError] = useState('');
+
+	// States for public verification OTP flow
+	const [verificationStep, setVerificationStep] = useState<'search' | 'otp' | 'dossier'>('search');
+	const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
+	const [otpCode, setOtpCode] = useState('');
+	const [otpBusy, setOtpBusy] = useState(false);
+	const [otpError, setOtpError] = useState('');
+	const [verifiedDossier, setVerifiedDossier] = useState<any | null>(null);
+
+	const handleRequestSearchOtp = async (emp: any) => {
+		setOtpBusy(true);
+		setOtpError('');
+		setSearchError('');
+		try {
+			const res = await fetch('/api/verification/send-search-otp', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ employeeId: emp.id })
+			});
+			const data = await res.json();
+			if (res.ok && data.success) {
+				setSelectedEmployee(emp);
+				setVerificationStep('otp');
+				setOtpCode('');
+			} else {
+				setSearchError(data.error || 'Failed to send OTP code.');
+			}
+		} catch (err: any) {
+			setSearchError('An unexpected error occurred while requesting OTP.');
+		} finally {
+			setOtpBusy(false);
+		}
+	};
+
+	const handleVerifySearchOtp = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!otpCode || otpCode.length < 6) {
+			setOtpError('Please enter a valid 6-digit OTP code.');
+			return;
+		}
+		setOtpBusy(true);
+		setOtpError('');
+		try {
+			const res = await fetch('/api/verification/verify-search-otp', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ employeeId: selectedEmployee.id, otp: otpCode })
+			});
+			const data = await res.json();
+			if (res.ok && data.success) {
+				setVerifiedDossier(data.employee);
+				setVerificationStep('dossier');
+				setOtpError('');
+			} else {
+				setOtpError(data.error || 'Invalid OTP code.');
+			}
+		} catch (err: any) {
+			setOtpError('An unexpected error occurred during OTP verification.');
+		} finally {
+			setOtpBusy(false);
+		}
+	};
 
 	useEffect(() => {
 		setSession(loadSession());
@@ -960,106 +1022,293 @@ export function EmployeeVerificationApp() {
 								</>
 							) : (
 								<div className="space-y-5">
-									{searchError ? (
-										<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono">
-											{searchError}
-										</div>
-									) : null}
+									{/* Step 1: Search Form & Results */}
+									{verificationStep === 'search' && (
+										<div className="space-y-5">
+											{searchError ? (
+												<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono">
+													{searchError}
+												</div>
+											) : null}
 
-									<form
-										onSubmit={async (e) => {
-											e.preventDefault();
-											if (!searchQuery.trim()) return;
-											setSearchLoading(true);
-											setSearchError('');
-											setSearchResults([]);
-											try {
-												const res = await fetch(`/api/verification/public-search?q=${encodeURIComponent(searchQuery)}`);
-												const data = await res.json();
-												if (res.ok) {
-													setSearchResults(data.employees || []);
-													if (!data.employees || data.employees.length === 0) {
-														setSearchError('No employee found with that name.');
+											<form
+												onSubmit={async (e) => {
+													e.preventDefault();
+													if (!searchQuery.trim()) return;
+													setSearchLoading(true);
+													setSearchError('');
+													setSearchResults([]);
+													try {
+														const res = await fetch(`/api/verification/public-search?q=${encodeURIComponent(searchQuery)}`);
+														const data = await res.json();
+														if (res.ok) {
+															setSearchResults(data.employees || []);
+															if (!data.employees || data.employees.length === 0) {
+																setSearchError('No employee found with that name.');
+															}
+														} else {
+															setSearchError(data.error || 'Failed to search employee.');
+														}
+													} catch (err: any) {
+														setSearchError('An error occurred during search.');
+													} finally {
+														setSearchLoading(false);
 													}
-												} else {
-													setSearchError(data.error || 'Failed to search employee.');
-												}
-											} catch (err: any) {
-												setSearchError('An error occurred during search.');
-											} finally {
-												setSearchLoading(false);
-											}
-										}}
-										className="space-y-4"
-									>
-										<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
-											<input
-												type="text"
-												required
-												value={searchQuery}
-												onChange={(e) => setSearchQuery(e.target.value)}
-												placeholder="Enter employee's name (e.g. John)"
-												className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30"
-											/>
-											<span className="shrink-0 text-slate-500 text-xs font-semibold">Employee Name</span>
-										</label>
+												}}
+												className="space-y-4"
+											>
+												<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
+													<input
+														type="text"
+														required
+														value={searchQuery}
+														onChange={(e) => setSearchQuery(e.target.value)}
+														placeholder="Enter employee's name (e.g. John)"
+														className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-sm outline-none placeholder:text-black/30"
+													/>
+													<span className="shrink-0 text-slate-500 text-xs font-semibold">Employee Name</span>
+												</label>
 
-										<button
-											type="submit"
-											disabled={searchLoading}
-											className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
-										>
-											{searchLoading ? 'Searching...' : 'Search Remarks'}
-										</button>
-									</form>
+												<button
+													type="submit"
+													disabled={searchLoading}
+													className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
+												>
+													{searchLoading ? 'Searching...' : 'Search Remarks'}
+												</button>
+											</form>
 
-									{/* Search Results Display */}
-									{searchResults.length > 0 && (
-										<div className="space-y-3 pt-2">
-											<h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
-												Search Results ({searchResults.length})
-											</h3>
-											<div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
-												{searchResults.map((emp) => (
-													<div
-														key={emp.id}
-														className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 space-y-3"
-													>
-														<div className="flex items-center gap-3">
-															<div className="size-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 border border-slate-200 uppercase">
-																{emp.name.charAt(0)}
+											{/* Search Results Display */}
+											{searchResults.length > 0 && (
+												<div className="space-y-3 pt-2">
+													<h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+														Search Results ({searchResults.length})
+													</h3>
+													<div className="space-y-4 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin">
+														{searchResults.map((emp) => (
+															<div
+																key={emp.id}
+																className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 space-y-3"
+															>
+																<div className="flex items-center gap-3">
+																	{emp.photoUrl ? (
+																		<img src={emp.photoUrl} alt={emp.name} className="size-10 rounded-full object-cover border border-slate-200" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+																	) : (
+																		<div className="size-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-700 border border-slate-200 uppercase">
+																			{emp.name.charAt(0)}
+																		</div>
+																	)}
+																	<div>
+																		<h4 className="text-sm font-semibold text-slate-900">{emp.name}</h4>
+																		<p className="text-[11px] text-slate-500 font-mono">ID: {emp.id} · {emp.role}</p>
+																	</div>
+																</div>
+																<div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs border-t border-slate-100 pt-3 text-slate-600 font-mono">
+																	<div>
+																		<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Company</span>
+																		<span className="text-slate-900 font-semibold">{emp.wingName || '—'}</span>
+																	</div>
+																	<div>
+																		<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Month Worked</span>
+																		<span className="text-slate-900 font-semibold">{emp.monthWorked || '—'}</span>
+																	</div>
+																	<div className="col-span-2">
+																		<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Registered Email</span>
+																		<span className="text-slate-650 text-xs">{emp.email}</span>
+																	</div>
+																</div>
+																
+																<button
+																	type="button"
+																	onClick={() => handleRequestSearchOtp(emp)}
+																	disabled={otpBusy}
+																	className="mt-3 w-full flex items-center justify-center gap-2 h-9 rounded-lg border border-black/10 bg-[#E61E32]/10 hover:bg-[#E61E32]/15 text-[#E61E32] text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shadow-sm"
+																>
+																	{otpBusy && selectedEmployee?.id === emp.id ? (
+																		'Requesting OTP...'
+																	) : (
+																		<>
+																			<Sparkles className="size-3.5" />
+																			Verify Identity via OTP to View Remarks
+																		</>
+																	)}
+																</button>
 															</div>
-															<div>
-																<h4 className="text-sm font-semibold text-slate-900">{emp.name}</h4>
-																<p className="text-[11px] text-slate-500 font-mono">ID: {emp.id} · {emp.role}</p>
-															</div>
+														))}
+													</div>
+												</div>
+											)}
+										</div>
+									)}
+
+									{/* Step 2: OTP Verification Screen */}
+									{verificationStep === 'otp' && selectedEmployee && (
+										<div className="space-y-5">
+											<div className="flex items-center gap-2 mb-2">
+												<button
+													type="button"
+													onClick={() => {
+														setVerificationStep('search');
+														setOtpError('');
+													}}
+													className="p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-600 cursor-pointer"
+												>
+													<ArrowLeft className="size-4" />
+												</button>
+												<span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Back to Search</span>
+											</div>
+
+											<div className="text-center space-y-2">
+												<h3 className="text-lg font-bold text-slate-900">Enter Verification Code</h3>
+												<p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+													For verification, we sent a 6-digit OTP to the employee's registered email address <strong className="text-slate-800 font-semibold">{selectedEmployee.email}</strong>.
+												</p>
+											</div>
+
+											{otpError ? (
+												<div className="p-3 rounded-lg text-xs font-medium border bg-red-500/10 border-red-500/30 text-red-650 font-mono">
+													{otpError}
+												</div>
+											) : null}
+
+											<form onSubmit={handleVerifySearchOtp} className="space-y-4">
+												<label className="flex h-11 items-center justify-between gap-3 rounded-[10px] border border-black/25 bg-white px-4 text-sm leading-none">
+													<input
+														type="text"
+														required
+														maxLength={6}
+														value={otpCode}
+														onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+														placeholder="Enter 6-digit OTP code"
+														className="min-w-0 flex-1 truncate bg-transparent text-slate-800 text-center text-base font-bold tracking-[0.5em] outline-none placeholder:text-black/30 placeholder:tracking-normal placeholder:text-sm"
+													/>
+													<span className="shrink-0 text-slate-500 text-xs font-semibold">OTP Code</span>
+												</label>
+
+												<button
+													type="submit"
+													disabled={otpBusy || otpCode.length !== 6}
+													className="mt-4 flex h-11 w-full items-center justify-center rounded-[10px] border border-black/40 bg-black text-base font-bold text-white transition-all hover:bg-black/85 disabled:opacity-50 cursor-pointer shadow-sm"
+												>
+													{otpBusy ? 'Verifying...' : 'Verify OTP & Unlock Dossier'}
+												</button>
+											</form>
+
+											<div className="flex justify-center pt-2">
+												<button
+													type="button"
+													onClick={() => handleRequestSearchOtp(selectedEmployee)}
+													disabled={otpBusy}
+													className="text-xs font-semibold text-[#E61E32] hover:underline cursor-pointer disabled:opacity-50"
+												>
+													Resend OTP Code
+												</button>
+											</div>
+										</div>
+									)}
+
+									{/* Step 3: Verified Dossier Dashboard */}
+									{verificationStep === 'dossier' && verifiedDossier && (
+										<div className="space-y-5 animate-fade-in">
+											<div className="flex justify-between items-center pb-2 border-b border-slate-100">
+												<button
+													type="button"
+													onClick={() => {
+														setVerificationStep('search');
+														setVerifiedDossier(null);
+														setSelectedEmployee(null);
+														setSearchQuery('');
+														setSearchResults([]);
+													}}
+													className="flex items-center gap-1.5 text-xs text-[#E61E32] hover:underline font-semibold cursor-pointer"
+												>
+													<ArrowLeft className="size-3.5" />
+													Verify Another Employee
+												</button>
+												<span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wider font-mono">
+													<CheckCircle className="size-3 text-emerald-600 fill-emerald-50" />
+													Fully Verified
+												</span>
+											</div>
+
+											{/* Branded Dossier Dashboard View */}
+											<div className="bg-slate-900 text-white rounded-xl border border-slate-800 overflow-hidden shadow-lg p-6 space-y-5">
+												<div className="flex flex-col sm:flex-row items-center gap-4 border-b border-slate-800 pb-4">
+													{verifiedDossier.photoUrl ? (
+														<img src={verifiedDossier.photoUrl} alt={verifiedDossier.name} className="size-16 rounded-full object-cover border-2 border-slate-700 bg-slate-950 shrink-0" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+													) : (
+														<div className="size-16 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-300 border-2 border-slate-700 uppercase shrink-0">
+															{verifiedDossier.name.charAt(0)}
 														</div>
-														<div className="grid grid-cols-2 gap-x-2 gap-y-3 text-xs border-t border-slate-100 pt-3 text-slate-600 font-mono">
-															<div>
-																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Wing</span>
-																{emp.wingName}
-															</div>
-															<div>
-																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Wing Lead</span>
-																{emp.wingLeadName}
-															</div>
-															<div>
-																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Month Worked</span>
-																<span className="text-slate-900 font-semibold">{emp.monthWorked || '—'}</span>
-															</div>
-															<div>
-																<span className="text-[10px] text-slate-400 block font-sans font-medium uppercase tracking-wide">Status</span>
-																<span className={`font-semibold ${emp.employmentStatus === 'Active' ? 'text-emerald-600' : 'text-slate-500'}`}>{emp.employmentStatus || 'Active'}</span>
-															</div>
-														</div>
-														<div className="bg-[#E61E32]/5 border border-[#E61E32]/10 rounded-lg p-3.5 mt-2">
-															<span className="text-[10px] text-[#E61E32] font-semibold uppercase block tracking-wider font-mono">Remarks</span>
-															<p className="text-xs text-slate-800 mt-1 font-sans italic leading-relaxed">
-																"{emp.remarks || 'No remarks provided.'}"
-															</p>
+													)}
+													<div className="text-center sm:text-left space-y-1">
+														<h3 className="text-lg font-bold text-white tracking-tight">{verifiedDossier.name}</h3>
+														<div className="flex flex-wrap justify-center sm:justify-start gap-x-2 gap-y-1 text-xs text-slate-400 font-mono">
+															<span>ID: {verifiedDossier.id}</span>
+															<span>·</span>
+															<span>{verifiedDossier.role}</span>
+															<span>·</span>
+															<span className={`px-1.5 py-0.5 text-[9px] font-bold rounded uppercase ${
+																verifiedDossier.employmentStatus === 'Active'
+																	? 'bg-emerald-500/20 text-emerald-400'
+																	: verifiedDossier.employmentStatus === 'Terminated'
+																	? 'bg-red-500/20 text-red-400'
+																	: 'bg-amber-500/20 text-amber-400'
+															}`}>{verifiedDossier.employmentStatus || 'Active'}</span>
 														</div>
 													</div>
-												))}
+												</div>
+
+												{/* Core Dossier Details */}
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+													<div className="space-y-3">
+														<div className="flex items-center gap-2 text-slate-400">
+															<Mail className="size-3.5 text-slate-500 shrink-0" />
+															<span className="text-[11px]">Email: <strong className="text-white select-all">{verifiedDossier.email}</strong></span>
+														</div>
+														<div className="flex items-center gap-2 text-slate-400">
+															<Phone className="size-3.5 text-slate-500 shrink-0" />
+															<span className="text-[11px]">Phone: <strong className="text-white select-all">{verifiedDossier.phone}</strong></span>
+														</div>
+														<div className="flex items-center gap-2 text-slate-400">
+															<Building className="size-3.5 text-slate-500 shrink-0" />
+															<span className="text-[11px]">Company: <strong className="text-white">{verifiedDossier.companyWorkedFor || 'Default Company'}</strong></span>
+														</div>
+													</div>
+
+													<div className="space-y-3">
+														<div className="flex items-center gap-2 text-slate-400">
+															<Calendar className="size-3.5 text-slate-500 shrink-0" />
+															<span className="text-[11px]">Months Worked: <strong className="text-white">{verifiedDossier.monthWorked || '—'}</strong></span>
+														</div>
+														<div className="flex items-center gap-2 text-slate-400">
+															<Award className="size-3.5 text-slate-500 shrink-0" />
+															<span className="text-[11px]">Overall Score: <strong className="text-white bg-indigo-500/35 px-1.5 py-0.5 rounded font-bold font-sans text-xs">{verifiedDossier.overallScore || '—'}</strong></span>
+														</div>
+														<div className="flex items-center gap-2 text-slate-400">
+															<CheckCircle className="size-3.5 text-slate-500 shrink-0" />
+															<span className="text-[11px]">Conduct: <strong className="text-white bg-emerald-500/25 px-1.5 py-0.5 rounded text-xs">{verifiedDossier.conduct || '—'}</strong></span>
+														</div>
+													</div>
+												</div>
+
+												{/* Detailed Remarks */}
+												<div className="border-t border-slate-800 pt-4 mt-2">
+													<span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block font-mono">Official Remarks & Feedback</span>
+													<div className="bg-[#E61E32]/10 border border-[#E61E32]/20 rounded-lg p-4 mt-2">
+														<p className="text-xs text-red-200 font-sans italic leading-relaxed">
+															"{verifiedDossier.remarks || 'No official remarks recorded for this period.'}"
+														</p>
+													</div>
+												</div>
+
+												<button
+													type="button"
+													onClick={() => window.print()}
+													className="mt-4 w-full h-10 rounded-lg border border-slate-800 bg-slate-800 hover:bg-slate-750 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
+												>
+													Print Official Report
+												</button>
 											</div>
 										</div>
 									)}

@@ -319,6 +319,11 @@ export async function addEmployee(employeeData: {
   gender?: string;
   remarks?: string;
   monthWorked?: string;
+  companyWorkedFor?: string;
+  overallScore?: string;
+  conduct?: string;
+  employmentStatus?: string;
+  photoUrl?: string;
 }) {
   try {
     
@@ -361,6 +366,11 @@ export async function addEmployee(employeeData: {
         gender,
         remarks: employeeData.remarks || null,
         monthWorked: employeeData.monthWorked || null,
+        companyWorkedFor: employeeData.companyWorkedFor || null,
+        overallScore: employeeData.overallScore || null,
+        conduct: employeeData.conduct || null,
+        employmentStatus: employeeData.employmentStatus || 'Active',
+        photoUrl: employeeData.photoUrl || null,
       }
     });
 
@@ -2530,6 +2540,11 @@ export async function updateEmployee(id: string, data: {
   gender?: string;
   remarks?: string;
   monthWorked?: string;
+  companyWorkedFor?: string;
+  overallScore?: string;
+  conduct?: string;
+  employmentStatus?: string;
+  photoUrl?: string;
 }) {
   try {
     const genderRaw = String(data.gender || 'UNSPECIFIED').trim().toUpperCase();
@@ -2550,6 +2565,11 @@ export async function updateEmployee(id: string, data: {
         gender,
         remarks: data.remarks || null,
         monthWorked: data.monthWorked || null,
+        companyWorkedFor: data.companyWorkedFor || null,
+        overallScore: data.overallScore || null,
+        conduct: data.conduct || null,
+        employmentStatus: data.employmentStatus || 'Active',
+        photoUrl: data.photoUrl || null,
       }
     });
     return { success: true, employee: updated };

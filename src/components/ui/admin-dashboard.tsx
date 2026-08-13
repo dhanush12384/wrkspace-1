@@ -31,7 +31,7 @@ interface AdminDashboardProps {
 	onLogout: () => void;
 }
 
-type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking';
+type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'add_remarks';
 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -271,6 +271,26 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [empGender, setEmpGender] = useState('UNSPECIFIED');
 	const [empRemarks, setEmpRemarks] = useState('');
 	const [empMonthWorked, setEmpMonthWorked] = useState('');
+
+	// States for Add Remarks page
+	const [remPhotoUrl, setRemPhotoUrl] = useState('');
+	const [remFirstName, setRemFirstName] = useState('');
+	const [remMiddleName, setRemMiddleName] = useState('');
+	const [remLastName, setRemLastName] = useState('');
+	const [remEmail, setRemEmail] = useState('');
+	const [remPhone, setRemPhone] = useState('');
+	const [remCompanyWorkedFor, setRemCompanyWorkedFor] = useState('');
+	const [remStatus, setRemStatus] = useState('Active');
+	const [remRemarks, setRemRemarks] = useState('');
+	const [remOverallScore, setRemOverallScore] = useState('');
+	const [remConduct, setRemConduct] = useState('');
+	const [remWingName, setRemWingName] = useState('');
+	const [remWingLeadName, setRemWingLeadName] = useState('');
+	const [remRole, setRemRole] = useState('Employee');
+	const [remGender, setRemGender] = useState('UNSPECIFIED');
+	const [remMonthWorked, setRemMonthWorked] = useState('');
+	const [remMessage, setRemMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+	const [remBusy, setRemBusy] = useState(false);
 
 	const [addMessage, setAddMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
@@ -1037,6 +1057,65 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
+	const handleRemarksSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setRemBusy(true);
+		setRemMessage(null);
+
+		try {
+			const result = await addEmployee({
+				firstName: remFirstName,
+				middleName: remMiddleName,
+				lastName: remLastName,
+				email: remEmail,
+				phone: remPhone,
+				wingName: remWingName || 'Default Wing',
+				wingLeadName: remWingLeadName || 'Default Lead',
+				role: remRole || 'Employee',
+				gender: remGender,
+				remarks: remRemarks,
+				monthWorked: remMonthWorked,
+				companyWorkedFor: remCompanyWorkedFor,
+				overallScore: remOverallScore,
+				conduct: remConduct,
+				employmentStatus: remStatus,
+				photoUrl: remPhotoUrl || undefined,
+			});
+
+			if (result.success && result.employee) {
+				setRemMessage({
+					type: 'success',
+					text: `Employee remarks successfully created! Generated 6-Digit ID: ${result.employee.id}`,
+				});
+				
+				setRemPhotoUrl('');
+				setRemFirstName('');
+				setRemMiddleName('');
+				setRemLastName('');
+				setRemEmail('');
+				setRemPhone('');
+				setRemCompanyWorkedFor('');
+				setRemStatus('Active');
+				setRemRemarks('');
+				setRemOverallScore('');
+				setRemConduct('');
+				setRemWingName('');
+				setRemWingLeadName('');
+				setRemRole('Employee');
+				setRemGender('UNSPECIFIED');
+				setRemMonthWorked('');
+
+				await fetchEmployees();
+			} else {
+				setRemMessage({ type: 'error', text: result.error || 'Failed to create employee remarks.' });
+			}
+		} catch (error: any) {
+			setRemMessage({ type: 'error', text: error.message || 'An unexpected error occurred.' });
+		} finally {
+			setRemBusy(false);
+		}
+	};
+
 	const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
@@ -1531,6 +1610,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							Employees
 						</button>
 					)}
+					{(isSuperAdmin || allowedTabs.includes('add_remarks')) && (
+						<button
+							onClick={() => setActiveTab('add_remarks')}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'add_remarks' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Add Remarks
+						</button>
+					)}
 					{(isSuperAdmin || allowedTabs.includes('task_allocation')) && (
 						<button
 							onClick={() => setActiveTab('task_allocation')}
@@ -1653,6 +1740,225 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				{}
 				{activeTab === 'live_safety' && <AdminLiveSafetyPanel adminEmail={email} />}
 				{activeTab === 'live_tracking' && <AdminLiveTrackingPanel adminEmail={email} />}
+
+				{activeTab === 'add_remarks' && (
+					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-6 rounded-none max-w-4xl mx-auto">
+						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+							<div>
+								<h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+									Add Employee Remarks & Dossier
+								</h3>
+								<p className="text-xs text-zinc-400 mt-1">
+									Register or update an employee with full remarks, conduct history, and performance score.
+								</p>
+							</div>
+						</div>
+
+						{remMessage && (
+							<div className={`p-3 rounded-none text-xs border font-mono ${
+								remMessage.type === 'success'
+									? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
+									: "bg-red-950/30 border-red-800 text-red-400"
+							}`}>
+								{remMessage.text}
+							</div>
+						)}
+
+						<form onSubmit={handleRemarksSubmit} className="space-y-6">
+							{/* Photo URL & Preview */}
+							<div className="space-y-2">
+								<label className="text-[10px] text-zinc-400 uppercase font-medium">Employee Photo URL</label>
+								<div className="flex gap-4 items-center">
+									<Input
+										placeholder="https://example.com/photo.jpg"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9 flex-1"
+										value={remPhotoUrl}
+										onChange={e => setRemPhotoUrl(e.target.value)}
+									/>
+									{remPhotoUrl.trim() && (
+										<div className="size-9 rounded-none border border-zinc-850 overflow-hidden bg-zinc-950 shrink-0">
+											<img src={remPhotoUrl} alt="Preview" className="size-full object-cover" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+										</div>
+									)}
+								</div>
+							</div>
+
+							{/* Name Section */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">First Name</label>
+									<Input
+										placeholder="First Name"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remFirstName}
+										onChange={e => setRemFirstName(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Middle Name</label>
+									<Input
+										placeholder="Middle Name (Optional)"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remMiddleName}
+										onChange={e => setRemMiddleName(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Last Name</label>
+									<Input
+										placeholder="Last Name"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remLastName}
+										onChange={e => setRemLastName(e.target.value)}
+									/>
+								</div>
+							</div>
+
+							{/* Contact Info */}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Email ID</label>
+									<Input
+										type="email"
+										placeholder="employee.email@company.com"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remEmail}
+										onChange={e => setRemEmail(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Phone Number</label>
+									<Input
+										type="tel"
+										placeholder="+1 (555) 000-0000"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remPhone}
+										onChange={e => setRemPhone(e.target.value)}
+									/>
+								</div>
+							</div>
+
+							{/* Work & Status */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Company Worked For</label>
+									<Input
+										placeholder="e.g. Google / WrkSpace"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remCompanyWorkedFor}
+										onChange={e => setRemCompanyWorkedFor(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+									<Input
+										placeholder="e.g. October 2026, or 12 Months"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remMonthWorked}
+										onChange={e => setRemMonthWorked(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
+									<select
+										className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+										value={remStatus}
+										onChange={e => setRemStatus(e.target.value)}
+									>
+										<option value="Active">Active</option>
+										<option value="Terminated">Terminated</option>
+										<option value="Inactive">Inactive</option>
+									</select>
+								</div>
+							</div>
+
+							{/* Department / Wing Info */}
+							<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+								<div className="space-y-1 col-span-2">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Wing Name</label>
+									<Input
+										placeholder="Engineering / Sales"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remWingName}
+										onChange={e => setRemWingName(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Role</label>
+									<Input
+										placeholder="Engineer"
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remRole}
+										onChange={e => setRemRole(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Gender</label>
+									<select
+										className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+										value={remGender}
+										onChange={e => setRemGender(e.target.value)}
+									>
+										<option value="UNSPECIFIED">Not set</option>
+										<option value="FEMALE">Female</option>
+										<option value="MALE">Male</option>
+									</select>
+								</div>
+							</div>
+
+							{/* Score & Conduct */}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Overall Score</label>
+									<Input
+										placeholder="e.g. 9.5/10, A+, Excellent"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remOverallScore}
+										onChange={e => setRemOverallScore(e.target.value)}
+									/>
+								</div>
+								<div className="space-y-1">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Conduct Assessment</label>
+									<Input
+										placeholder="e.g. Exemplary, Punctual, Good team player"
+										required
+										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										value={remConduct}
+										onChange={e => setRemConduct(e.target.value)}
+									/>
+								</div>
+							</div>
+
+							{/* Remarks */}
+							<div className="space-y-1">
+								<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+								<textarea
+									placeholder="Provide complete remarks about the employee..."
+									required
+									rows={4}
+									className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white p-2.5 rounded-none outline-none focus:border-zinc-700 placeholder:text-zinc-650"
+									value={remRemarks}
+									onChange={e => setRemRemarks(e.target.value)}
+								/>
+							</div>
+
+							<Button
+								type="submit"
+								disabled={remBusy}
+								className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+							>
+								{remBusy ? 'Saving Remarks...' : 'Save Remarks & Create Record'}
+							</Button>
+						</form>
+					</div>
+				)}
 
 				{activeTab === 'overview' && (
 					<div className="space-y-6">
