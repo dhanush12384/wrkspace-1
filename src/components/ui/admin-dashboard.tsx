@@ -17,7 +17,7 @@ import {
 	UserPlusIcon,
 	PlusIcon,
 } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee } from '@/app/admin/actions';
 import { AdminLiveSafetyPanel } from './safety-panel';
 import { AdminLiveTrackingPanel } from './live-tracking-panel';
 import OfficesPanel from '@/components/ui/offices-panel';
@@ -364,6 +364,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	
 	const [editModalType, setEditModalType] = useState<'employee' | 'task' | 'leave' | 'attendance' | 'event' | 'submission' | 'hr_company' | null>(null);
 	const [editingItem, setEditingItem] = useState<any>(null);
+	const [badgeTitle, setBadgeTitle] = useState('');
+	const [badgeIcon, setBadgeIcon] = useState('Award');
+	const [badgeColor, setBadgeColor] = useState('blue');
+	const [badgeDescription, setBadgeDescription] = useState('');
+	const [badgeMessage, setBadgeMessage] = useState<string | null>(null);
 	const [showAddManualLeave, setShowAddManualLeave] = useState(false);
 	const [showAddManualAttendance, setShowAddManualAttendance] = useState(false);
 	const [showTodayAttendanceSummary, setShowTodayAttendanceSummary] = useState(false);
@@ -550,6 +555,42 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			fetchEmployees();
 		} else {
 			alert('Failed to update employee: ' + res.error);
+		}
+	};
+
+	const handleGiveBadge = async (employeeId: string) => {
+		if (!badgeTitle.trim()) {
+			setBadgeMessage('Please enter a badge title');
+			return;
+		}
+		const res = await giveBadgeToEmployee(employeeId, {
+			title: badgeTitle.trim(),
+			icon: badgeIcon,
+			color: badgeColor,
+			description: badgeDescription.trim() || undefined,
+		});
+		if (res.success && res.employee) {
+			setEditingItem(res.employee);
+			fetchEmployees();
+			setBadgeTitle('');
+			setBadgeDescription('');
+			setBadgeMessage('Badge assigned successfully!');
+			setTimeout(() => setBadgeMessage(null), 3000);
+		} else {
+			alert('Failed to give badge: ' + res.error);
+		}
+	};
+
+	const handleDeleteBadge = async (employeeId: string, badgeId: string) => {
+		if (!confirm('Are you sure you want to delete this badge?')) return;
+		const res = await deleteBadgeFromEmployee(employeeId, badgeId);
+		if (res.success && res.employee) {
+			setEditingItem(res.employee);
+			fetchEmployees();
+			setBadgeMessage('Badge removed successfully.');
+			setTimeout(() => setBadgeMessage(null), 3000);
+		} else {
+			alert('Failed to delete badge: ' + res.error);
 		}
 	};
 
@@ -5346,8 +5387,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 						{}
 						{editModalType === 'employee' && (
-							<form 
-								onSubmit={async (e) => {
+							<div className="max-h-[70vh] overflow-y-auto pr-1.5 space-y-6 scrollbar-thin scrollbar-thumb-zinc-800">
+								<form 
+									onSubmit={async (e) => {
 									e.preventDefault();
 									const formData = new FormData(e.currentTarget);
 									await handleSaveEmployeeEdit(editingItem.id, {
@@ -5497,6 +5539,154 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 								</div>
 							</form>
+
+							{/* BADGE MANAGEMENT SECTION */}
+							<div className="border-t border-zinc-800 pt-6 space-y-4">
+								<div>
+									<h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+										Badge Management
+									</h4>
+									<p className="text-[11px] text-zinc-400 mt-1">
+										Award professional badges to this employee. These badges will appear on their verification dossier.
+									</p>
+								</div>
+
+								{badgeMessage && (
+									<div className="p-2.5 bg-indigo-950/40 border border-indigo-900 text-indigo-400 text-xs font-mono">
+										{badgeMessage}
+									</div>
+								)}
+
+								{/* List of current badges */}
+								<div className="space-y-2">
+									<label className="text-[10px] text-zinc-400 uppercase font-medium">Assigned Badges</label>
+									{(() => {
+										let badgesList: any[] = [];
+										try {
+											if (editingItem.badges) {
+												badgesList = JSON.parse(editingItem.badges);
+											}
+										} catch {}
+
+										if (badgesList.length === 0) {
+											return (
+												<p className="text-[11px] text-zinc-500 italic">No badges assigned yet.</p>
+											);
+										}
+
+										return (
+											<div className="grid grid-cols-1 gap-2">
+												{badgesList.map((b: any) => (
+													<div 
+														key={b.id} 
+														className="flex items-center justify-between p-2.5 bg-zinc-950 border border-zinc-850 rounded-none text-xs"
+													>
+														<div className="flex items-center gap-2">
+															<span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm ${
+																b.color === 'blue' ? 'bg-blue-900/30 text-blue-400 border border-blue-800/50' :
+																b.color === 'green' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800/50' :
+																b.color === 'purple' ? 'bg-purple-900/30 text-purple-400 border border-purple-800/50' :
+																b.color === 'orange' ? 'bg-amber-900/30 text-amber-400 border border-amber-800/50' :
+																b.color === 'red' ? 'bg-rose-900/30 text-rose-400 border border-rose-800/50' :
+																b.color === 'yellow' ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800/50' :
+																'bg-zinc-850 text-zinc-300'
+															}`}>
+																{b.title}
+															</span>
+															{b.description && (
+																<span className="text-[10px] text-zinc-400 truncate max-w-[180px]">
+																	— {b.description}
+																</span>
+															)}
+														</div>
+														<button
+															type="button"
+															onClick={() => handleDeleteBadge(editingItem.id, b.id)}
+															className="text-[10px] font-semibold text-red-400 hover:text-red-300 cursor-pointer"
+														>
+															Remove
+														</button>
+													</div>
+												))}
+											</div>
+										);
+									})()}
+								</div>
+
+								{/* Form to add a new badge */}
+								<div className="bg-zinc-950/45 border border-zinc-850 p-4 space-y-3">
+									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">
+										Issue New Badge
+									</span>
+									
+									<div className="grid grid-cols-2 gap-2">
+										<div className="space-y-1">
+											<label className="text-[9px] text-zinc-450 uppercase font-medium">Badge Title</label>
+											<Input
+												placeholder="e.g. Top Performer"
+												className="bg-zinc-950 border-zinc-850 text-white text-xs h-8 focus-visible:ring-0 focus-visible:border-zinc-750"
+												value={badgeTitle}
+												onChange={e => setBadgeTitle(e.target.value)}
+											/>
+										</div>
+										<div className="space-y-1">
+											<label className="text-[9px] text-zinc-450 uppercase font-medium">Color theme</label>
+											<select
+												className="w-full bg-zinc-950 border border-zinc-850 text-xs text-white h-8 px-2 outline-none"
+												value={badgeColor}
+												onChange={e => setBadgeColor(e.target.value)}
+											>
+												<option value="blue">Blue</option>
+												<option value="green">Green</option>
+												<option value="purple">Purple</option>
+												<option value="orange">Orange</option>
+												<option value="red">Red</option>
+												<option value="yellow">Yellow</option>
+												<option value="pink">Pink</option>
+											</select>
+										</div>
+									</div>
+
+									<div className="grid grid-cols-2 gap-2">
+										<div className="space-y-1">
+											<label className="text-[9px] text-zinc-450 uppercase font-medium">Icon style</label>
+											<select
+												className="w-full bg-zinc-950 border border-zinc-850 text-xs text-white h-8 px-2 outline-none"
+												value={badgeIcon}
+												onChange={e => setBadgeIcon(e.target.value)}
+											>
+												<option value="Award">Award Ribbon</option>
+												<option value="Trophy">Trophy Cup</option>
+												<option value="Star">Sparkling Star</option>
+												<option value="Zap">Lightning Zap</option>
+												<option value="Heart">Heart Core</option>
+												<option value="Shield">Security Shield</option>
+												<option value="CheckCircle">Checkmark Circle</option>
+												<option value="Flame">Flame Energy</option>
+											</select>
+										</div>
+										<div className="space-y-1">
+											<label className="text-[9px] text-zinc-450 uppercase font-medium">Reason / Note (Optional)</label>
+											<Input
+												placeholder="Demonstrated exceptional leadership"
+												className="bg-zinc-950 border-zinc-850 text-white text-xs h-8 focus-visible:ring-0 focus-visible:border-zinc-750"
+												value={badgeDescription}
+												onChange={e => setBadgeDescription(e.target.value)}
+											/>
+										</div>
+									</div>
+
+									<Button
+										type="button"
+										onClick={() => handleGiveBadge(editingItem.id)}
+										className="w-full bg-indigo-650 hover:bg-indigo-500 text-white text-xs font-semibold h-8 cursor-pointer border border-indigo-700/50"
+									>
+										Generate & Issue Badge
+									</Button>
+								</div>
+							</div>
+
+							</div>
 						)}
 
 						{}

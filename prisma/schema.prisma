@@ -69,6 +69,7 @@ model Employee {
   companyWorkedFor String?  @db.Text
   overallScore String?
   conduct      String?  @db.Text
+  badges       String?  @db.Text
   
   qualifications String? @db.Text
   

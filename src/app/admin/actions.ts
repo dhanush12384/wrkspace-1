@@ -101,15 +101,20 @@ export async function sendOtp(email: string) {
       to: admin.email,
       subject: 'WrkSpace Admin - Your OTP for Password Reset',
       text: `Hello, \n\nYou requested a password reset for the WrkSpace Admin panel.\n\nYour OTP is: ${otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.\n\nBest,\nWrkSpace Team`,
-      html: `<div style="font-family: sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e4e4e7;">
-        <h2 style="color: #4f46e5;">WrkSpace Admin Password Reset</h2>
-        <p>You requested a password reset for the WrkSpace Admin panel.</p>
-        <p>Your One-Time Password (OTP) is:</p>
-        <div style="font-size: 24px; font-weight: bold; background-color: #f4f4f5; padding: 15px; text-align: center; letter-spacing: 4px; color: #18181b; border: 1px solid #e4e4e7; margin: 20px 0;">
+      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+          <img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%;" />
+        </div>
+        <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">WrkSpace Admin Password Reset</h2>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">You requested a password reset for the WrkSpace Admin panel.</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 8px;">Your One-Time Password (OTP) is:</p>
+        <div style="font-size: 24px; font-weight: 500; background-color: #f8fafc; padding: 14px; text-align: center; letter-spacing: 4px; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; font-family: monospace;">
           ${otp}
         </div>
-        <p style="color: #71717a; font-size: 14px;">This OTP will expire in 10 minutes.</p>
-        <p style="color: #71717a; font-size: 14px;">If you did not request this, please ignore this email.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.4; margin: 16px 0 0;">This OTP will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+        <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+          © 2026 Redlix Studio. All rights reserved.
+        </div>
       </div>`,
     });
 
@@ -894,16 +899,21 @@ export async function sendEmployeeIdByEmail(email: string) {
       to: employee.email,
       subject: 'WrkSpace – Your Employee Login ID',
       text: `Hello ${employee.firstName},\n\nYou requested your WrkSpace login credentials.\n\nYour 6-Digit Employee ID (used as password): ${employee.id}\n\nUse this along with your registered email to log in.\n\nIf you did not request this, please ignore this email.\n\nBest,\nWrkSpace Team`,
-      html: `<div style="font-family: sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e4e4e7;">
-        <h2 style="color: #4f46e5;">WrkSpace – Login ID Recovery</h2>
-        <p>Hello <strong>${employee.firstName}</strong>,</p>
-        <p>You requested your WrkSpace login credentials.</p>
-        <p>Your <strong>6-Digit Employee ID</strong> (used as your password):</p>
-        <div style="font-size: 28px; font-weight: bold; background-color: #f4f4f5; padding: 15px; text-align: center; letter-spacing: 6px; color: #18181b; border: 1px solid #e4e4e7; margin: 20px 0;">
+      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+          <img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%;" />
+        </div>
+        <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">WrkSpace – Login ID Recovery</h2>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">Hello ${employee.firstName},</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">You requested your WrkSpace login credentials.</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 8px;">Your <strong>6-Digit Employee ID</strong> (used as your password):</p>
+        <div style="font-size: 24px; font-weight: 500; background-color: #f8fafc; padding: 14px; text-align: center; letter-spacing: 6px; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; font-family: monospace;">
           ${employee.id}
         </div>
-        <p style="color: #71717a; font-size: 14px;">Use this code along with your registered email (<strong>${employee.email}</strong>) to log in to WrkSpace.</p>
-        <p style="color: #71717a; font-size: 14px;">If you did not request this, please ignore this email.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.4; margin: 16px 0 0;">Use this code along with your registered email (<strong>${employee.email}</strong>) to log in to WrkSpace. If you did not request this, please ignore this email.</p>
+        <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+          © 2026 Redlix Studio. All rights reserved.
+        </div>
       </div>`,
     });
 
@@ -935,33 +945,37 @@ async function sendTaskEmail(
       to: toEmail,
       subject: `New Task Assigned: ${taskTitle}`,
       html: `
-        <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e4e4e7; background-color: #ffffff;">
-          <div style="text-align: center; margin-bottom: 24px; border-bottom: 1px solid #e4e4e7; padding-bottom: 16px;">
-            <img src="${logoUrl}" alt="WrkSpace Logo" style="height: 40px; width: auto; max-width: 100%;" />
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+          <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+            <img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%;" />
           </div>
-          <h2 style="color: #4f46e5; font-size: 20px; font-weight: 700; margin-top: 0; margin-bottom: 8px;">New Task Allocated</h2>
-          <p style="color: #4b5563; font-size: 14px; margin-top: 0; margin-bottom: 20px;">A new task has been assigned to you in the WrkSpace system. Below are the details:</p>
+          <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 8px;">New Task Allocated</h2>
+          <p style="color: #64748b; font-size: 14px; margin-top: 0; margin-bottom: 20px; line-height: 1.5;">A new task has been assigned to you in the WrkSpace system. Below are the details:</p>
           
-          <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; padding: 16px; margin-bottom: 20px;">
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
             <div style="margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Task Title</span>
-              <strong style="font-size: 15px; color: #1f2937; display: block;">${taskTitle}</strong>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Task Title</span>
+              <strong style="font-size: 14px; color: #0f172a; font-weight: 500; display: block;">${taskTitle}</strong>
             </div>
             <div style="margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Description</span>
-              <span style="font-size: 13px; color: #4b5563; display: block; line-height: 1.5; white-space: pre-line;">${taskDesc}</span>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Description</span>
+              <span style="font-size: 13px; color: #334155; display: block; line-height: 1.5; white-space: pre-line;">${taskDesc}</span>
             </div>
             <div style="margin-bottom: 12px;">
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Assigned By</span>
-              <span style="font-size: 13px; color: #1f2937; display: block; font-weight: 600;">${allocatorName} (${allocatorRole})</span>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Assigned By</span>
+              <span style="font-size: 13px; color: #0f172a; display: block; font-weight: 500;">${allocatorName} (${allocatorRole})</span>
             </div>
             <div>
-              <span style="font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Deadline</span>
-              <span style="font-size: 13px; color: #e11d48; display: block; font-weight: 600;">${formattedDeadline}</span>
+              <span style="font-size: 10px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Deadline</span>
+              <span style="font-size: 13px; color: #334155; display: block; font-weight: 500;">${formattedDeadline}</span>
             </div>
           </div>
 
-          <p style="color: #4b5563; font-size: 14px; margin-bottom: 0;">Please log into your Employee Dashboard to view task guidelines and update your progress.</p>
+          <p style="color: #64748b; font-size: 14px; margin-bottom: 20px; line-height: 1.5;">Please log into your Employee Dashboard to view task guidelines and update your progress.</p>
+          
+          <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+            © 2026 Redlix Studio. All rights reserved.
+          </div>
         </div>
       `
     });
@@ -1093,15 +1107,21 @@ export async function sendEmployeeOtp(email: string) {
       to: employee.email,
       subject: 'WrkSpace – Employee Password Reset OTP',
       text: `Hello ${employee.firstName},\n\nYour OTP for resetting your WrkSpace password is: ${otp}\n\nThis OTP is valid for 10 minutes.\n\nBest,\nWrkSpace Team`,
-      html: `<div style="font-family: sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e4e4e7;">
-        <h2 style="color: #4f46e5;">WrkSpace – Password Reset OTP</h2>
-        <p>Hello <strong>${employee.firstName}</strong>,</p>
-        <p>You requested a password reset for your Employee account.</p>
-        <p>Your <strong>One-Time Password (OTP)</strong> is:</p>
-        <div style="font-size: 28px; font-weight: bold; background-color: #f4f4f5; padding: 15px; text-align: center; letter-spacing: 8px; color: #4f46e5; border: 1px solid #e4e4e7; margin: 20px 0;">
+      html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 500px; padding: 24px; border: 1px solid #e4e4e7; border-radius: 12px; color: #334155; margin: 0 auto; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px;">
+          <img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="WrkSpace" style="height: 36px; width: auto; max-width: 100%;" />
+        </div>
+        <h2 style="font-size: 18px; font-weight: 500; color: #1e293b; margin-top: 0; margin-bottom: 12px;">WrkSpace – Password Reset OTP</h2>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">Hello ${employee.firstName},</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 12px;">You requested a password reset for your Employee account.</p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 8px;">Your <strong>One-Time Password (OTP)</strong> is:</p>
+        <div style="font-size: 24px; font-weight: 500; background-color: #f8fafc; padding: 14px; text-align: center; letter-spacing: 6px; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 8px; margin: 16px 0; font-family: monospace;">
           ${otp}
         </div>
-        <p style="color: #71717a; font-size: 14px;">This code is valid for 10 minutes. If you did not request this, please ignore this email.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.4; margin: 16px 0 0;">This code is valid for 10 minutes. If you did not request this, please ignore this email.</p>
+        <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 16px; margin-top: 24px; font-size: 11px; color: #94a3b8;">
+          © 2026 Redlix Studio. All rights reserved.
+        </div>
       </div>`,
     });
 
@@ -3463,6 +3483,71 @@ export async function updateTeamLead(adminId: string, data: {
     return { success: true, teamLead: updated };
   } catch (error: any) {
     console.error('Error in updateTeamLead:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function giveBadgeToEmployee(
+  employeeId: string,
+  badge: { title: string; icon: string; color: string; description?: string }
+) {
+  try {
+    const employee = await db.employee.findUnique({
+      where: { id: employeeId },
+      select: { badges: true }
+    });
+
+    if (!employee) {
+      return { success: false, error: 'Employee not found' };
+    }
+
+    const currentBadges = employee.badges ? JSON.parse(employee.badges) : [];
+    const newBadge = {
+      id: Math.random().toString(36).substring(2, 9),
+      ...badge,
+      issuedAt: new Date().toISOString()
+    };
+
+    currentBadges.push(newBadge);
+
+    const updated = await db.employee.update({
+      where: { id: employeeId },
+      data: {
+        badges: JSON.stringify(currentBadges)
+      }
+    });
+
+    return { success: true, employee: updated };
+  } catch (error: any) {
+    console.error('giveBadgeToEmployee error', error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteBadgeFromEmployee(employeeId: string, badgeId: string) {
+  try {
+    const employee = await db.employee.findUnique({
+      where: { id: employeeId },
+      select: { badges: true }
+    });
+
+    if (!employee) {
+      return { success: false, error: 'Employee not found' };
+    }
+
+    let currentBadges = employee.badges ? JSON.parse(employee.badges) : [];
+    currentBadges = currentBadges.filter((b: any) => b.id !== badgeId);
+
+    const updated = await db.employee.update({
+      where: { id: employeeId },
+      data: {
+        badges: JSON.stringify(currentBadges)
+      }
+    });
+
+    return { success: true, employee: updated };
+  } catch (error: any) {
+    console.error('deleteBadgeFromEmployee error', error);
     return { success: false, error: error.message };
   }
 }

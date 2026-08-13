@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
 				companyWorkedFor: true,
 				overallScore: true,
 				conduct: true,
+				badges: true,
 			}
 		});
 

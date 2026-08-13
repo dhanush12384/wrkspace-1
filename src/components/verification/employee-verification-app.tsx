@@ -7,7 +7,7 @@ import { signInWithPopup } from 'firebase/auth';
 import { EmployeeProfessionalProfileEditor } from '@/components/ui/employee-professional-profile';
 import { PeerColleagueView } from '@/components/verification/peer-colleague-view';
 import { GrainGradient } from '@paper-design/shaders-react';
-import { EyeIcon, EyeOffIcon, ArrowLeft, CheckCircle, Mail, Phone, Calendar, Building, Award, ShieldAlert, Sparkles, RefreshCw } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, ArrowLeft, CheckCircle, Mail, Phone, Calendar, Building, Award, ShieldAlert, Sparkles, RefreshCw, Shield, Trophy, Zap, Heart, Flame } from 'lucide-react';
 import './verification.css';
 
 
@@ -111,7 +111,7 @@ type EmpRow = {
 	employmentStatus?: string;
 };
 
-type DossierTab = 'overview' | 'attendance' | 'tasks' | 'submissions' | 'leaves' | 'events' | 'edit_profile';
+type DossierTab = 'overview' | 'badges' | 'attendance' | 'tasks' | 'submissions' | 'leaves' | 'events' | 'edit_profile';
 type AppTab = 'directory' | 'access' | 'my_profile' | 'peer_view';
 type EmpSelfTab = 'my_profile' | 'peer_view';
 
@@ -142,6 +142,28 @@ function initials(name: string) {
 	if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
 	return `${p[0][0]}${p[p.length - 1][0]}`.toUpperCase();
 }
+
+const BadgeIcon = ({ name, className }: { name: string; className?: string }) => {
+	switch (name) {
+		case 'Trophy':
+			return <Trophy className={className} />;
+		case 'Zap':
+			return <Zap className={className} />;
+		case 'Heart':
+			return <Heart className={className} />;
+		case 'Flame':
+			return <Flame className={className} />;
+		case 'Shield':
+			return <Shield className={className} />;
+		case 'Sparkles':
+			return <Sparkles className={className} />;
+		case 'CheckCircle':
+			return <CheckCircle className={className} />;
+		case 'Award':
+		default:
+			return <Award className={className} />;
+	}
+};
 
 export function EmployeeVerificationApp() {
 	const [session, setSession] = useState<Session | null>(null);
@@ -1283,11 +1305,11 @@ export function EmployeeVerificationApp() {
 														</div>
 														<div className="flex items-center gap-2 text-slate-400">
 															<Award className="size-3.5 text-slate-500 shrink-0" />
-															<span className="text-[11px]">Overall Score: <strong className="text-white bg-indigo-500/35 px-1.5 py-0.5 rounded font-bold font-sans text-xs">{verifiedDossier.overallScore || '—'}</strong></span>
+															<span className="text-[11px]">Overall Score: <strong className="bg-slate-800 text-slate-100 border border-slate-700 px-1.5 py-0.5 rounded font-semibold font-sans text-xs">{verifiedDossier.overallScore || '—'}</strong></span>
 														</div>
 														<div className="flex items-center gap-2 text-slate-400">
 															<CheckCircle className="size-3.5 text-slate-500 shrink-0" />
-															<span className="text-[11px]">Conduct: <strong className="text-white bg-emerald-500/25 px-1.5 py-0.5 rounded text-xs">{verifiedDossier.conduct || '—'}</strong></span>
+															<span className="text-[11px]">Conduct: <strong className="bg-slate-800 text-slate-100 border border-slate-700 px-1.5 py-0.5 rounded font-semibold text-xs">{verifiedDossier.conduct || '—'}</strong></span>
 														</div>
 													</div>
 												</div>
@@ -1797,46 +1819,75 @@ export function EmployeeVerificationApp() {
 							</div>
 						) : (
 							<div className="ev-dossier" id="ev-print-area">
-								<div className="ev-dossier-hero">
-									<div className="ev-dossier-identity">
+								<div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-6">
+									<div className="flex flex-col sm:flex-row gap-6 items-start">
 										{emp?.photoUrl ? (
-											
-											<img src={emp.photoUrl} alt="" className="ev-avatar-lg" />
+											<img 
+												src={emp.photoUrl} 
+												alt="" 
+												className="w-20 h-24 rounded-lg object-cover border border-slate-200 shadow-sm shrink-0" 
+											/>
 										) : (
-											<span className="ev-avatar-lg ev-avatar-fallback">
+											<span className="w-20 h-24 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xl flex items-center justify-center font-sans tracking-wide shrink-0">
 												{initials(emp?.name || '?')}
 											</span>
 										)}
-										<div>
-											<p className="ev-kicker print:hidden">Employee dossier</p>
-											<h1>{emp?.name}</h1>
-											<p className="ev-dossier-line">
-												{emp?.role} · {emp?.wingName} · Lead: {emp?.wingLeadName}
-											</p>
-											<p className="ev-dossier-line ev-mono">
-												{emp?.email} · {emp?.phone} · ID {emp?.id} · {emp?.tenureDays ?? (emp?.createdAt ? Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0)}d tenure
-											</p>
-											<div className="ev-inline-actions print:hidden">
-												<a className="ev-chip" href={`mailto:${emp?.email}`}>
-													Email
-												</a>
-												<a className="ev-chip" href={`tel:${emp?.phone}`}>
-													Call
-												</a>
-												<button
-													type="button"
-													className="ev-chip"
-													onClick={() => void copyText(emp?.email || '', 'Email copied')}
+										<div className="space-y-2 min-w-0 flex-1">
+											<div className="flex items-center gap-2">
+												<span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+													Employee Dossier
+												</span>
+												<span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border ${
+													emp?.status === 'Active' 
+														? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+														: emp?.status === 'Terminated'
+															? 'bg-rose-50 text-rose-700 border-rose-200'
+															: 'bg-amber-50 text-amber-700 border-amber-200'
+												}`}>
+													{emp?.status || 'Active'}
+												</span>
+											</div>
+											
+											<div>
+												<h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">{emp?.name}</h1>
+												<p className="text-sm text-slate-600 mt-1">
+													<span className="font-semibold text-slate-800">{emp?.role}</span>
+													<span className="text-slate-350 font-light mx-2">|</span>
+													<span>{emp?.wingName}</span>
+													{emp?.wingLeadName && (
+														<>
+															<span className="text-slate-350 font-light mx-2">|</span>
+															<span className="text-slate-500">Lead: <strong className="text-slate-750 font-semibold">{emp?.wingLeadName}</strong></span>
+														</>
+													)}
+												</p>
+											</div>
+
+											<div className="pt-2 border-t border-slate-100 text-xs text-slate-500 font-mono space-y-1">
+												<div className="flex flex-wrap gap-x-4 gap-y-1">
+													<span>Email: <strong className="text-slate-750 font-medium font-sans">{emp?.email}</strong></span>
+													<span>Phone: <strong className="text-slate-750 font-medium font-sans">{emp?.phone}</strong></span>
+												</div>
+												<div className="flex flex-wrap gap-x-4 gap-y-1">
+													<span>Employee ID: <strong className="text-slate-750 font-medium">{emp?.id}</strong></span>
+													<span>Tenure: <strong className="text-slate-750 font-medium">{emp?.tenureDays ?? (emp?.createdAt ? Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 0)}d</strong></span>
+												</div>
+											</div>
+
+											<div className="flex items-center gap-3 pt-1.5 print:hidden">
+												<a
+													href={`mailto:${emp?.email}`}
+													className="text-xs font-bold text-[#E61E32] hover:underline cursor-pointer"
 												>
-													Copy email
-												</button>
-												<button
-													type="button"
-													className="ev-chip"
-													onClick={() => void copyText(emp?.phone || '', 'Phone copied')}
+													Email Address
+												</a>
+												<span className="text-slate-300 font-normal">|</span>
+												<a
+													href={`tel:${emp?.phone}`}
+													className="text-xs font-bold text-[#E61E32] hover:underline cursor-pointer"
 												>
-													Copy phone
-												</button>
+													Call Employee
+												</a>
 											</div>
 										</div>
 									</div>
@@ -1848,6 +1899,7 @@ export function EmployeeVerificationApp() {
 											isAdmin
 												? ([
 														['overview', 'Overview'],
+														['badges', 'Badges'],
 														['attendance', 'Attendance'],
 														['tasks', 'Tasks'],
 														['submissions', 'Submissions'],
@@ -1855,7 +1907,7 @@ export function EmployeeVerificationApp() {
 														['events', 'Events'],
 														['edit_profile', 'Edit profile (admin)'],
 													] as [DossierTab, string][])
-												: ([['overview', 'Overview']] as [DossierTab, string][])
+												: ([['overview', 'Overview'], ['badges', 'Badges']] as [DossierTab, string][])
 										).map(([id, label]) => (
 											<button
 												key={id}
@@ -1884,93 +1936,120 @@ export function EmployeeVerificationApp() {
 											
 											if (!isAdmin) {
 												return (
-													<div className="ev-card">
-														<h3>General information</h3>
-														<div className="ev-info-grid">
-															<div className="ev-info-item">
-																<span>Employment status</span>
-																<strong>
+													<>
+														<div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+														<h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">General information</h3>
+														<div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Employment status</span>
+																<div>
 																	<span
-																		className={`ev-status-pill ${
+																		className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border ${
 																			emp?.employmentStatus === 'Terminated'
-																				? 'bg-red-500/20 text-red-650'
+																				? 'bg-rose-50 text-rose-700 border-rose-200'
 																				: emp?.employmentStatus === 'Inactive'
-																				? 'is-inactive'
-																				: 'is-active'
+																				? 'bg-amber-50 text-amber-700 border-amber-200'
+																				: 'bg-emerald-50 text-emerald-700 border-emerald-200'
 																		}`}
 																	>
 																		{emp?.employmentStatus || 'Active'}
 																	</span>
-																</strong>
+																</div>
 															</div>
-															<div className="ev-info-item">
-																<span>Role</span>
-																<strong>{emp?.role || '—'}</strong>
+															
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Role</span>
+																<strong className="text-sm font-semibold text-slate-800 block">{emp?.role || '—'}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Wing</span>
-																<strong>{emp?.wingName || '—'}</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Wing</span>
+																<strong className="text-sm font-medium text-slate-800 block">{emp?.wingName || '—'}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Wing lead</span>
-																<strong>{emp?.wingLeadName || '—'}</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Wing lead</span>
+																<strong className="text-sm font-medium text-slate-800 block">{emp?.wingLeadName || '—'}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Email</span>
-																<strong>{emp?.email || '—'}</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</span>
+																<strong className="text-sm font-medium text-slate-800 block font-mono">{emp?.email || '—'}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Phone</span>
-																<strong>{emp?.phone || '—'}</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</span>
+																<strong className="text-sm font-medium text-slate-800 block font-mono">{emp?.phone || '—'}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Company worked for</span>
-																<strong>{emp?.companyWorkedFor || '—'}</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Company worked for</span>
+																<strong className="text-sm font-medium text-slate-850 block">{emp?.companyWorkedFor || '—'}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Month worked</span>
-																<strong>{emp?.monthWorked || '—'}</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Month worked</span>
+																<strong className="text-sm font-medium text-slate-850 block">{emp?.monthWorked || '—'}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Overall score</span>
-																<strong className="bg-indigo-500/25 px-1.5 py-0.5 rounded text-indigo-400 font-sans text-[11px] font-bold inline-block">
-																	{emp?.overallScore || '—'}
-																</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Overall score</span>
+																{emp?.overallScore && emp.overallScore !== '—' ? (
+																	<div>
+																		<span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+																			{emp.overallScore}
+																		</span>
+																	</div>
+																) : (
+																	<strong className="text-sm font-medium text-slate-400 block">—</strong>
+																)}
 															</div>
-															<div className="ev-info-item">
-																<span>Conduct</span>
-																<strong className="bg-emerald-500/25 px-1.5 py-0.5 rounded text-emerald-400 font-sans text-[11px] font-bold inline-block">
-																	{emp?.conduct || '—'}
-																</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Conduct</span>
+																{emp?.conduct && emp.conduct !== '—' ? (
+																	<div>
+																		<span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+																			{emp.conduct}
+																		</span>
+																	</div>
+																) : (
+																	<strong className="text-sm font-medium text-slate-400 block">—</strong>
+																)}
 															</div>
-															<div className="ev-info-item">
-																<span>Tenure</span>
-																<strong>{emp?.tenureDays != null ? `${emp.tenureDays} days` : (emp?.createdAt ? `${Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days` : '—')}</strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tenure</span>
+																<strong className="text-sm font-medium text-slate-800 block">{emp?.tenureDays != null ? `${emp.tenureDays} days` : (emp?.createdAt ? `${Math.floor((Date.now() - new Date(emp.createdAt).getTime()) / (1000 * 60 * 60 * 24))} days` : '—')}</strong>
 															</div>
-															<div className="ev-info-item">
-																<span>Joined</span>
-																<strong>
+
+															<div className="space-y-1">
+																<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Joined</span>
+																<strong className="text-sm font-medium text-slate-850 block">
 																	{emp?.createdAt ? new Date(emp.createdAt).toLocaleDateString() : '—'}
 																</strong>
 															</div>
 														</div>
-
-														{emp?.remarks && (
-															<div style={{ marginTop: 24, borderTop: '1px solid var(--ev-line, #e4e4e7)', paddingTop: 16 }}>
-																<span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block font-mono" style={{ fontSize: 10, textTransform: 'uppercase', color: '#71717a', fontWeight: 'bold', marginBottom: 8 }}>Official Remarks & Feedback</span>
-																<div className="bg-[#E61E32]/5 border border-[#E61E32]/10 rounded-lg p-4 font-sans italic" style={{ padding: 16, backgroundColor: 'rgba(230, 30, 50, 0.05)', border: '1px solid rgba(230, 30, 50, 0.1)', borderRadius: 8, fontStyle: 'italic', color: '#1e293b' }}>
-																	"{emp.remarks}"
-																</div>
-															</div>
-														)}
-
-														<p className="ev-muted" style={{ marginTop: 16 }}>
-															The full professional profile (résumé, experience, education, skills,
-															projects &amp; more) is only visible to portal admins.
-														</p>
 													</div>
-												);
-											}
+
+													<div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mt-6">
+														<h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">Official Remarks & Feedback</h3>
+														{emp?.remarks ? (
+															<div className="bg-slate-50 border border-slate-100 rounded-lg p-4 font-sans italic text-slate-700">
+																"{emp.remarks}"
+															</div>
+														) : (
+															<p className="text-xs text-slate-400">No official remarks or feedback recorded for this period.</p>
+														)}
+													</div>
+
+													<p className="text-xs text-slate-450 mt-4 leading-relaxed">
+														The full professional profile (résumé, experience, education, skills,
+														projects &amp; more) is only visible to portal admins.
+													</p>
+												</>
+											);
+										}
 
 											const p = dossier.profile || {};
 											const education = Array.isArray(p.education) ? p.education : [];
@@ -2327,6 +2406,70 @@ export function EmployeeVerificationApp() {
 												</>
 											);
 										})()}
+									</div>
+								) : null}
+
+								{dossierTab === 'badges' ? (
+									<div className="space-y-6">
+										<div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+											<h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4 font-sans">Earned Badges</h3>
+											{(() => {
+												let employeeBadges: any[] = [];
+												try {
+													if (emp?.badges) {
+														employeeBadges = JSON.parse(emp.badges);
+													}
+												} catch (e) {
+													console.error('Failed to parse employee badges', e);
+												}
+
+												if (employeeBadges.length === 0) {
+													return (
+														<div className="text-center py-12 text-slate-400 text-xs">
+															<Award className="size-8 mx-auto mb-2 text-slate-300 opacity-60" />
+															No badges earned or assigned yet.
+														</div>
+													);
+												}
+
+												return (
+													<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+														{employeeBadges.map((b: any) => {
+															let colorClasses = "bg-slate-50 text-slate-700 border-slate-200";
+															if (b.color === 'blue') colorClasses = "bg-blue-50/50 text-blue-700 border-blue-200";
+															else if (b.color === 'green') colorClasses = "bg-emerald-50/50 text-emerald-700 border-emerald-200";
+															else if (b.color === 'purple') colorClasses = "bg-purple-50/50 text-purple-700 border-purple-200";
+															else if (b.color === 'orange') colorClasses = "bg-amber-50/50 text-amber-700 border-amber-200";
+															else if (b.color === 'red') colorClasses = "bg-rose-50/50 text-rose-700 border-rose-200";
+															else if (b.color === 'yellow') colorClasses = "bg-yellow-50/50 text-yellow-750 border-yellow-200";
+															else if (b.color === 'pink') colorClasses = "bg-pink-50/50 text-pink-700 border-pink-200";
+
+															return (
+																<div 
+																	key={b.id} 
+																	className={`flex items-start gap-3 p-4 rounded-xl border ${colorClasses} shadow-xs`}
+																>
+																	<div className="p-2 rounded-lg bg-white shadow-xs border border-slate-100 shrink-0">
+																		<BadgeIcon name={b.icon} className="size-5 text-slate-750" />
+																	</div>
+																	<div className="min-w-0">
+																		<h4 className="text-sm font-semibold text-slate-900 leading-tight">{b.title}</h4>
+																		{b.description && (
+																			<p className="text-xs text-slate-550 mt-1 leading-relaxed">
+																				{b.description}
+																			</p>
+																		)}
+																		<span className="text-[10px] text-slate-400 block mt-2 font-mono">
+																			Issued: {b.issuedAt ? new Date(b.issuedAt).toLocaleDateString() : '—'}
+																		</span>
+																	</div>
+																</div>
+															);
+														})}
+													</div>
+												);
+											})()}
+										</div>
 									</div>
 								) : null}
 
