@@ -17,11 +17,11 @@ import {
 	UserPlusIcon,
 	PlusIcon,
 } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee, sendBulkAlerts } from '@/app/admin/actions';
 import { AdminLiveSafetyPanel } from './safety-panel';
 import { AdminLiveTrackingPanel } from './live-tracking-panel';
 import OfficesPanel from '@/components/ui/offices-panel';
-import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon, SendIcon, MailIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MessagesView } from './messages-view';
 import { ChatAvatar } from './chat-avatar';
@@ -37,6 +37,12 @@ type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
 	const isSuperAdmin = email.toLowerCase() === 'webstrixx@gmail.com';
+
+	// Quick alert states
+	const [quickSubject, setQuickSubject] = useState('');
+	const [quickBody, setQuickBody] = useState('');
+	const [quickSending, setQuickSending] = useState(false);
+	const [quickMsg, setQuickMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
 	
 	const [adminsList, setAdminsList] = useState<any[]>([]);
@@ -95,6 +101,60 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 		loadAdminProfile();
 	}, [email]);
+
+	const getQuickPreviewHtml = () => {
+		if (!quickBody) return '<p style="color: #a1a1aa; font-style: italic; font-size: 11px;">Message body preview...</p>';
+		let html = quickBody
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
+		html = html
+			.replace(/&lt;b&gt;([\s\S]*?)&lt;\/b&gt;/gi, '<strong>$1</strong>')
+			.replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/gi, '<em>$1</em>')
+			.replace(/&lt;u&gt;([\s\S]*?)&lt;\/u&gt;/gi, '<span style="text-decoration: underline;">$1</span>')
+			.replace(/&lt;strong&gt;([\s\S]*?)&lt;\/strong&gt;/gi, '<strong>$1</strong>')
+			.replace(/&lt;em&gt;([\s\S]*?)&lt;\/em&gt;/gi, '<em>$1</em>')
+			.replace(/&lt;a\s+href=&quot;([^&]+?)&quot;&gt;([\s\S]*?)&lt;\/a&gt;/gi, '<a href="$1" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">$2</a>')
+			.replace(/&lt;a\s+href=\'([^\']+?)\'&gt;([\s\S]*?)&lt;\/a&gt;/gi, '<a href="$1" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">$2</a>');
+		html = html.replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>');
+		html = html.replace(/__([\s\S]*?)__/g, '<strong>$1</strong>');
+		html = html.replace(/\*([\s\S]*?)\*/g, '<em>$1</em>');
+		html = html.replace(/_([\s\S]*?)_/g, '<span style="text-decoration: underline;">$1</span>');
+		html = html.replace(/\[([\s\S]*?)\]\((https?:\/\/[^\s\)]+?)\)/g, '<a href="$2" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">$1</a>');
+		const paragraphs = html.split(/\n\s*\n+/);
+		return paragraphs
+			.map(p => {
+				const trimmed = p.trim();
+				if (!trimmed) return '';
+				const withLineBreaks = trimmed.replace(/\n/g, '<br />');
+				return `<p style="font-size: 12px; line-height: 1.5; color: #475569; margin: 0 0 10px;">${withLineBreaks}</p>`;
+			})
+			.filter(Boolean)
+			.join('');
+	};
+
+	const handleSendQuickAlert = async () => {
+		if (!quickSubject.trim() || !quickBody.trim()) {
+			setQuickMsg({ type: 'error', text: 'Subject and body message are required.' });
+			return;
+		}
+		setQuickSending(true);
+		setQuickMsg(null);
+		try {
+			const res = await sendBulkAlerts(quickSubject, quickBody);
+			if (res.success) {
+				setQuickMsg({ type: 'success', text: `Success! Alert broadcasted to ${res.count} active employees.` });
+				setQuickSubject('');
+				setQuickBody('');
+			} else {
+				setQuickMsg({ type: 'error', text: res.error || 'Failed to send alerts.' });
+			}
+		} catch (err: any) {
+			setQuickMsg({ type: 'error', text: err.message || 'Error occurred.' });
+		} finally {
+			setQuickSending(false);
+		}
+	};
 
 	const fetchAdmins = async () => {
 		try {
@@ -2405,6 +2465,108 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								<p className="text-xl font-bold text-white">{stats.serverStatus}</p>
 								<p className="text-[10px] text-emerald-400 font-medium">Uptime: {stats.uptime}</p>
+							</div>
+						</div>
+
+						{/* Quick Alert Sender widget down the stats */}
+						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 rounded-none mt-6 space-y-4">
+							<div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+								<div className="flex items-center gap-2">
+									<MailIcon className="size-4 text-brand-400" />
+									<div>
+										<h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+											Quick Alert Broadcast
+										</h3>
+										<p className="text-[10px] text-zinc-500 mt-0.5">
+											Compose and dispatch email notices to all active employees instantly.
+										</p>
+									</div>
+								</div>
+								<button
+									type="button"
+									onClick={() => setActiveTab('alert_sender')}
+									className="text-[11px] text-brand-400 hover:text-brand-300 font-semibold transition-colors cursor-pointer hover:underline"
+								>
+									Advanced Panel →
+								</button>
+							</div>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								<div className="space-y-4">
+									<div className="space-y-1.5">
+										<label className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block font-mono">
+											Alert Subject
+										</label>
+										<input
+											type="text"
+											placeholder="e.g. Critical Update Required"
+											value={quickSubject}
+											onChange={(e) => setQuickSubject(e.target.value)}
+											className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-zinc-700 transition-colors"
+										/>
+									</div>
+									<div className="space-y-1.5">
+										<label className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block font-mono">
+											Alert Message Body
+										</label>
+										<textarea
+											rows={5}
+											placeholder="Compose email body message here... Markdown tags (**bold**, *italic*, _underline_, and links) are supported."
+											value={quickBody}
+											onChange={(e) => setQuickBody(e.target.value)}
+											className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-zinc-700 transition-colors font-sans resize-y leading-relaxed"
+										/>
+									</div>
+
+									{quickMsg && (
+										<div className={`p-2 rounded text-xs border font-mono ${
+											quickMsg.type === 'success'
+												? 'bg-emerald-950/20 border-emerald-800/60 text-emerald-400'
+												: 'bg-rose-950/20 border-rose-800/60 text-rose-400'
+										}`}>
+											{quickMsg.text}
+										</div>
+									)}
+
+									<button
+										type="button"
+										onClick={handleSendQuickAlert}
+										disabled={quickSending}
+										className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:from-zinc-850 disabled:to-zinc-850 text-white text-xs font-semibold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed"
+									>
+										<SendIcon className="size-3.5" />
+										{quickSending ? 'Sending Quick Alerts...' : 'Broadcast Alert to All Employees'}
+									</button>
+								</div>
+
+								{/* Live Preview pane */}
+								<div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800/60 flex flex-col justify-between max-h-[340px] overflow-y-auto">
+									<div>
+										<span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block mb-3 text-center border-b border-zinc-900 pb-1.5">
+											Live Email Preview
+										</span>
+										<div 
+											style={{
+												fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+												fontSize: "12px",
+												lineHeight: "1.5",
+												color: "#475569",
+												background: "#ffffff",
+												padding: "16px",
+												borderRadius: "8px",
+												border: "1px solid #e2e8f0"
+											}}
+										>
+											<div style={{ textAlign: "center", marginBottom: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
+												<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style={{ height: "24px", width: "auto" }} />
+											</div>
+											<h4 style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b", margin: "0 0 10px" }}>
+												{quickSubject || 'No Subject'}
+											</h4>
+											<div dangerouslySetInnerHTML={{ __html: getQuickPreviewHtml() }} />
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
