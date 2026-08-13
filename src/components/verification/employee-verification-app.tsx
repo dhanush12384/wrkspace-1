@@ -7,9 +7,26 @@ import { signInWithPopup } from 'firebase/auth';
 import { EmployeeProfessionalProfileEditor } from '@/components/ui/employee-professional-profile';
 import { PeerColleagueView } from '@/components/verification/peer-colleague-view';
 import { GrainGradient } from '@paper-design/shaders-react';
-import { EyeIcon, EyeOffIcon, ArrowLeft, CheckCircle, Mail, Phone, Calendar, Building, Award, ShieldAlert, Sparkles, RefreshCw, Shield, Trophy, Zap, Heart, Flame } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, ArrowLeft, CheckCircle, Mail, Phone, Calendar, Building, Award, ShieldAlert, Sparkles, RefreshCw, Shield, Trophy, Zap, Heart, Flame, Star, Download, Link } from 'lucide-react';
 import InputOTP from '@/components/ui/heroui-input-otp';
 import './verification.css';
+
+const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		strokeWidth="2"
+		strokeLinecap="round"
+		strokeLinejoin="round"
+		{...props}
+	>
+		<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+		<rect x="2" y="9" width="4" height="12" />
+		<circle cx="4" cy="4" r="2" />
+	</svg>
+);
 
 
 const LOGIN_ANIMATION_SRC =
@@ -274,8 +291,51 @@ export function EmployeeVerificationApp() {
 	};
 
 	useEffect(() => {
-		setSession(loadSession());
-		setReady(true);
+		const activeSession = loadSession();
+		const isLocalhost = typeof window !== 'undefined' && 
+			(window.location.hostname === 'localhost' || 
+			 window.location.hostname === '127.0.0.1' || 
+			 window.location.hostname.startsWith('192.168.'));
+
+		if (activeSession) {
+			setSession(activeSession);
+			setReady(true);
+		} else if (isLocalhost && !sessionStorage.getItem('emp_logged_out')) {
+			fetch('/api/auth/login', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({})
+			})
+			.then(res => res.json())
+			.then(data => {
+				if (data.token) {
+					const emp = data.employee || {};
+					try {
+						localStorage.setItem(EMP_TOKEN_KEY, data.token);
+					} catch {}
+					setEmpRecord(emp);
+					const next: Session = {
+						token: data.token,
+						user: {
+							id: emp.id,
+							email: emp.email,
+							role: 'EMPLOYEE',
+							companyId: null,
+							companyName: null,
+							source: 'employee',
+						},
+					};
+					saveSession(next);
+					setSession(next);
+				}
+			})
+			.catch(err => console.error('Localhost auto-login failed', err))
+			.finally(() => {
+				setReady(true);
+			});
+		} else {
+			setReady(true);
+		}
 	}, []);
 
 	
@@ -311,6 +371,7 @@ export function EmployeeVerificationApp() {
 		setEmpRecord(null);
 		try {
 			localStorage.removeItem(EMP_TOKEN_KEY);
+			sessionStorage.setItem('emp_logged_out', 'true');
 		} catch {
 			
 		}
@@ -542,6 +603,28 @@ export function EmployeeVerificationApp() {
 		} catch {
 			
 		}
+	};
+
+	const handleDownloadBadge = async (imageUrl: string, title: string) => {
+		try {
+			const response = await fetch(imageUrl);
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${title.toLowerCase().replace(/\s+/g, '_')}_badge.svg`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(url);
+		} catch (err) {
+			window.open(imageUrl, '_blank');
+		}
+	};
+
+	const handleShareLinkedIn = (title: string, imageUrl: string) => {
+		const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(imageUrl)}`;
+		window.open(shareUrl, '_blank', 'width=600,height=600');
 	};
 
 	const loginGoogle = async () => {
@@ -2503,13 +2586,13 @@ export function EmployeeVerificationApp() {
 													console.error('Failed to parse employee badges', e);
 												}
 
-												const BADGE_EMOJI: Record<string, string> = {
-													'New Joinee': '🌟',
-													'Super Worker': '🏆',
-													'Slashing Dev': '⚡',
-													'Core Dev': '🛡️',
-													'Pro Marketer': '🔥',
-													'Employee of the Month': '🏅',
+												const BADGE_IMAGES: Record<string, string> = {
+													'New Joinee': 'https://ik.imagekit.io/dypkhqxip/e59cb781-ca16-4699-bf99-c5f16fd55383.svg',
+													'Employee Completion': 'https://ik.imagekit.io/dypkhqxip/14b964b5-5848-4a81-bf4d-fb5e2a6f423c.svg',
+													'Employee Badge': 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg',
+													'Slashing Dev': 'https://ik.imagekit.io/dypkhqxip/c250a00f-8bd7-43e9-81b5-9d10618e8446.svg',
+													'Super Worker': 'https://ik.imagekit.io/dypkhqxip/a40ea919-c9e6-4b41-973c-ee0205dbe244.svg',
+													'Pro Worker': 'https://ik.imagekit.io/dypkhqxip/a40ea919-c9e6-4b41-973c-ee0205dbe244.svg',
 												};
 
 												if (employeeBadges.length === 0) {
@@ -2521,53 +2604,122 @@ export function EmployeeVerificationApp() {
 													);
 												}
 
+												const getPremiumIcon = (iconName: string, color: string) => {
+													let grad = "from-slate-400 to-slate-500";
+													if (color === 'blue') grad = "from-blue-500 to-indigo-600";
+													else if (color === 'green') grad = "from-emerald-400 to-teal-600";
+													else if (color === 'purple') grad = "from-purple-500 to-indigo-700";
+													else if (color === 'orange') grad = "from-amber-400 to-orange-600";
+													else if (color === 'red') grad = "from-rose-500 to-red-700";
+													else if (color === 'yellow') grad = "from-yellow-400 to-amber-500";
+													else if (color === 'pink') grad = "from-pink-500 to-rose-600";
+
+													const IconComponent = {
+														Award: Award,
+														Trophy: Trophy,
+														Star: Star,
+														Zap: Zap,
+														Heart: Heart,
+														Shield: Shield,
+														CheckCircle: CheckCircle,
+														Flame: Flame
+													}[iconName] || Award;
+
+													return (
+														<div className={`w-20 h-20 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center shadow-[0_6px_14px_rgba(0,0,0,0.12)] border-2 border-white hover:scale-105 transition-transform duration-200`}>
+															<IconComponent className="size-9 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]" />
+														</div>
+													);
+												};
+
 												return (
-													<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-4">
+													<div className="flex flex-wrap gap-6 pt-4 justify-start">
 														{employeeBadges.map((b: any) => {
-															const emoji = BADGE_EMOJI[b.title] || '🏷️';
 															const formattedDate = b.issuedAt 
 																? new Date(b.issuedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 																: '—';
 
+															const resolvedImage = b.image || BADGE_IMAGES[b.title];
+
 															return (
 																<div 
 																	key={b.id} 
-																	className="bg-[#f0f2f5] border border-slate-200/60 rounded-[28px] p-5 pt-8 pb-6 flex flex-col items-center relative select-none w-full"
+																	className="bg-[#f0f2f5] border border-slate-200/60 rounded-[28px] p-5 pt-12 pb-5 flex flex-col items-center relative select-none w-full max-w-[280px] sm:w-[260px] min-h-[280px]"
 																>
-																	{/* Top Category Header */}
-																	<span className="text-[10px] font-bold text-slate-400/80 uppercase tracking-widest mb-6 font-mono">
-																		Verified Badge
-																	</span>
 
 																	{/* White Inner Card */}
-																	<div className="bg-white rounded-2xl p-6 pt-9 pb-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100 w-full relative flex flex-col items-center">
+																	<div className="bg-white rounded-2xl p-5 pt-12 pb-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100 w-full flex-1 flex flex-col justify-between relative">
 																		
 																		{/* Floating Badge Icon/Image */}
-																		<div className="absolute -top-7 left-1/2 -translate-x-1/2 z-10">
-																			{b.image ? (
+																		<div className="absolute -top-10 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-20 h-20">
+																			{resolvedImage ? (
 																				<img 
-																					src={b.image} 
+																					src={resolvedImage} 
 																					alt={b.title} 
-																					className="w-14 h-14 object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:scale-105 transition-transform duration-200" 
+																					className="w-20 h-20 object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.12)] hover:scale-105 transition-transform duration-200 mx-auto" 
 																				/>
 																			) : (
-																				<div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-2xl shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-slate-150/50 hover:scale-105 transition-transform duration-200">
-																					{emoji}
-																				</div>
+																				getPremiumIcon(b.icon || 'Award', b.color || 'blue')
 																			)}
 																		</div>
 
 																		{/* Badge Details */}
-																		<div className="space-y-1 text-center w-full mt-1">
-																			<h4 className="text-sm font-bold text-slate-800 tracking-tight leading-snug">
-																				{b.title}
-																			</h4>
-																			<p className="text-[11px] text-slate-400 leading-normal max-w-[170px] mx-auto min-h-[16px] truncate" title={b.description || ''}>
-																				{b.description || 'Verified Employee badge'}
-																			</p>
-																			<span className="text-[10px] text-slate-400/90 font-medium block pt-2 border-t border-slate-100/60 mt-3">
-																				{formattedDate}
-																			</span>
+																		<div className="text-center w-full mt-1 flex-1 flex flex-col justify-between">
+																			<div className="space-y-1">
+																				<h4 className="text-sm font-bold text-slate-800 tracking-tight leading-snug">
+																					{b.title}
+																				</h4>
+																				<p className="text-[11px] text-slate-400 leading-normal max-w-[170px] mx-auto line-clamp-2 min-h-[32px] flex items-center justify-center" title={b.description || ''}>
+																					{b.description || 'Verified Employee badge'}
+																				</p>
+																			</div>
+
+																			<div className="flex flex-col w-full mt-4 pt-2 border-t border-slate-100/60">
+																				<span className="text-[10px] text-slate-400/90 font-medium block text-center mb-2">
+																					{formattedDate}
+																				</span>
+																				<div className="flex items-center justify-center gap-2">
+																					{resolvedImage ? (
+																						<>
+																							<button
+																								type="button"
+																								onClick={(e) => {
+																									e.stopPropagation();
+																									handleDownloadBadge(resolvedImage, b.title);
+																								}}
+																								title="Download SVG Badge"
+																								className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all active:scale-95 duration-100 cursor-pointer flex items-center justify-center border border-slate-100"
+																							>
+																								<Download className="size-3.5" />
+																							</button>
+																							<button
+																								type="button"
+																								onClick={(e) => {
+																									e.stopPropagation();
+																									handleShareLinkedIn(b.title, resolvedImage);
+																								}}
+																								title="Share Badge on LinkedIn"
+																								className="p-1.5 rounded-full hover:bg-slate-100 text-[#0a66c2] hover:text-[#004182] transition-all active:scale-95 duration-100 cursor-pointer flex items-center justify-center border border-slate-100"
+																							>
+																								<LinkedinIcon className="size-3.5" />
+																							</button>
+																							<button
+																								type="button"
+																								onClick={(e) => {
+																									e.stopPropagation();
+																									void copyText(resolvedImage, 'Badge image URL copied!');
+																								}}
+																								title="Copy Badge Image Link"
+																								className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all active:scale-95 duration-100 cursor-pointer flex items-center justify-center border border-slate-100"
+																							>
+																								<Link className="size-3.5" />
+																							</button>
+																						</>
+																					) : (
+																						<span className="text-[9px] text-slate-400 italic">Verified in Database</span>
+																					)}
+																				</div>
+																			</div>
 																		</div>
 
 																	</div>

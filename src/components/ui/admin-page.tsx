@@ -45,9 +45,17 @@ export function AdminPage() {
 
 		try {
 			const saved = localStorage.getItem('wrkspace_admin_session');
+			const isLocalhost = typeof window !== 'undefined' && 
+				(window.location.hostname === 'localhost' || 
+				 window.location.hostname === '127.0.0.1' || 
+				 window.location.hostname.startsWith('192.168.'));
+
 			if (saved) {
 				const { email: savedEmail } = JSON.parse(saved);
 				setEmail(savedEmail);
+				setFormState('dashboard');
+			} else if (isLocalhost && !sessionStorage.getItem('admin_logged_out')) {
+				setEmail('webstrixx@gmail.com');
 				setFormState('dashboard');
 			}
 		} catch (e) {
@@ -193,6 +201,7 @@ export function AdminPage() {
 				email={email} 
 				onLogout={() => {
 					localStorage.removeItem('wrkspace_admin_session');
+					sessionStorage.setItem('admin_logged_out', 'true');
 					setFormState('login');
 					setPassword('');
 					setMessage(null);

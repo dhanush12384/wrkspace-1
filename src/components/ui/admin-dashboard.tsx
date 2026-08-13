@@ -2179,11 +2179,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 								{(() => {
 									const PRESET_BADGES = [
-										{ title: 'New Joinee',          icon: 'Star',    color: 'blue',   emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/b20d00f9-3ba0-47cc-bf11-a1eb7639040d.svg' },
-										{ title: 'Employee Completion', icon: 'Award',   color: 'green',  emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+										{ title: 'New Joinee',          icon: 'Star',    color: 'blue',   emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/e59cb781-ca16-4699-bf99-c5f16fd55383.svg' },
+										{ title: 'Employee Completion', icon: 'Award',   color: 'green',  emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/14b964b5-5848-4a81-bf4d-fb5e2a6f423c.svg' },
 										{ title: 'Employee Badge',      icon: 'Shield',  color: 'orange', emoji: '🏷️', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
-										{ title: 'Super Worker',        icon: 'Trophy',  color: 'yellow', emoji: '🏆' },
-										{ title: 'Slashing Dev',        icon: 'Zap',     color: 'purple', emoji: '⚡' },
+										{ title: 'Super Worker',        icon: 'Trophy',  color: 'yellow', emoji: '🏆', image: 'https://ik.imagekit.io/dypkhqxip/a40ea919-c9e6-4b41-973c-ee0205dbe244.svg' },
+										{ title: 'Slashing Dev',        icon: 'Zap',     color: 'purple', emoji: '⚡', image: 'https://ik.imagekit.io/dypkhqxip/c250a00f-8bd7-43e9-81b5-9d10618e8446.svg' },
 										{ title: 'Core Dev',            icon: 'Shield',  color: 'green',  emoji: '🛡️' },
 										{ title: 'Pro Marketer',        icon: 'Flame',   color: 'orange', emoji: '🔥' },
 									];
@@ -5937,11 +5937,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 									{(() => {
 										const PRESET_BADGES = [
-											{ title: 'New Joinee',          icon: 'Star',        color: 'blue',   description: 'Welcomed as a new member of the team', emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/b20d00f9-3ba0-47cc-bf11-a1eb7639040d.svg' },
-											{ title: 'Employee Completion', icon: 'Award',        color: 'green',  description: 'Successfully completed the project / milestones', emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
+											{ title: 'New Joinee',          icon: 'Star',        color: 'blue',   description: 'Welcomed as a new member of the team', emoji: '🌟', image: 'https://ik.imagekit.io/dypkhqxip/e59cb781-ca16-4699-bf99-c5f16fd55383.svg' },
+											{ title: 'Employee Completion', icon: 'Award',        color: 'green',  description: 'Successfully completed the project / milestones', emoji: '🎓', image: 'https://ik.imagekit.io/dypkhqxip/14b964b5-5848-4a81-bf4d-fb5e2a6f423c.svg' },
 											{ title: 'Employee Badge',      icon: 'Shield',      color: 'orange', description: 'Awarded official verified employee credentials badge', emoji: '🏷️', image: 'https://ik.imagekit.io/dypkhqxip/9fc652bf-a285-41c7-bed2-7d44d2ed1d7d.svg' },
-											{ title: 'Super Worker',        icon: 'Trophy',      color: 'yellow', description: 'Consistently delivering outstanding work', emoji: '🏆' },
-											{ title: 'Slashing Dev',        icon: 'Zap',         color: 'purple', description: 'Exceptional speed and quality in development', emoji: '⚡' },
+											{ title: 'Super Worker',        icon: 'Trophy',      color: 'yellow', description: 'Consistently delivering outstanding work', emoji: '🏆', image: 'https://ik.imagekit.io/dypkhqxip/a40ea919-c9e6-4b41-973c-ee0205dbe244.svg' },
+											{ title: 'Slashing Dev',        icon: 'Zap',         color: 'purple', description: 'Exceptional speed and quality in development', emoji: '⚡', image: 'https://ik.imagekit.io/dypkhqxip/c250a00f-8bd7-43e9-81b5-9d10618e8446.svg' },
 											{ title: 'Core Dev',            icon: 'Shield',      color: 'green',  description: 'Pillar of the engineering team', emoji: '🛡️' },
 											{ title: 'Pro Marketer',        icon: 'Flame',       color: 'orange', description: 'Drives growth and brand excellence', emoji: '🔥' },
 										];
