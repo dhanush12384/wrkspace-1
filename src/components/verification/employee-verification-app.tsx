@@ -1189,7 +1189,7 @@ export function EmployeeVerificationApp() {
 												<h3 className="text-base font-bold text-slate-900">Enter Verification Code</h3>
 												<p className="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed">
 													We've sent a 6-digit code to <strong className="text-slate-700">{selectedEmployee.email}</strong>
-												</p>
+															</p>
 											</div>
 
 											{otpError ? (
@@ -1198,36 +1198,103 @@ export function EmployeeVerificationApp() {
 												</div>
 											) : null}
 
-											<form onSubmit={handleVerifySearchOtp} className="space-y-4">
-												{/* HeroUI segmented OTP slots */}
-												<div style={{ display: 'flex', justifyContent: 'center' }}>
-													<InputOTP
-														maxLength={6}
-														value={otpCode}
-														onChange={(val: string) => setOtpCode(val.replace(/\D/g, ''))}
-													>
-														<InputOTP.Group>
-															<InputOTP.Slot index={0} />
-															<InputOTP.Slot index={1} />
-															<InputOTP.Slot index={2} />
-														</InputOTP.Group>
-														<InputOTP.Separator />
-														<InputOTP.Group>
-															<InputOTP.Slot index={3} />
-															<InputOTP.Slot index={4} />
-															<InputOTP.Slot index={5} />
-														</InputOTP.Group>
-													</InputOTP>
-												</div>
+											<form onSubmit={handleVerifySearchOtp} className="space-y-5">
+						{/* Custom white-theme OTP slots */}
+						<div className="flex justify-center">
+							<div className="flex items-center gap-2">
+								{[0,1,2].map((i) => (
+									<input
+										key={i}
+										id={`otp-slot-${i}`}
+										type="text"
+										inputMode="numeric"
+										maxLength={1}
+										value={otpCode[i] || ''}
+										onChange={e => {
+											const digit = e.target.value.replace(/\D/g, '').slice(-1);
+											const arr = otpCode.split('');
+											arr[i] = digit;
+											// fill gaps with empty
+											const next = Array.from({ length: 6 }, (_, k) => arr[k] || '').join('');
+											setOtpCode(next);
+											if (digit && i < 5) {
+												document.getElementById(`otp-slot-${i + 1}`)?.focus();
+											}
+										}}
+										onKeyDown={e => {
+											if (e.key === 'Backspace' && !otpCode[i] && i > 0) {
+												document.getElementById(`otp-slot-${i - 1}`)?.focus();
+											}
+										}}
+										onPaste={e => {
+											e.preventDefault();
+											const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+											setOtpCode(pasted.padEnd(6, '').slice(0, 6));
+											document.getElementById(`otp-slot-${Math.min(pasted.length, 5)}`)?.focus();
+										}}
+										className="w-11 h-13 text-center text-lg font-bold text-slate-900 bg-white border-2 rounded-xl outline-none transition-all"
+										style={{
+											height: '52px',
+											width: '44px',
+											borderColor: otpCode[i] ? '#E61E32' : '#e2e8f0',
+											boxShadow: otpCode[i] ? '0 0 0 3px rgba(230,30,50,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
+										}}
+									/>
+								))}
+								<span className="text-slate-300 font-light text-xl mx-1">—</span>
+								{[3,4,5].map((i) => (
+									<input
+										key={i}
+										id={`otp-slot-${i}`}
+										type="text"
+										inputMode="numeric"
+										maxLength={1}
+										value={otpCode[i] || ''}
+										onChange={e => {
+											const digit = e.target.value.replace(/\D/g, '').slice(-1);
+											const arr = otpCode.split('');
+											arr[i] = digit;
+											const next = Array.from({ length: 6 }, (_, k) => arr[k] || '').join('');
+											setOtpCode(next);
+											if (digit && i < 5) {
+												document.getElementById(`otp-slot-${i + 1}`)?.focus();
+											}
+										}}
+										onKeyDown={e => {
+											if (e.key === 'Backspace' && !otpCode[i] && i > 0) {
+												document.getElementById(`otp-slot-${i - 1}`)?.focus();
+											}
+										}}
+										onPaste={e => {
+											e.preventDefault();
+											const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+											setOtpCode(pasted.padEnd(6, '').slice(0, 6));
+											document.getElementById(`otp-slot-${Math.min(pasted.length, 5)}`)?.focus();
+										}}
+										className="w-11 h-13 text-center text-lg font-bold text-slate-900 bg-white border-2 rounded-xl outline-none transition-all"
+										style={{
+											height: '52px',
+											width: '44px',
+											borderColor: otpCode[i] ? '#E61E32' : '#e2e8f0',
+											boxShadow: otpCode[i] ? '0 0 0 3px rgba(230,30,50,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
+										}}
+									/>
+								))}
+							</div>
+						</div>
 
-												<button
-													type="submit"
-													disabled={otpBusy || otpCode.length !== 6}
-													className="flex h-10 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#E61E32] to-[#ff5f6d] hover:from-[#c91a2b] hover:to-[#e84b58] text-sm font-bold text-white transition-all disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md"
-												>
-													{otpBusy ? 'Verifying...' : 'Unlock Dossier'}
-												</button>
-											</form>
+						<button
+							type="submit"
+							disabled={otpBusy || otpCode.replace(/\s/g,'').length !== 6}
+							className="flex h-11 w-full items-center justify-center rounded-xl text-sm font-bold text-white transition-all cursor-pointer shadow-sm hover:shadow-md disabled:cursor-not-allowed"
+							style={{
+								background: 'linear-gradient(135deg, #E61E32 0%, #ff5f6d 100%)',
+								opacity: (otpBusy || otpCode.replace(/\s/g,'').length !== 6) ? 0.5 : 1,
+							}}
+						>
+							{otpBusy ? 'Verifying...' : 'Unlock Dossier'}
+						</button>
+					</form>
 
 											<div className="flex justify-center pt-1">
 												<button
