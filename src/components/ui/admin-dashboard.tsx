@@ -5613,75 +5613,81 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									})()}
 								</div>
 
-								{/* Form to add a new badge */}
-								<div className="bg-zinc-950/45 border border-zinc-850 p-4 space-y-3">
-									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">
-										Issue New Badge
-									</span>
-									
-									<div className="grid grid-cols-2 gap-2">
-										<div className="space-y-1">
-											<label className="text-[9px] text-zinc-450 uppercase font-medium">Badge Title</label>
-											<Input
-												placeholder="e.g. Top Performer"
-												className="bg-zinc-950 border-zinc-850 text-white text-xs h-8 focus-visible:ring-0 focus-visible:border-zinc-750"
-												value={badgeTitle}
-												onChange={e => setBadgeTitle(e.target.value)}
-											/>
-										</div>
-										<div className="space-y-1">
-											<label className="text-[9px] text-zinc-450 uppercase font-medium">Color theme</label>
-											<select
-												className="w-full bg-zinc-950 border border-zinc-850 text-xs text-white h-8 px-2 outline-none"
-												value={badgeColor}
-												onChange={e => setBadgeColor(e.target.value)}
-											>
-												<option value="blue">Blue</option>
-												<option value="green">Green</option>
-												<option value="purple">Purple</option>
-												<option value="orange">Orange</option>
-												<option value="red">Red</option>
-												<option value="yellow">Yellow</option>
-												<option value="pink">Pink</option>
-											</select>
-										</div>
-									</div>
+								{/* Preset badge picker */}
+								<div className="space-y-3">
+									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Select a Badge to Issue</span>
 
-									<div className="grid grid-cols-2 gap-2">
-										<div className="space-y-1">
-											<label className="text-[9px] text-zinc-450 uppercase font-medium">Icon style</label>
-											<select
-												className="w-full bg-zinc-950 border border-zinc-850 text-xs text-white h-8 px-2 outline-none"
-												value={badgeIcon}
-												onChange={e => setBadgeIcon(e.target.value)}
-											>
-												<option value="Award">Award Ribbon</option>
-												<option value="Trophy">Trophy Cup</option>
-												<option value="Star">Sparkling Star</option>
-												<option value="Zap">Lightning Zap</option>
-												<option value="Heart">Heart Core</option>
-												<option value="Shield">Security Shield</option>
-												<option value="CheckCircle">Checkmark Circle</option>
-												<option value="Flame">Flame Energy</option>
-											</select>
+									{(() => {
+										const PRESET_BADGES = [
+											{ title: 'New Joinee',      icon: 'Star',        color: 'blue',   description: 'Welcomed as a new member of the team', emoji: '🌟' },
+											{ title: 'Super Worker',    icon: 'Trophy',      color: 'yellow', description: 'Consistently delivering outstanding work', emoji: '🏆' },
+											{ title: 'Slashing Dev',    icon: 'Zap',         color: 'purple', description: 'Exceptional speed and quality in development', emoji: '⚡' },
+											{ title: 'Core Dev',        icon: 'Shield',      color: 'green',  description: 'Pillar of the engineering team', emoji: '🛡️' },
+											{ title: 'Pro Marketer',    icon: 'Flame',       color: 'orange', description: 'Drives growth and brand excellence', emoji: '🔥' },
+											{ title: 'Employee of the Month', icon: 'Award', color: 'red',    description: 'Recognised as the best performer this month', emoji: '🏅' },
+										];
+
+										return (
+											<div className="grid grid-cols-2 gap-2">
+												{PRESET_BADGES.map((badge) => {
+													const isSelected = badgeTitle === badge.title;
+													const ringColor =
+														badge.color === 'blue'   ? 'ring-blue-500/70 bg-blue-950/30 border-blue-800/50' :
+														badge.color === 'yellow' ? 'ring-yellow-500/70 bg-yellow-950/30 border-yellow-800/50' :
+														badge.color === 'purple' ? 'ring-purple-500/70 bg-purple-950/30 border-purple-800/50' :
+														badge.color === 'green'  ? 'ring-emerald-500/70 bg-emerald-950/30 border-emerald-800/50' :
+														badge.color === 'orange' ? 'ring-amber-500/70 bg-amber-950/30 border-amber-800/50' :
+														badge.color === 'red'    ? 'ring-rose-500/70 bg-rose-950/30 border-rose-800/50' :
+														'ring-zinc-600/50 bg-zinc-900 border-zinc-700';
+													const textColor =
+														badge.color === 'blue'   ? 'text-blue-300' :
+														badge.color === 'yellow' ? 'text-yellow-300' :
+														badge.color === 'purple' ? 'text-purple-300' :
+														badge.color === 'green'  ? 'text-emerald-300' :
+														badge.color === 'orange' ? 'text-amber-300' :
+														badge.color === 'red'    ? 'text-rose-300' :
+														'text-zinc-200';
+													return (
+														<button
+															key={badge.title}
+															type="button"
+															onClick={() => {
+																setBadgeTitle(badge.title);
+																setBadgeIcon(badge.icon);
+																setBadgeColor(badge.color);
+																setBadgeDescription(badge.description);
+															}}
+															className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
+																isSelected
+																	? `ring-2 ${ringColor}`
+																	: 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
+															}`}
+														>
+															<span className="text-xl leading-none">{badge.emoji}</span>
+															<span className={`text-[11px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-300'}`}>
+																{badge.title}
+															</span>
+														</button>
+													);
+												})}
+											</div>
+										);
+									})()}
+
+									{badgeTitle && (
+										<div className="flex items-center gap-2 p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg">
+											<span className="text-[10px] text-zinc-400">Selected:</span>
+											<span className="text-[11px] font-bold text-white">{badgeTitle}</span>
 										</div>
-										<div className="space-y-1">
-											<label className="text-[9px] text-zinc-450 uppercase font-medium">Reason / Note (Optional)</label>
-											<Input
-												placeholder="Demonstrated exceptional leadership"
-												className="bg-zinc-950 border-zinc-850 text-white text-xs h-8 focus-visible:ring-0 focus-visible:border-zinc-750"
-												value={badgeDescription}
-												onChange={e => setBadgeDescription(e.target.value)}
-											/>
-										</div>
-									</div>
+									)}
 
 									<Button
 										type="button"
+										disabled={!badgeTitle}
 										onClick={() => handleGiveBadge(editingItem.id)}
-										className="w-full bg-indigo-650 hover:bg-indigo-500 text-white text-xs font-semibold h-8 cursor-pointer border border-indigo-700/50"
+										className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold h-9 cursor-pointer border border-indigo-700/50 flex items-center justify-center gap-2 rounded-lg transition-all"
 									>
-										Generate & Issue Badge
+										<span>🚀</span> Publish Badge to Employee
 									</Button>
 								</div>
 							</div>

@@ -2436,6 +2436,15 @@ export function EmployeeVerificationApp() {
 													console.error('Failed to parse employee badges', e);
 												}
 
+												const BADGE_EMOJI: Record<string, string> = {
+													'New Joinee': '🌟',
+													'Super Worker': '🏆',
+													'Slashing Dev': '⚡',
+													'Core Dev': '🛡️',
+													'Pro Marketer': '🔥',
+													'Employee of the Month': '🏅',
+												};
+
 												if (employeeBadges.length === 0) {
 													return (
 														<div className="text-center py-12 text-slate-400 text-xs">
@@ -2448,34 +2457,34 @@ export function EmployeeVerificationApp() {
 												return (
 													<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 														{employeeBadges.map((b: any) => {
-															let colorClasses = "bg-slate-50 text-slate-700 border-slate-200";
-															if (b.color === 'blue') colorClasses = "bg-blue-50/50 text-blue-700 border-blue-200";
-															else if (b.color === 'green') colorClasses = "bg-emerald-50/50 text-emerald-700 border-emerald-200";
-															else if (b.color === 'purple') colorClasses = "bg-purple-50/50 text-purple-700 border-purple-200";
-															else if (b.color === 'orange') colorClasses = "bg-amber-50/50 text-amber-700 border-amber-200";
-															else if (b.color === 'red') colorClasses = "bg-rose-50/50 text-rose-700 border-rose-200";
-															else if (b.color === 'yellow') colorClasses = "bg-yellow-50/50 text-yellow-750 border-yellow-200";
-															else if (b.color === 'pink') colorClasses = "bg-pink-50/50 text-pink-700 border-pink-200";
+															let bgClass = "bg-slate-50 border-slate-200";
+															let textClass = "text-slate-700";
+															let pillClass = "bg-slate-200 text-slate-600";
+															if (b.color === 'blue')   { bgClass = "bg-blue-50 border-blue-200";     textClass = "text-blue-800";    pillClass = "bg-blue-100 text-blue-700"; }
+															else if (b.color === 'green')  { bgClass = "bg-emerald-50 border-emerald-200"; textClass = "text-emerald-800"; pillClass = "bg-emerald-100 text-emerald-700"; }
+															else if (b.color === 'purple') { bgClass = "bg-purple-50 border-purple-200"; textClass = "text-purple-800"; pillClass = "bg-purple-100 text-purple-700"; }
+															else if (b.color === 'orange') { bgClass = "bg-amber-50 border-amber-200";   textClass = "text-amber-800";   pillClass = "bg-amber-100 text-amber-700"; }
+															else if (b.color === 'red')    { bgClass = "bg-rose-50 border-rose-200";     textClass = "text-rose-800";    pillClass = "bg-rose-100 text-rose-700"; }
+															else if (b.color === 'yellow') { bgClass = "bg-yellow-50 border-yellow-200"; textClass = "text-yellow-800";  pillClass = "bg-yellow-100 text-yellow-700"; }
+															else if (b.color === 'pink')   { bgClass = "bg-pink-50 border-pink-200";     textClass = "text-pink-800";    pillClass = "bg-pink-100 text-pink-700"; }
+
+															const emoji = BADGE_EMOJI[b.title] || '🏷️';
 
 															return (
-																<div 
-																	key={b.id} 
-																	className={`flex items-start gap-3 p-4 rounded-xl border ${colorClasses} shadow-xs`}
+																<div
+																	key={b.id}
+																	className={`flex flex-col items-center gap-2 p-5 rounded-2xl border ${bgClass} shadow-sm text-center`}
 																>
-																	<div className="p-2 rounded-lg bg-white shadow-xs border border-slate-100 shrink-0">
-																		<BadgeIcon name={b.icon} className="size-5 text-slate-750" />
-																	</div>
-																	<div className="min-w-0">
-																		<h4 className="text-sm font-semibold text-slate-900 leading-tight">{b.title}</h4>
+																	<span className="text-4xl leading-none">{emoji}</span>
+																	<div className="space-y-0.5">
+																		<h4 className={`text-sm font-bold leading-tight ${textClass}`}>{b.title}</h4>
 																		{b.description && (
-																			<p className="text-xs text-slate-550 mt-1 leading-relaxed">
-																				{b.description}
-																			</p>
+																			<p className="text-[11px] text-slate-500 leading-relaxed">{b.description}</p>
 																		)}
-																		<span className="text-[10px] text-slate-400 block mt-2 font-mono">
-																			Issued: {b.issuedAt ? new Date(b.issuedAt).toLocaleDateString() : '—'}
-																		</span>
 																	</div>
+																	<span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${pillClass}`}>
+																		Issued {b.issuedAt ? new Date(b.issuedAt).toLocaleDateString() : '—'}
+																	</span>
 																</div>
 															);
 														})}
