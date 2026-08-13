@@ -129,7 +129,7 @@ export function PhotoCropDialog({ imageSrc, busy, onCancel, onConfirm }: Props) 
 							value={zoom}
 							disabled={disabled}
 							onChange={(e) => setZoom(Number(e.target.value))}
-							className="flex-1 accent-indigo-500 cursor-pointer"
+							className="flex-1 accent-brand-500 cursor-pointer"
 						/>
 						<button
 							type="button"
@@ -157,7 +157,7 @@ export function PhotoCropDialog({ imageSrc, busy, onCancel, onConfirm }: Props) 
 							type="button"
 							disabled={disabled || !croppedAreaPixels}
 							onClick={() => void confirm()}
-							className="flex-1 h-10 bg-indigo-600 hover:bg-indigo-500 text-white font-bold cursor-pointer rounded-none"
+							className="flex-1 h-10 bg-brand-600 hover:bg-brand-500 text-white font-bold cursor-pointer rounded-none"
 						>
 							{disabled ? 'Saving…' : 'Use photo'}
 						</Button>

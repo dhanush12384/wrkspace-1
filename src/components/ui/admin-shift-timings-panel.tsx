@@ -103,7 +103,7 @@ export function AdminShiftTimingsPanel() {
 					Refresh
 				</button>
 			</div>
-			{msg ? <p className="font-mono text-xs text-indigo-300">{msg}</p> : null}
+			{msg ? <p className="font-mono text-xs text-brand-300">{msg}</p> : null}
 			{loading ? (
 				<p className="text-sm text-zinc-500">Loading…</p>
 			) : (
@@ -162,7 +162,7 @@ export function AdminShiftTimingsPanel() {
 												type="button"
 												disabled={savingId === e.id}
 												onClick={() => void save(e.id)}
-												className="bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500 disabled:opacity-50"
+												className="bg-brand-600 px-3 py-1.5 text-white hover:bg-brand-500 disabled:opacity-50"
 											>
 												{savingId === e.id ? 'Saving…' : 'Save'}
 											</button>

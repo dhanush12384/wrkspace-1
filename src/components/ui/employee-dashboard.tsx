@@ -1014,18 +1014,18 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									setActiveTab('events');
 									loadEvents();
 								}}
-								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-indigo-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
+								className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-brand-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]"
 							>
 								<div className="flex items-start justify-between">
 									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Events</span>
-									<div className="size-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-200">
+									<div className="size-8 rounded-lg bg-brand-500/10 flex items-center justify-center text-brand-500 group-hover:bg-brand-500 group-hover:text-white transition-all duration-200">
 										<Grid2x2PlusIcon className="size-4" />
 									</div>
 								</div>
 								<div className="mt-2">
 									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{eventsList.length}</p>
 									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
-										<span className="inline-block size-1.5 rounded-full bg-indigo-500/80" />
+										<span className="inline-block size-1.5 rounded-full bg-brand-500/80" />
 										Total Planned
 									</p>
 								</div>
@@ -1286,7 +1286,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 														<span className={cn(
 															"px-2.5 py-0.5 text-[10px] font-bold border uppercase whitespace-nowrap rounded-md",
 															log.status === 'Checked In' && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-															log.status === 'Present' && "bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 border-indigo-500/20"
+															log.status === 'Present' && "bg-brand-500/10 text-brand-650 dark:text-brand-400 border-brand-500/20"
 														)}>
 															{log.status}
 														</span>

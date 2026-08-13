@@ -54,7 +54,7 @@ export function GoogleSignInButton({
 				'hover:bg-[#f7f8f8] hover:shadow-[0_2px_8px_rgba(0,0,0,0.35)]',
 				'active:bg-[#eee] transition-all duration-150 cursor-pointer',
 				'disabled:opacity-55 disabled:cursor-not-allowed disabled:hover:bg-white',
-				'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
+				'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
 				className,
 			)}
 		>

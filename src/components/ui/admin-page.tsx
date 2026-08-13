@@ -309,13 +309,13 @@ export function AdminPage() {
 									<div className="relative h-max">
 										<Input
 											placeholder="your.email@example.com"
-											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 transition-colors"
+											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-brand-500 focus-visible:border-brand-500 transition-colors"
 											type="email"
 											required
 											value={email}
 											onChange={(e) => setEmail(e.target.value)}
 										/>
-										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-brand-400 transition-colors">
 											<AtSignIcon className="size-4" aria-hidden="true" />
 										</div>
 									</div>
@@ -329,7 +329,7 @@ export function AdminPage() {
 										<Button
 											type="button"
 											variant="link"
-											className="p-0 h-auto text-xs text-zinc-400 hover:text-indigo-400 transition-colors font-normal hover:no-underline cursor-pointer"
+											className="p-0 h-auto text-xs text-zinc-400 hover:text-brand-400 transition-colors font-normal hover:no-underline cursor-pointer"
 											onClick={() => {
 												setMessage(null);
 												setFormState('forgot-request');
@@ -341,13 +341,13 @@ export function AdminPage() {
 									<div className="relative h-max">
 										<Input
 											placeholder="••••••••"
-											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 transition-colors"
+											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-brand-500 focus-visible:border-brand-500 transition-colors"
 											type="password"
 											required
 											value={password}
 											onChange={(e) => setPassword(e.target.value)}
 										/>
-										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-brand-400 transition-colors">
 											<LockIcon className="size-4" aria-hidden="true" />
 										</div>
 									</div>
@@ -356,7 +356,7 @@ export function AdminPage() {
 								<Button 
 									type="submit" 
 									disabled={isLoading}
-									className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:opacity-50 text-white font-medium shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
+									className="w-full h-11 bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 disabled:opacity-50 text-white font-medium shadow-md shadow-brand-600/20 hover:shadow-brand-600/30 transition-all duration-200 cursor-pointer"
 								>
 									<span>{isLoading ? 'Signing In...' : 'Sign In as Admin'}</span>
 								</Button>
@@ -400,13 +400,13 @@ export function AdminPage() {
 									<div className="relative h-max">
 										<Input
 											placeholder="your.email@example.com"
-											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 transition-colors"
+											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-brand-500 focus-visible:border-brand-500 transition-colors"
 											type="email"
 											required
 											value={email}
 											onChange={(e) => setEmail(e.target.value)}
 										/>
-										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-brand-400 transition-colors">
 											<AtSignIcon className="size-4" aria-hidden="true" />
 										</div>
 									</div>
@@ -415,7 +415,7 @@ export function AdminPage() {
 								<Button 
 									type="submit" 
 									disabled={isLoading}
-									className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:opacity-50 text-white font-medium shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
+									className="w-full bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 disabled:opacity-50 text-white font-medium shadow-md shadow-brand-600/20 hover:shadow-brand-600/30 transition-all duration-200 cursor-pointer"
 								>
 									<span>{isLoading ? 'Sending OTP...' : 'Send OTP Email'}</span>
 								</Button>
@@ -455,14 +455,14 @@ export function AdminPage() {
 									<div className="relative h-max">
 										<Input
 											placeholder="123456"
-											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 transition-colors"
+											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-brand-500 focus-visible:border-brand-500 transition-colors"
 											type="text"
 											required
 											maxLength={6}
 											value={otp}
 											onChange={(e) => setOtp(e.target.value)}
 										/>
-										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-brand-400 transition-colors">
 											<KeyIcon className="size-4" aria-hidden="true" />
 										</div>
 									</div>
@@ -475,13 +475,13 @@ export function AdminPage() {
 									<div className="relative h-max">
 										<Input
 											placeholder="••••••••"
-											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 transition-colors"
+											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-brand-500 focus-visible:border-brand-500 transition-colors"
 											type="password"
 											required
 											value={newPassword}
 											onChange={(e) => setNewPassword(e.target.value)}
 										/>
-										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-brand-400 transition-colors">
 											<LockIcon className="size-4" aria-hidden="true" />
 										</div>
 									</div>
@@ -494,13 +494,13 @@ export function AdminPage() {
 									<div className="relative h-max">
 										<Input
 											placeholder="••••••••"
-											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 transition-colors"
+											className="peer ps-9 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-brand-500 focus-visible:border-brand-500 transition-colors"
 											type="password"
 											required
 											value={confirmPassword}
 											onChange={(e) => setConfirmPassword(e.target.value)}
 										/>
-										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-indigo-400 transition-colors">
+										<div className="text-zinc-500 pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 peer-focus:text-brand-400 transition-colors">
 											<LockIcon className="size-4" aria-hidden="true" />
 										</div>
 									</div>
@@ -509,7 +509,7 @@ export function AdminPage() {
 								<Button 
 									type="submit" 
 									disabled={isLoading}
-									className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:opacity-50 text-white font-medium shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all duration-200 cursor-pointer"
+									className="w-full bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 disabled:opacity-50 text-white font-medium shadow-md shadow-brand-600/20 hover:shadow-brand-600/30 transition-all duration-200 cursor-pointer"
 								>
 									<span>{isLoading ? 'Resetting Password...' : 'Reset Password'}</span>
 								</Button>

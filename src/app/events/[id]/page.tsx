@@ -102,7 +102,7 @@ export default function EventTicketPage() {
 					{event.imageUrl ? (
 						<img src={event.imageUrl} alt={event.title} className="w-full h-full object-contain" />
 					) : (
-						<div className="absolute inset-0 bg-gradient-to-br from-indigo-100 via-slate-50 to-white flex items-center justify-center">
+						<div className="absolute inset-0 bg-gradient-to-br from-brand-100 via-slate-50 to-white flex items-center justify-center">
 							<CalendarIcon className="size-16 text-brand-500/30" />
 						</div>
 					)}
@@ -126,10 +126,10 @@ export default function EventTicketPage() {
 									<img
 										src={employee.photoUrl}
 										alt=""
-										className="mx-auto size-16 rounded-full object-cover border-2 border-indigo-300 bg-white"
+										className="mx-auto size-16 rounded-full object-cover border-2 border-brand-300 bg-white"
 									/>
 								) : (
-									<div className="mx-auto size-16 rounded-full bg-indigo-100 border-2 border-indigo-300 flex items-center justify-center text-indigo-800 font-black text-lg">
+									<div className="mx-auto size-16 rounded-full bg-brand-100 border-2 border-brand-300 flex items-center justify-center text-brand-800 font-black text-lg">
 										{(employee.firstName?.[0] || 'E').toUpperCase()}
 										{(employee.lastName?.[0] || '').toUpperCase()}
 									</div>
@@ -189,7 +189,7 @@ export default function EventTicketPage() {
 											key={i}
 											className={`text-[11px] px-2 py-0.5 border font-semibold ${
 												employee && r.name === `${employee.firstName} ${employee.lastName}`
-													? 'bg-indigo-50 border-indigo-300 text-indigo-900'
+													? 'bg-brand-50 border-brand-300 text-brand-900'
 													: 'bg-slate-50 border-slate-300 text-slate-800'
 											}`}
 										>

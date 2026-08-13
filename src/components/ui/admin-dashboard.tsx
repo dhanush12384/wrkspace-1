@@ -1694,7 +1694,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	if (!stats) {
 		return (
 			<main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center space-y-4">
-				<RefreshCwIcon className="size-8 text-indigo-500 animate-spin" />
+				<RefreshCwIcon className="size-8 text-brand-500 animate-spin" />
 				<p className="text-zinc-400 text-xs font-mono">Initializing live environment console...</p>
 			</main>
 		);
@@ -2005,7 +2005,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								{remSelectedEmployee ? (
-									<div className="flex items-center gap-3 p-2.5 bg-indigo-950/30 border border-indigo-800/50 rounded-lg">
+									<div className="flex items-center gap-3 p-2.5 bg-brand-950/30 border border-brand-800/50 rounded-lg">
 										{remSelectedEmployee.photoUrl && (
 											<img src={remSelectedEmployee.photoUrl} alt="" className="size-8 rounded object-cover border border-zinc-700 shrink-0" />
 										)}
@@ -2013,7 +2013,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											<p className="text-xs font-bold text-white truncate">{remSelectedEmployee.firstName} {remSelectedEmployee.lastName}</p>
 											<p className="text-[10px] text-zinc-400 truncate">{remSelectedEmployee.email} · ID: {remSelectedEmployee.id}</p>
 										</div>
-										<span className="ml-auto shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-900/50 text-indigo-300 border border-indigo-700/50 uppercase tracking-wider">Update mode</span>
+										<span className="ml-auto shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full bg-brand-900/50 text-brand-300 border border-brand-700/50 uppercase tracking-wider">Update mode</span>
 									</div>
 								) : (
 									<div className="relative">
@@ -2360,7 +2360,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<button
 										type="button"
 										onClick={() => setRemCertifications(prev => [...prev, { title: '', url: '' }])}
-										className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 border border-indigo-800/50 bg-indigo-950/30 px-2.5 py-1 rounded cursor-pointer transition-colors"
+										className="text-[10px] font-bold text-brand-400 hover:text-brand-300 border border-brand-800/50 bg-brand-950/30 px-2.5 py-1 rounded cursor-pointer transition-colors"
 									>
 										+ Add Certificate
 									</button>
@@ -2408,7 +2408,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							<Button
 								type="submit"
 								disabled={remBusy}
-								className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+								className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
 							>
 								{remBusy
 									? (remSelectedEmployee ? 'Updating...' : 'Saving Remarks...')
@@ -2427,7 +2427,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
 									<span className="text-[10px] font-semibold uppercase tracking-wider">Employees</span>
-									<UsersIcon className="size-3.5 text-indigo-400" />
+									<UsersIcon className="size-3.5 text-brand-400" />
 								</div>
 								<p className="text-xl font-bold text-white">{employeesList.length}</p>
 								<p className="text-[10px] text-zinc-550 font-mono">Active members</p>
@@ -2465,7 +2465,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
 									<span className="text-[10px] font-semibold uppercase tracking-wider">Work Submissions</span>
-									<CheckCircleIcon className="size-3.5 text-indigo-400" />
+									<CheckCircleIcon className="size-3.5 text-brand-400" />
 								</div>
 								<p className="text-xl font-bold text-white">{submissionsList.length}</p>
 								<p className="text-[10px] text-zinc-550 font-mono">{submissionsList.filter(s => s.status === 'Submitted').length} Pending Review</p>
@@ -2613,7 +2613,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							<div className="flex items-center gap-2">
 								<button 
 									onClick={() => setShowAddManualLeave(!showAddManualLeave)}
-									className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors"
+									className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors"
 								>
 									{showAddManualLeave ? 'Cancel Log' : '+ Log Leave'}
 								</button>
@@ -2690,7 +2690,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<label className="text-[10px] text-zinc-400 uppercase font-medium">Reason Description</label>
 									<textarea name="reason" required rows={2} className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none p-2 outline-none focus:border-zinc-700 placeholder:text-zinc-650" placeholder="Provide details..."></textarea>
 								</div>
-								<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
+								<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
 									Save Leave Log
 								</Button>
 							</form>
@@ -2829,7 +2829,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										}}
 										className={cn(
 											"text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors",
-											showTodayAttendanceSummary ? "bg-amber-600 hover:bg-amber-500" : "bg-indigo-600 hover:bg-indigo-500"
+											showTodayAttendanceSummary ? "bg-amber-600 hover:bg-amber-500" : "bg-brand-600 hover:bg-brand-500"
 										)}
 									>
 										{showTodayAttendanceSummary ? "Show All Logs" : "Today's Attendance"}
@@ -2839,7 +2839,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											setShowAddManualAttendance(!showAddManualAttendance);
 											if (showTodayAttendanceSummary) setShowTodayAttendanceSummary(false);
 										}}
-										className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors"
+										className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors"
 									>
 										{showAddManualAttendance ? 'Cancel Log' : '+ Log Attendance'}
 									</button>
@@ -2905,7 +2905,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											<Input type="text" name="checkOut" placeholder="e.g. 07:00 PM" className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
 										</div>
 									</div>
-									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
+									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
 										Save Attendance Log
 									</Button>
 								</form>
@@ -3042,7 +3042,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															<span className={cn(
 																"px-2 py-0.5 text-[10px] font-bold border uppercase font-mono whitespace-nowrap",
 																log.status === 'Checked In' && "bg-emerald-950/30 text-emerald-400 border-emerald-900/30",
-																log.status === 'Present' && "bg-indigo-950/30 text-indigo-400 border-indigo-900/30"
+																log.status === 'Present' && "bg-brand-950/30 text-brand-400 border-brand-900/30"
 															)}>
 																{log.status}
 															</span>
@@ -3054,7 +3054,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																		setEditingItem(log);
 																		setEditModalType('attendance');
 																	}}
-																	className="p-1.5 bg-zinc-900 border border-zinc-800 text-indigo-400 hover:text-indigo-300 hover:border-zinc-700 transition-all cursor-pointer"
+																	className="p-1.5 bg-zinc-900 border border-zinc-800 text-brand-400 hover:text-brand-300 hover:border-zinc-700 transition-all cursor-pointer"
 																	title="Edit Attendance Log"
 																>
 																	<PencilIcon className="size-3.5" />
@@ -3103,7 +3103,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
 								<div className="flex items-center justify-between text-zinc-400">
 									<span className="text-xs font-semibold uppercase tracking-wider">Node Env</span>
-									<CpuIcon className="size-4 text-indigo-400" />
+									<CpuIcon className="size-4 text-brand-400" />
 								</div>
 								<p className="text-2xl font-bold text-white capitalize">{stats.environment}</p>
 								<p className="text-xs text-zinc-400 font-medium">Heap: {stats.heapMemory}</p>
@@ -3141,7 +3141,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<TerminalIcon className="size-4 text-indigo-400" />
+									<TerminalIcon className="size-4 text-brand-400" />
 									<h2 className="text-base font-bold text-white">System Lifecycle Logs</h2>
 								</div>
 								<span className="text-zinc-550 font-mono text-[10px]">Auto-updates every 5s • Last: {stats.timestamp}</span>
@@ -3158,7 +3158,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<tbody className="divide-y divide-zinc-850/50 font-mono text-zinc-300">
 										{stats.logEntries.map((log: any, idx: number) => (
 											<tr key={idx} className="hover:bg-zinc-900/20 transition-colors">
-												<td className="p-3 font-bold text-indigo-400 whitespace-nowrap">{log.event}</td>
+												<td className="p-3 font-bold text-brand-400 whitespace-nowrap">{log.event}</td>
 												<td className="p-3 text-zinc-200">{log.details}</td>
 												<td className="p-3 text-zinc-500 text-right text-[10px] whitespace-nowrap">{log.timestamp}</td>
 											</tr>
@@ -3196,7 +3196,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									setShowTaskForm(!showTaskForm);
 									setTaskMessage(null);
 								}}
-								className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
+								className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
 							>
 								{showTaskForm ? 'Cancel Allocation' : (
 									<>
@@ -3434,7 +3434,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	setEditingItem(task);
 																	setEditModalType('task');
 																}}
-																className="p-1.5 bg-zinc-900 border border-zinc-800 text-indigo-400 hover:text-indigo-300 hover:border-zinc-700 transition-all cursor-pointer"
+																className="p-1.5 bg-zinc-900 border border-zinc-800 text-brand-400 hover:text-brand-300 hover:border-zinc-700 transition-all cursor-pointer"
 																title="Edit Task"
 															>
 																<PencilIcon className="size-3.5" />
@@ -3515,7 +3515,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										setShowAddForm(!showAddForm);
 										setAddMessage(null);
 									}}
-									className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
+									className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
 								>
 									{showAddForm ? 'Cancel Registration' : (
 										<>
@@ -3671,7 +3671,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<Button
 									type="submit"
 									disabled={isAdding}
-									className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+									className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
 								>
 									{isAdding ? 'Registering...' : 'Register Employee & Generate ID'}
 								</Button>
@@ -3707,7 +3707,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									) : (
 										employeesList.map((emp) => (
 											<tr key={emp.id} className="hover:bg-zinc-900/30 transition-colors">
-												<td className="p-4 font-semibold text-indigo-400">{emp.id}</td>
+												<td className="p-4 font-semibold text-brand-400">{emp.id}</td>
 												<td className="p-4">
 													<div className="flex flex-col items-start gap-1">
 														<ChatAvatar
@@ -3771,7 +3771,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																setEditingItem(emp);
 																setEditModalType('employee');
 															}}
-															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-indigo-400 hover:text-indigo-300 transition-all cursor-pointer"
+															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-brand-400 hover:text-brand-300 transition-all cursor-pointer"
 															title="Edit Employee"
 														>
 															<PencilIcon className="size-3.5" />
@@ -4129,7 +4129,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-500" 
 															/>
 														) : (
-															<div className="h-full w-full bg-gradient-to-br from-indigo-950 via-zinc-900 to-black relative flex items-center justify-center border-b border-zinc-800">
+															<div className="h-full w-full bg-gradient-to-br from-brand-950 via-zinc-900 to-black relative flex items-center justify-center border-b border-zinc-800">
 																<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_70%)]" />
 																<CalendarIcon className="size-10 text-brand-500/20" />
 															</div>
@@ -4201,7 +4201,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																		setEditEventRepIds([]);
 																	}
 																}}
-																className="p-1.5 bg-zinc-900 border border-zinc-800 text-indigo-400 hover:text-indigo-300 hover:border-zinc-700 transition-all cursor-pointer"
+																className="p-1.5 bg-zinc-900 border border-zinc-800 text-brand-400 hover:text-brand-300 hover:border-zinc-700 transition-all cursor-pointer"
 																title="Edit Event"
 															>
 																<PencilIcon className="size-3.5" />
@@ -5324,7 +5324,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																				onClick={() => { setAssigningHrId(company.id); setAssignHrEmployeeId(company.assignedEmployeeId || ''); }}
 																				className="text-[10px] flex items-center gap-1.5 py-1 px-2 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 text-zinc-300 hover:text-white transition-all font-mono"
 																			>
-																				<UserCheckIcon className="size-3 text-indigo-400" />
+																				<UserCheckIcon className="size-3 text-brand-400" />
 																				<span>{assignee ? `${assignee.firstName} (${assignee.id})` : 'Allocate Agent'}</span>
 																			</button>
 																		)}
@@ -5344,7 +5344,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																					setEditingItem(company);
 																					setEditModalType('hr_company');
 																				}}
-																				className="p-1.5 border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-indigo-400 hover:border-indigo-900 cursor-pointer transition-all"
+																				className="p-1.5 border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-brand-400 hover:border-brand-900 cursor-pointer transition-all"
 																				title="Edit Record"
 																			>
 																				<PencilIcon className="size-3.5" />
@@ -5812,7 +5812,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<Button
 									type="submit"
 									disabled={isAllocatingLead}
-									className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+									className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
 								>
 									{isAllocatingLead ? 'Allocating...' : 'Allocate Login & Pages'}
 								</Button>
@@ -5842,7 +5842,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									) : (
 										teamLeadsList.map((tl) => (
 											<tr key={tl.id} className="hover:bg-zinc-900/30 transition-colors">
-												<td className="p-4 font-semibold text-indigo-400">{tl.employeeId || '—'}</td>
+												<td className="p-4 font-semibold text-brand-400">{tl.employeeId || '—'}</td>
 												<td className="p-4 text-white font-sans font-medium">
 													{tl.employee ? `${tl.employee.firstName} ${tl.employee.lastName}` : 'Unknown Employee'}
 												</td>
@@ -5870,7 +5870,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																setEditLeadAllowedPages(tl.allowedPages ? tl.allowedPages.split(',') : []);
 																setShowEditLeadModal(true);
 															}}
-															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-indigo-400 hover:text-indigo-300 transition-all cursor-pointer"
+															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-brand-400 hover:text-brand-300 transition-all cursor-pointer"
 															title="Edit Team Lead"
 														>
 															<PencilIcon className="size-3.5" />
@@ -6006,7 +6006,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<div className="text-[11px] text-zinc-600 border border-dashed border-zinc-800 p-3">No ID card uploaded yet</div>
 									)}
 									<div className="flex flex-wrap gap-2">
-										<label className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-2 cursor-pointer">
+										<label className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 px-3 py-2 cursor-pointer">
 											Upload ID card
 											<input
 												type="file"
@@ -6062,7 +6062,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
 									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 								</div>
 							</form>
 
@@ -6078,7 +6078,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								{badgeMessage && (
-									<div className="p-2.5 bg-indigo-950/40 border border-indigo-900 text-indigo-400 text-xs font-mono">
+									<div className="p-2.5 bg-brand-950/40 border border-brand-900 text-brand-400 text-xs font-mono">
 										{badgeMessage}
 									</div>
 								)}
@@ -6219,7 +6219,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										type="button"
 										disabled={!badgeTitle}
 										onClick={() => handleGiveBadge(editingItem.id)}
-										className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold h-9 cursor-pointer border border-indigo-700/50 flex items-center justify-center gap-2 rounded-lg transition-all"
+										className="w-full bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-xs font-bold h-9 cursor-pointer border border-brand-700/50 flex items-center justify-center gap-2 rounded-lg transition-all"
 									>
 										<span>🚀</span> Publish Badge to Employee
 									</Button>
@@ -6301,7 +6301,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
 									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 								</div>
 							</form>
 						)}
@@ -6346,7 +6346,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
 									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 								</div>
 							</form>
 						)}
@@ -6454,7 +6454,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 									<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
 										<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-										<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+										<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 									</div>
 								</form>
 							);
@@ -6560,7 +6560,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
 									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
 								</div>
 							</form>
 						)}

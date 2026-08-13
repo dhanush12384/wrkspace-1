@@ -628,7 +628,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 										className={cn(
 											"w-full text-left px-3 py-2 text-sm flex items-center justify-between transition-colors cursor-pointer",
 											isSelected
-												? "bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold"
+												? "bg-brand-600/10 border-l-2 border-brand-500 text-brand-400 font-semibold"
 												: "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40"
 										)}
 									>
@@ -645,7 +645,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 										<span className={cn(
 											"text-[9px] px-1.5 py-0.5 font-mono shrink-0 font-semibold uppercase tracking-wide",
 											member.role === 'Admin'
-												? "bg-indigo-600 text-white border border-indigo-700"
+												? "bg-brand-600 text-white border border-brand-700"
 												: "bg-slate-200 text-slate-800 border border-slate-300"
 										)}>
 											{member.role}
@@ -664,7 +664,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 							return (
 								<div className="shrink-0">
 									{currentUser.role === 'Admin' && !currentUser.photoUrl ? (
-										<span className="size-8 rounded-full flex items-center justify-center text-xs font-bold bg-indigo-600 text-white">
+										<span className="size-8 rounded-full flex items-center justify-center text-xs font-bold bg-brand-600 text-white">
 											AD
 										</span>
 									) : (
@@ -708,14 +708,14 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 
 				{}
 				{currentUser.role === 'Admin' && pendingRequests.length > 0 && (
-					<div className="bg-indigo-950/20 border-b border-indigo-900/40 px-6 py-3 flex flex-col space-y-2">
+					<div className="bg-brand-950/20 border-b border-brand-900/40 px-6 py-3 flex flex-col space-y-2">
 						<div className="flex items-center justify-between">
-							<p className="text-xs text-indigo-400 font-bold flex items-center gap-2">
-								<span className="size-2 rounded-full bg-indigo-500 animate-ping shrink-0" />
+							<p className="text-xs text-brand-400 font-bold flex items-center gap-2">
+								<span className="size-2 rounded-full bg-brand-500 animate-ping shrink-0" />
 								Registry Alert: {pendingRequests.length} Pending Channel Access Request{pendingRequests.length > 1 ? 's' : ''}
 							</p>
 						</div>
-						<div className="divide-y divide-indigo-950/40 max-h-40 overflow-y-auto space-y-2">
+						<div className="divide-y divide-brand-950/40 max-h-40 overflow-y-auto space-y-2">
 							{pendingRequests.map((req) => (
 								<div key={req.id} className="flex items-center justify-between text-xs py-1.5 first:pt-0">
 									<div className="flex flex-col">
@@ -749,25 +749,25 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 					{isCheckingAccess ? (
 						<div className="h-full flex items-center justify-center">
 							<span className="text-xs text-zinc-550 font-mono flex items-center gap-2">
-								<span className="size-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+								<span className="size-4 border-2 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
 								Verifying directory security credentials...
 							</span>
 						</div>
 					) : accessStatus === 'None' ? (
 						<div className="max-w-md mx-auto my-auto text-center space-y-6 p-8 border border-zinc-800 bg-zinc-900/10">
-							<div className="w-12 h-12 bg-indigo-950 border border-indigo-900/40 rounded-none flex items-center justify-center mx-auto text-indigo-400">
+							<div className="w-12 h-12 bg-brand-950 border border-brand-900/40 rounded-none flex items-center justify-center mx-auto text-brand-400">
 								<ShieldAlertIcon className="size-6" />
 							</div>
 							<div className="space-y-2">
 								<h3 className="text-lg font-bold text-white uppercase tracking-wider">Access Request Required</h3>
 								<p className="text-xs text-zinc-400 leading-relaxed font-medium">
-									The channel <span className="text-indigo-400 font-bold">#{activeChannel}</span> is restricted to approved members of the department only. You must submit a registry access request to the system administrators.
+									The channel <span className="text-brand-400 font-bold">#{activeChannel}</span> is restricted to approved members of the department only. You must submit a registry access request to the system administrators.
 								</p>
 							</div>
 							<Button
 								onClick={handleRequestAccess}
 								disabled={isRequestingAccess}
-								className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 px-6 rounded-none cursor-pointer w-full transition-all"
+								className="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs py-2.5 px-6 rounded-none cursor-pointer w-full transition-all"
 							>
 								{isRequestingAccess ? 'Submitting request...' : 'Request Access'}
 							</Button>
@@ -780,7 +780,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 							<div className="space-y-2">
 								<h3 className="text-lg font-bold text-white uppercase tracking-wider">Access Request Pending</h3>
 								<p className="text-xs text-zinc-400 leading-relaxed font-medium">
-									Your request to join <span className="text-indigo-400 font-bold">#{activeChannel}</span> has been logged in the system queue. System administrators must approve your access before you can enter the channel chat room.
+									Your request to join <span className="text-brand-400 font-bold">#{activeChannel}</span> has been logged in the system queue. System administrators must approve your access before you can enter the channel chat room.
 								</p>
 							</div>
 							<div className="text-[10px] text-zinc-550 font-mono italic">
@@ -795,13 +795,13 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 							<div className="space-y-2">
 								<h3 className="text-lg font-bold text-white uppercase tracking-wider">Access Request Declined</h3>
 								<p className="text-xs text-zinc-400 leading-relaxed font-medium">
-									Your request to join <span className="text-indigo-400 font-bold">#{activeChannel}</span> was declined by the administrator directory registry.
+									Your request to join <span className="text-brand-400 font-bold">#{activeChannel}</span> was declined by the administrator directory registry.
 								</p>
 							</div>
 							<Button
 								onClick={handleRequestAccess}
 								disabled={isRequestingAccess}
-								className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 px-6 rounded-none cursor-pointer w-full transition-all"
+								className="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs py-2.5 px-6 rounded-none cursor-pointer w-full transition-all"
 							>
 								{isRequestingAccess ? 'Resubmitting...' : 'Re-Submit Access Request'}
 							</Button>
@@ -811,7 +811,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 							{isLoading ? (
 								<div className="h-full flex items-center justify-center">
 									<span className="text-xs text-zinc-550 font-mono flex items-center gap-2">
-										<span className="size-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+										<span className="size-4 border-2 border-brand-500/30 border-t-brand-500 rounded-full animate-spin" />
 										Syncing messages console...
 									</span>
 								</div>
@@ -971,7 +971,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 																<button
 																	type="button"
 																	onClick={handleSaveEdit}
-																	className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-md cursor-pointer"
+																	className="text-xs bg-brand-600 text-white px-3 py-1 rounded-md cursor-pointer"
 																>
 																	Save
 																</button>
@@ -1025,7 +1025,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 																className={cn(
 																	"text-[11px] px-1.5 py-0.5 rounded-full border cursor-pointer",
 																	r.mine
-																		? "bg-indigo-950/60 border-indigo-600 text-indigo-200"
+																		? "bg-brand-950/60 border-brand-600 text-brand-200"
 																		: "bg-zinc-900 border-zinc-700 text-zinc-300"
 																)}
 															>
@@ -1065,7 +1065,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 						<Button 
 							type="submit" 
 							disabled={!messageText.trim() || isSending}
-							className="bg-indigo-600 hover:bg-indigo-500 hover:shadow-md hover:shadow-indigo-600/20 text-white size-11 flex items-center justify-center shrink-0 cursor-pointer transition-all"
+							className="bg-brand-600 hover:bg-brand-500 hover:shadow-md hover:shadow-brand-600/20 text-white size-11 flex items-center justify-center shrink-0 cursor-pointer transition-all"
 						>
 							<SendIcon className="size-4" />
 						</Button>

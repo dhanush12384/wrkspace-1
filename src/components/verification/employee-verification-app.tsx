@@ -2660,9 +2660,9 @@ export function EmployeeVerificationApp() {
 
 												const getPremiumIcon = (iconName: string, color: string) => {
 													let grad = "from-slate-400 to-slate-500";
-													if (color === 'blue') grad = "from-blue-500 to-indigo-600";
+													if (color === 'blue') grad = "from-blue-500 to-brand-600";
 													else if (color === 'green') grad = "from-emerald-400 to-teal-600";
-													else if (color === 'purple') grad = "from-purple-500 to-indigo-700";
+													else if (color === 'purple') grad = "from-purple-500 to-brand-700";
 													else if (color === 'orange') grad = "from-amber-400 to-orange-600";
 													else if (color === 'red') grad = "from-rose-500 to-red-700";
 													else if (color === 'yellow') grad = "from-yellow-400 to-amber-500";
