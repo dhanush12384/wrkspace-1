@@ -291,6 +291,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [remMonthWorked, setRemMonthWorked] = useState('');
 	const [remMessage, setRemMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [remBusy, setRemBusy] = useState(false);
+	const [remBadgeTitle, setRemBadgeTitle] = useState('');
+	const [remBadgeIcon, setRemBadgeIcon] = useState('Award');
+	const [remBadgeColor, setRemBadgeColor] = useState('blue');
 
 	const [addMessage, setAddMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 	const [isAdding, setIsAdding] = useState(false);
@@ -1124,9 +1127,26 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			});
 
 			if (result.success && result.employee) {
+				// Auto-assign badge if one was selected
+				if (remBadgeTitle) {
+					const BADGE_DESC: Record<string, string> = {
+						'New Joinee': 'Welcomed as a new member of the team',
+						'Super Worker': 'Consistently delivering outstanding work',
+						'Slashing Dev': 'Exceptional speed and quality in development',
+						'Core Dev': 'Pillar of the engineering team',
+						'Pro Marketer': 'Drives growth and brand excellence',
+						'Employee of the Month': 'Recognised as the best performer this month',
+					};
+					await giveBadgeToEmployee(result.employee.id, {
+						title: remBadgeTitle,
+						icon: remBadgeIcon,
+						color: remBadgeColor,
+						description: BADGE_DESC[remBadgeTitle] || '',
+					});
+				}
 				setRemMessage({
 					type: 'success',
-					text: `Employee remarks successfully created! Generated 6-Digit ID: ${result.employee.id}`,
+					text: `Employee remarks successfully created! Generated 6-Digit ID: ${result.employee.id}${remBadgeTitle ? ` · Badge "${remBadgeTitle}" assigned.` : ''}`,
 				});
 				
 				setRemPhotoUrl('');
@@ -1145,6 +1165,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				setRemRole('Employee');
 				setRemGender('UNSPECIFIED');
 				setRemMonthWorked('');
+				setRemBadgeTitle('');
+				setRemBadgeIcon('Award');
+				setRemBadgeColor('blue');
 
 				await fetchEmployees();
 			} else {
@@ -1990,12 +2013,82 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								/>
 							</div>
 
+							{/* Badge Picker */}
+							<div className="border border-zinc-800 p-4 space-y-3 bg-zinc-950/30">
+								<div>
+									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Assign a Badge <span className="text-zinc-500 normal-case font-normal">(optional)</span></span>
+									<p className="text-[10px] text-zinc-500 mt-0.5">Select one to automatically publish it to this employee when the record is created.</p>
+								</div>
+
+								{(() => {
+									const PRESET_BADGES = [
+										{ title: 'New Joinee',      icon: 'Star',    color: 'blue',   emoji: '🌟' },
+										{ title: 'Super Worker',    icon: 'Trophy',  color: 'yellow', emoji: '🏆' },
+										{ title: 'Slashing Dev',    icon: 'Zap',     color: 'purple', emoji: '⚡' },
+										{ title: 'Core Dev',        icon: 'Shield',  color: 'green',  emoji: '🛡️' },
+										{ title: 'Pro Marketer',    icon: 'Flame',   color: 'orange', emoji: '🔥' },
+										{ title: 'Employee of the Month', icon: 'Award', color: 'red', emoji: '🏅' },
+									];
+									return (
+										<div className="grid grid-cols-3 gap-2">
+											{PRESET_BADGES.map((badge) => {
+												const isSelected = remBadgeTitle === badge.title;
+												const ringColor =
+													badge.color === 'blue'   ? 'ring-blue-500/70 bg-blue-950/30 border-blue-800/50' :
+													badge.color === 'yellow' ? 'ring-yellow-500/70 bg-yellow-950/30 border-yellow-800/50' :
+													badge.color === 'purple' ? 'ring-purple-500/70 bg-purple-950/30 border-purple-800/50' :
+													badge.color === 'green'  ? 'ring-emerald-500/70 bg-emerald-950/30 border-emerald-800/50' :
+													badge.color === 'orange' ? 'ring-amber-500/70 bg-amber-950/30 border-amber-800/50' :
+													'ring-rose-500/70 bg-rose-950/30 border-rose-800/50';
+												const textColor =
+													badge.color === 'blue'   ? 'text-blue-300' :
+													badge.color === 'yellow' ? 'text-yellow-300' :
+													badge.color === 'purple' ? 'text-purple-300' :
+													badge.color === 'green'  ? 'text-emerald-300' :
+													badge.color === 'orange' ? 'text-amber-300' :
+													'text-rose-300';
+												return (
+													<button
+														key={badge.title}
+														type="button"
+														onClick={() => {
+															if (remBadgeTitle === badge.title) {
+																setRemBadgeTitle('');
+															} else {
+																setRemBadgeTitle(badge.title);
+																setRemBadgeIcon(badge.icon);
+																setRemBadgeColor(badge.color);
+															}
+														}}
+														className={`flex flex-col items-center gap-1 p-2.5 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
+															isSelected ? `ring-2 ${ringColor}` : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
+														}`}
+													>
+														<span className="text-lg leading-none">{badge.emoji}</span>
+														<span className={`text-[10px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-400'}`}>
+															{badge.title}
+														</span>
+													</button>
+												);
+											})}
+										</div>
+									);
+								})()}
+
+								{remBadgeTitle && (
+									<div className="flex items-center justify-between p-2 bg-zinc-900 border border-zinc-800 rounded-lg">
+										<span className="text-[10px] text-zinc-400">Badge selected: <strong className="text-white">{remBadgeTitle}</strong></span>
+										<button type="button" onClick={() => setRemBadgeTitle('')} className="text-[10px] text-zinc-500 hover:text-red-400 cursor-pointer transition-colors">✕ Clear</button>
+									</div>
+								)}
+							</div>
+
 							<Button
 								type="submit"
 								disabled={remBusy}
 								className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
 							>
-								{remBusy ? 'Saving Remarks...' : 'Save Remarks & Create Record'}
+								{remBusy ? 'Saving Remarks...' : `Save Remarks & Create Record${remBadgeTitle ? ` · Publish "${remBadgeTitle}"` : ''}`}
 							</Button>
 						</form>
 					</div>
