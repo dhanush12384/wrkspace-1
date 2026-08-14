@@ -80,11 +80,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 	const [leaveMsg, setLeaveMsg] = useState<string | null>(null);
 	const [isLeaveSubmitting, setIsLeaveSubmitting] = useState(false);
 	const leaveInFlightRef = useRef(false);
-	const [geofenceError, setGeofenceError] = useState<string | null>(null);
+	const [attendanceError, setAttendanceError] = useState<string | null>(null);
 	const [canRequestLatePermission, setCanRequestLatePermission] = useState(false);
 	const [latePermissionBusy, setLatePermissionBusy] = useState(false);
 	const [latePermissionNote, setLatePermissionNote] = useState<string | null>(null);
-	const [bypassGeofence, setBypassGeofence] = useState(false);
 	const [leaveChoiceOpen, setLeaveChoiceOpen] = useState(false);
 	const [leaveChoiceBusy, setLeaveChoiceBusy] = useState(false);
 
@@ -386,28 +385,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 			e.target.value = '';
 		}
 	};
-
-	const OFFICE_LAT = 17.5383;
-	const OFFICE_LON = 78.4809;
-	const ALLOWED_RADIUS_METERS = 250;
-
-	const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-		const R = 6371e3; 
-		const phi1 = (lat1 * Math.PI) / 180;
-		const phi2 = (lat2 * Math.PI) / 180;
-		const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
-		const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
-
-		const a =
-			Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-			Math.cos(phi1) *
-				Math.cos(phi2) *
-				Math.sin(deltaLambda / 2) *
-				Math.sin(deltaLambda / 2);
-		const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-		return R * c; 
-	};
+	// Geofence checking removed
 
 	useEffect(() => {
 		const timer = setInterval(() => {
@@ -481,7 +459,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 			loadEmployeeAttendance(employee!.id);
 			return;
 		}
-		setGeofenceError(res.error || 'Failed to clock in');
+		setAttendanceError(res.error || 'Failed to clock in');
 		setCanRequestLatePermission(Boolean(res.canRequestPermission) || res.code === 'CHECKIN_WINDOW_CLOSED');
 	};
 
@@ -502,52 +480,22 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 	const handleCheckIn = async () => {
 		if (!employee) return;
-		setGeofenceError(null);
+		setAttendanceError(null);
 		setCanRequestLatePermission(false);
 		setLatePermissionNote(null);
 
-		if (bypassGeofence) {
-			try {
-				const res = await clockIn(employee.id, `${employee.firstName} ${employee.lastName}`);
-				applyClockInResult(res as any);
-			} catch (error) {
-				console.error("Failed to clock in:", error);
-				setGeofenceError("A server error occurred during Clock In.");
-			}
-			return;
+		try {
+			const res = await clockIn(employee.id, `${employee.firstName} ${employee.lastName}`);
+			applyClockInResult(res as any);
+		} catch (error) {
+			console.error("Failed to clock in:", error);
+			setAttendanceError("A server error occurred during Clock In.");
 		}
-
-		if (!navigator.geolocation) {
-			setGeofenceError("Geolocation is not supported by your browser. You can select the 'Work Remotely' option if working offsite.");
-			return;
-		}
-
-		navigator.geolocation.getCurrentPosition(
-			async (position) => {
-				const { latitude, longitude } = position.coords;
-				const distance = calculateDistance(latitude, longitude, OFFICE_LAT, OFFICE_LON);
-				if (distance > ALLOWED_RADIUS_METERS) {
-					setGeofenceError(`Access Denied: You are outside the corporate geofence perimeter of STUDENT FORGE Hyderabad Office. You are currently ~${Math.round(distance)}m away. If you are working remotely, please check the "Work Remotely / Bypass Geofence" option.`);
-					return;
-				}
-
-				try {
-					const res = await clockIn(employee.id, `${employee.firstName} ${employee.lastName}`);
-					applyClockInResult(res as any);
-				} catch (error) {
-					console.error("Failed to clock in:", error);
-					setGeofenceError("A server error occurred during Clock In.");
-				}
-			},
-			(error) => {
-				setGeofenceError("Location Access Required: Please enable location permissions in your browser, or select the 'Work Remotely / Bypass Geofence' option to check in.");
-			}
-		);
 	};
 
 	const handleCheckOut = () => {
 		if (!employee) return;
-		setGeofenceError(null);
+		setAttendanceError(null);
 		setLeaveChoiceOpen(true);
 	};
 
@@ -560,10 +508,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 				const res = await keepCheckedIn(employee.id, 'office_work');
 				if (res.success) {
 					setLeaveChoiceOpen(false);
-					setGeofenceError(null);
+					setAttendanceError(null);
 					loadEmployeeAttendance(employee.id);
 				} else {
-					setGeofenceError(res.error || 'Failed to keep checked in');
+					setAttendanceError(res.error || 'Failed to keep checked in');
 				}
 				return;
 			}
@@ -571,7 +519,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 			const finishGoingHome = async (lat?: number, lng?: number) => {
 				const res = await clockOut(employee.id, 'going_home');
 				if (!res.success) {
-					setGeofenceError(res.error || 'Failed to clock out');
+					setAttendanceError(res.error || 'Failed to clock out');
 					return;
 				}
 				setAttendanceStatus('checked_out');
@@ -582,25 +530,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 				}
 			};
 
-			if (bypassGeofence || !navigator.geolocation) {
-				await finishGoingHome();
-				return;
-			}
-			await new Promise<void>((resolve) => {
-				navigator.geolocation.getCurrentPosition(
-					async (position) => {
-						await finishGoingHome(position.coords.latitude, position.coords.longitude);
-						resolve();
-					},
-					async () => {
-						await finishGoingHome();
-						resolve();
-					},
-				);
-			});
+			await finishGoingHome();
 		} catch (error) {
 			console.error('leave choice failed:', error);
-			setGeofenceError('A server error occurred.');
+			setAttendanceError('A server error occurred.');
 		} finally {
 			setLeaveChoiceBusy(false);
 		}
@@ -1197,11 +1130,10 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								onEmployeeUpdate={onEmployeeUpdate}
 							/>
 						) : null}
-
-						{geofenceError && !(mobilePanelTab && mobileLogsOnly) && (
+						{attendanceError && !(mobilePanelTab && mobileLogsOnly) && (
 							<div className="bg-[#E61E32]/10 border border-[#E61E32]/20 p-4 rounded-xl text-xs text-[#E61E32] flex items-start gap-2.5 transition-all shadow-xs font-semibold">
-								<span className="font-bold uppercase bg-[#E61E32] text-white px-1.5 py-0.5 text-[9px] tracking-wider shrink-0 rounded">Geofence Alert</span>
-								<span>{geofenceError}</span>
+								<span className="font-bold uppercase bg-[#E61E32] text-white px-1.5 py-0.5 text-[9px] tracking-wider shrink-0 rounded">Attendance Alert</span>
+								<span>{attendanceError}</span>
 							</div>
 						)}
 
@@ -1213,17 +1145,13 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 									<ClockIcon className="size-6" />
 								</div>
 								<div>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-400 uppercase tracking-wider font-bold">Workspace Standard Clock</p>
+									<p className="text-[10px] text-slate-500 dark:text-zinc-450 uppercase tracking-wider font-bold">Workspace Standard Clock</p>
 									<p className="text-xl md:text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-wider">
 										{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
 									</p>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5">
+									<p className="text-[10px] text-slate-500 dark:text-zinc-550 mt-0.5">
 										{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 									</p>
-									<div className="flex items-center gap-1.5 text-[9px] text-[#E61E32] bg-[#E61E32]/15 px-2 py-0.5 rounded-md mt-1.5 w-fit font-bold font-mono">
-										<MapPinIcon className="size-3 text-[#E61E32]" />
-										<span>Geofence Perim: STUDENT FORGE Kompally Office (Hyderabad)</span>
-									</div>
 								</div>
 							</div>
 							
@@ -1243,15 +1171,6 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 										Clock Out Shift
 									</Button>
 								)}
-								<label className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-zinc-450 font-mono select-none cursor-pointer mt-1.5">
-									<input 
-										type="checkbox" 
-										checked={bypassGeofence}
-										onChange={e => setBypassGeofence(e.target.checked)}
-										className="accent-[#E61E32] size-3.5 bg-slate-50 dark:bg-zinc-950 border border-black/10 dark:border-white/10 rounded cursor-pointer"
-									/>
-									<span>Work Remotely / Bypass Geofence</span>
-								</label>
 							</div>
 						</div>
 						)}
