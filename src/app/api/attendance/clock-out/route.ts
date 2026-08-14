@@ -42,6 +42,30 @@ export async function POST(req: NextRequest) {
 			return jsonError('Already clocked out');
 		}
 
+		// Apply strict completion rules
+		const pendingTasks = await db.task.findMany({
+			where: {
+				assigneeId: user.sub,
+				date: date,
+				status: { not: 'Completed' }
+			}
+		});
+		if (pendingTasks.length > 0) {
+			return jsonError('You have incomplete tasks assigned for today. Please mark them as Completed before checking out.', 400);
+		}
+
+		const startOfDay = new Date(`${date}T00:00:00.000+05:30`);
+		const endOfDay = new Date(`${date}T23:59:59.999+05:30`);
+		const submissions = await db.workSubmission.findFirst({
+			where: {
+				employeeId: user.sub,
+				submittedAt: { gte: startOfDay, lte: endOfDay }
+			}
+		});
+		if (!submissions) {
+			return jsonError('You have not submitted your work for today. Please submit your work before checking out.', 400);
+		}
+
 		const row = await db.attendance.update({
 			where: { id: existing.id },
 			data: { checkOut: nowTimeLabelIST(), status: 'Present' },
