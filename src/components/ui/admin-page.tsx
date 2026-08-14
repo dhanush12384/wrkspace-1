@@ -226,7 +226,7 @@ export function AdminPage() {
 	}
 
 	return (
-		<main className="relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2 bg-zinc-950">
+		<main className="dark relative md:h-screen md:overflow-hidden lg:grid lg:grid-cols-2 bg-zinc-950">
 			{}
 			<div className="relative hidden h-full flex-col border-r border-zinc-800/80 bg-zinc-950 p-10 lg:flex overflow-hidden">
 				{}

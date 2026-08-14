@@ -1693,7 +1693,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 	if (!stats) {
 		return (
-			<main className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center space-y-4">
+			<main className="dark min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center space-y-4">
 				<RefreshCwIcon className="size-8 text-brand-500 animate-spin" />
 				<p className="text-zinc-400 text-xs font-mono">Initializing live environment console...</p>
 			</main>
@@ -1701,7 +1701,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	}
 
 	return (
-		<main className="bg-zinc-950 text-white relative flex flex-col font-sans h-screen overflow-hidden">
+		<main className="dark bg-zinc-950 text-white relative flex flex-col font-sans h-screen overflow-hidden">
 			{}
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_70%)] z-0 pointer-events-none" />
 
