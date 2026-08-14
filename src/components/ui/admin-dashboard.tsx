@@ -2717,8 +2717,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										{leavesList.map((leave: any) => (
 											<tr key={leave.id} className="hover:bg-zinc-900/10 transition-colors">
 												<td className="p-3 font-semibold text-white">
-													{leave.employeeName}
-													<span className="block text-[10px] text-zinc-550 font-mono mt-0.5">{leave.employeeId}</span>
+													{leave.employeeName} <span className="text-zinc-550 font-mono text-[10px]">({leave.employeeId})</span>
 												</td>
 												<td className="p-3 font-semibold text-zinc-300">{leave.type}</td>
 												<td className="p-3 font-mono text-zinc-400 whitespace-nowrap">
