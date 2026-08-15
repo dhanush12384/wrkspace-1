@@ -184,13 +184,3 @@ export async function processAttendanceCheckoutJobs(opts?: { notify?: boolean })
 
 	return result;
 }
-
-
-export function checkoutPolicyForLog(log: { checkIn?: string | null }) {
-	const checkInMins = parseTimeLabelToMinutes(log.checkIn);
-	const eveningSession = checkInMins != null && checkInMins >= DAY_CHECKOUT_MINUTES;
-	if (eveningSession) {
-		return { label: '09:30 PM', cutoffMins: LATE_START_MINUTES };
-	}
-	return { label: DAY_CHECKOUT_LABEL, cutoffMins: DAY_CHECKOUT_MINUTES };
-}
