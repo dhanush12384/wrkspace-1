@@ -4498,15 +4498,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						{/* Header and Filter Pills */}
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
-								<div className="flex items-center gap-2.5">
-									<div className="p-2 rounded-xl bg-red-50 border border-red-100 text-[#E61E32]">
-										<FileTextIcon className="size-5" />
-									</div>
-									<div>
-										<h2 className="text-xl font-bold text-slate-900 tracking-tight">Work Submissions</h2>
-										<p className="text-xs text-slate-500 mt-0.5">Review, verify, and approve daily employee deliverables and timesheets</p>
-									</div>
-								</div>
+								<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Work Submissions</h2>
+								<p className="text-xs text-slate-500 mt-0.5">Review, verify, and approve daily employee deliverables and timesheets</p>
 							</div>
 							<div className="flex items-center gap-1.5 flex-wrap bg-slate-100/80 p-1 rounded-xl border border-slate-200/80">
 								{(['All', 'Submitted', 'Reviewed', 'Approved', 'Needs Revision'] as const).map(f => (
@@ -4514,9 +4507,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										key={f}
 										onClick={() => setSubmissionFilter(f)}
 										className={cn(
-											"text-xs px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer",
+											"text-xs px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer",
 											submissionFilter === f
-												? "bg-[#E61E32] text-white shadow-sm"
+												? "bg-[#E61E32] text-white shadow-xs font-semibold"
 												: "text-slate-600 hover:text-slate-900 hover:bg-white/80"
 										)}
 									>
@@ -4535,9 +4528,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								{ label: 'Needs Revision', count: submissionsList.filter(s => s.status === 'Needs Revision').length, color: 'text-rose-600', bg: 'bg-rose-50/70', border: 'border-rose-200', sub: 'Action requested' },
 							].map(stat => (
 								<div key={stat.label} className={cn("p-4 rounded-2xl border shadow-2xs transition-all", stat.bg, stat.border)}>
-									<p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
-									<p className={cn("text-2xl font-black mt-1", stat.color)}>{stat.count}</p>
-									<p className="text-[10px] text-slate-400 font-medium mt-0.5">{stat.sub}</p>
+									<p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{stat.label}</p>
+									<p className={cn("text-2xl font-semibold mt-1", stat.color)}>{stat.count}</p>
+									<p className="text-[10px] text-slate-400 font-normal mt-0.5">{stat.sub}</p>
 								</div>
 							))}
 						</div>
@@ -4548,7 +4541,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
 									<FileTextIcon className="size-6" />
 								</div>
-								<h3 className="text-sm font-bold text-slate-800">No Submissions Found</h3>
+								<h3 className="text-sm font-semibold text-slate-800">No Submissions Found</h3>
 								<p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
 									{submissionFilter !== 'All' 
 										? `There are currently no employee submissions matching the "${submissionFilter}" filter.` 
@@ -4574,29 +4567,29 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												{/* Header: Title + Meta tags + Status badge */}
 												<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
 													<div className="space-y-2 min-w-0">
-														<h3 className="text-base font-bold text-slate-900 leading-snug">{sub.title}</h3>
+														<h3 className="text-base font-semibold text-slate-900 leading-snug">{sub.title}</h3>
 														
 														{/* Clear Metadata Tags */}
 														<div className="flex items-center flex-wrap gap-2 text-xs">
 															{/* Employee Name Tag */}
-															<span className="inline-flex items-center gap-1 font-semibold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/70">
+															<span className="inline-flex items-center gap-1.5 font-medium text-slate-700 bg-slate-100/90 px-2.5 py-1 rounded-lg border border-slate-200/70">
 																<span className="size-2 rounded-full bg-[#E61E32]" />
 																{sub.employeeName}
 															</span>
 
 															{/* Employee ID Tag */}
-															<span className="font-mono text-[11px] font-medium text-slate-600 bg-slate-100/80 px-2 py-1 rounded-lg border border-slate-200/70">
+															<span className="font-mono text-[11px] font-normal text-slate-600 bg-slate-100/80 px-2 py-1 rounded-lg border border-slate-200/70">
 																{sub.employeeId}
 															</span>
 
 															{/* Date Tag */}
-															<span className="inline-flex items-center gap-1 text-slate-500 text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
+															<span className="inline-flex items-center gap-1 text-slate-500 text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60 font-normal">
 																<CalendarIcon className="size-3 text-slate-400" />
 																{new Date(sub.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
 															</span>
 
 															{/* Hours Spent Tag */}
-															<span className="inline-flex items-center gap-1 font-bold text-[11px] text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+															<span className="inline-flex items-center gap-1 font-medium text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
 																<ClockIcon className="size-3 text-amber-600" />
 																{sub.hoursSpent}h logged
 															</span>
@@ -4606,7 +4599,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 													{/* Prominent Status Badge */}
 													<div className="shrink-0">
 														<span className={cn(
-															"inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full border shadow-2xs uppercase tracking-wider",
+															"inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full border shadow-2xs tracking-wide",
 															pill.bg, pill.text, pill.border
 														)}>
 															<span className={cn("size-2 rounded-full", pill.dot)} />
@@ -4616,26 +4609,26 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												</div>
 
 												{/* Description */}
-												<div className="bg-slate-50/60 rounded-xl p-3.5 border border-slate-200/60 text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
+												<div className="bg-slate-50/60 rounded-xl p-3.5 border border-slate-200/60 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
 													{sub.description}
 												</div>
 
 												{/* Linked Task Banner */}
 												{sub.taskTitle && (
-													<div className="inline-flex items-center gap-2 text-xs bg-blue-50/80 text-blue-800 border border-blue-200/80 px-3 py-1.5 rounded-xl font-medium">
+													<div className="inline-flex items-center gap-2 text-xs bg-blue-50/80 text-blue-800 border border-blue-200/80 px-3 py-1.5 rounded-xl font-normal">
 														<ClockIcon className="size-3.5 text-blue-600 shrink-0" />
-														<span>Linked Task: <strong className="font-semibold text-blue-900">{sub.taskTitle}</strong></span>
+														<span>Linked Task: <span className="font-semibold text-blue-900">{sub.taskTitle}</span></span>
 													</div>
 												)}
 
 												{/* Admin Note Callout */}
 												{sub.adminNote && (
 													<div className="bg-amber-50/80 border border-amber-200/90 rounded-xl p-3 text-xs text-amber-900">
-														<div className="font-bold flex items-center gap-1.5 text-amber-800 mb-0.5">
+														<div className="font-semibold flex items-center gap-1.5 text-amber-800 mb-0.5">
 															<AlertCircleIcon className="size-3.5 text-amber-600" />
 															Admin Feedback Note:
 														</div>
-														<p className="text-amber-800/90 pl-5">{sub.adminNote}</p>
+														<p className="text-amber-800/90 pl-5 font-normal">{sub.adminNote}</p>
 													</div>
 												)}
 
@@ -4643,40 +4636,43 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												{isReviewing ? (
 													<div className="space-y-3 pt-3 border-t border-slate-200/80">
 														<div className="space-y-1">
-															<label className="text-xs font-bold text-slate-700">Admin Note / Feedback (Optional):</label>
+															<label className="text-xs font-medium text-slate-700">Admin Note / Feedback (Optional):</label>
 															<textarea
 																value={reviewNote}
 																onChange={e => setReviewNote(e.target.value)}
 																rows={2}
 																placeholder="Enter notes or revision instructions for employee..."
-																className="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 transition-colors"
+																className="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 transition-colors font-normal"
 															/>
 														</div>
 														<div className="flex items-center gap-2 flex-wrap">
 															<button
 																onClick={() => handleUpdateSubmission(sub.id, 'Approved')}
 																disabled={isUpdatingStatus}
-																className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
+																className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
+																style={{ backgroundColor: '#059669', color: '#ffffff' }}
 															>
-																<CheckCircleIcon className="size-3.5" /> Approve Submission
+																<CheckCircleIcon className="size-3.5 text-white" /> Approve Submission
 															</button>
 															<button
 																onClick={() => handleUpdateSubmission(sub.id, 'Needs Revision')}
 																disabled={isUpdatingStatus}
-																className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
+																className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
+																style={{ backgroundColor: '#e11d48', color: '#ffffff' }}
 															>
-																<XCircleIcon className="size-3.5" /> Request Revision
+																<XCircleIcon className="size-3.5 text-white" /> Request Revision
 															</button>
 															<button
 																onClick={() => handleUpdateSubmission(sub.id, 'Reviewed')}
 																disabled={isUpdatingStatus}
-																className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
+																className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
+																style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
 															>
-																<AlertCircleIcon className="size-3.5" /> Mark Reviewed
+																<AlertCircleIcon className="size-3.5 text-white" /> Mark Reviewed
 															</button>
 															<button
 																onClick={() => { setReviewingId(null); setReviewNote(''); }}
-																className="text-xs text-slate-600 hover:text-slate-900 font-semibold px-3 py-2 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
+																className="text-xs text-slate-600 hover:text-slate-900 font-medium px-3 py-2 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
 															>
 																Cancel
 															</button>
@@ -4686,17 +4682,18 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 													<div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
 														<button
 															onClick={() => { setReviewingId(sub.id); setReviewNote(sub.adminNote || ''); }}
-															className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
+															className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
 															title="Review Submission"
 														>
 															<PencilIcon className="size-3.5 text-slate-400" /> Review / Update Status
 														</button>
 														<button
 															onClick={() => handleDeleteWorkSubmission(sub.id)}
-															className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 hover:border-red-300 cursor-pointer transition-all shadow-2xs"
+															className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white cursor-pointer transition-all shadow-2xs"
+															style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 															title="Delete Submission"
 														>
-															<Trash2Icon className="size-3.5" /> Delete
+															<Trash2Icon className="size-3.5 text-white" /> Delete
 														</button>
 													</div>
 												)}
