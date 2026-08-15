@@ -180,13 +180,16 @@ async function fetchMaintenanceState(req: NextRequest) {
           error: retryCode,
         };
       }
-      return {
+      const fallback = {
         maintenance_enabled: false,
         source: 'safe-live-fallback',
         degraded: true,
         reason: 'bridge_fetch_failed_after_retry',
         error: retryCode || firstCode,
       };
+      maintenanceCache.state = fallback;
+      maintenanceCache.expiresAt = Date.now() + MAINTENANCE_TTL_MS;
+      return fallback;
     }
   }
 }

@@ -12,6 +12,7 @@ import { notifyPush } from '@/lib/push-notify';
 import { notifyMessagePush } from '@/lib/message-push';
 import { resolveAdminEmployeeIds } from '@/lib/admin-recipients';
 import { eventHasRepresentative, representativeIds } from '@/lib/event-reps';
+import { processAttendanceCheckoutJobs } from '@/lib/attendance-cron';
 
 
 const ADMIN_EMAIL = 'webstrixx@gmail.com';
