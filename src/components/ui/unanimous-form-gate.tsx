@@ -36,6 +36,9 @@ export function UnanimousFormGate({
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	// Theme selection based on user type (Admin uses dark, Employee uses light/white theme)
+	const isDark = userType === 'ADMIN';
+
 	// Form fields
 	const [comfortableSharing, setComfortableSharing] = useState<string | null>(null); // "Yes" | "No"
 	const [feedbackText, setFeedbackText] = useState('');
@@ -167,12 +170,21 @@ export function UnanimousFormGate({
 
 	if (checking) {
 		return (
-			<div className="fixed inset-0 bg-zinc-950 flex flex-col items-center justify-center z-50">
+			<div className={cn(
+				"fixed inset-0 flex flex-col items-center justify-center z-50 transition-colors duration-300",
+				isDark ? "bg-zinc-950 text-zinc-100" : "bg-[#e8edf5] text-slate-900"
+			)}>
 				<div className="relative">
-					<div className="absolute inset-0 bg-brand-500/20 blur-xl rounded-full scale-150 animate-pulse" />
+					<div className={cn(
+						"absolute inset-0 blur-xl rounded-full scale-150 animate-pulse",
+						isDark ? "bg-brand-500/20" : "bg-brand-500/10"
+					)} />
 					<div className="relative flex flex-col items-center gap-4">
 						<Loader2 className="size-10 text-brand-500 animate-spin" />
-						<p className="text-zinc-400 text-xs font-mono tracking-widest uppercase">Loading Portal...</p>
+						<p className={cn(
+							"text-xs font-mono tracking-widest uppercase",
+							isDark ? "text-zinc-400" : "text-slate-500"
+						)}>Loading Portal...</p>
 					</div>
 				</div>
 			</div>
@@ -180,34 +192,62 @@ export function UnanimousFormGate({
 	}
 
 	return (
-		<div className="fixed inset-0 bg-zinc-950 text-zinc-100 overflow-y-auto z-50 flex justify-center p-4 md:p-8 selection:bg-brand-500/35 selection:text-white">
+		<div className={cn(
+			"fixed inset-0 overflow-y-auto z-50 flex justify-center p-4 md:p-8 selection:bg-brand-500/35 selection:text-white transition-colors duration-300",
+			isDark ? "bg-zinc-950 text-zinc-100" : "bg-[#e8edf5] text-slate-900"
+		)}>
 			{/* Cosmic/Nebula Premium Background */}
-			<div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.06),transparent_60%)] pointer-events-none" />
-			<div className="fixed inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.04),transparent_50%)] pointer-events-none" />
+			<div className={cn(
+				"fixed inset-0 pointer-events-none transition-opacity duration-300",
+				isDark 
+					? "bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.06),transparent_60%)] bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.04),transparent_50%)]" 
+					: "bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.03),transparent_60%)] bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.02),transparent_50%)]"
+			)} />
 
 			<div className="relative w-full max-w-3xl my-auto space-y-8 py-10">
 				{/* Top Premium Badge & Title */}
 				<div className="text-center space-y-4 max-w-xl mx-auto">
-					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-800/80 bg-zinc-900/50 backdrop-blur-md text-[10px] text-zinc-400 font-mono tracking-widest uppercase shadow-sm">
-						<Lock className="size-3 text-brand-400" /> Secure Verification System
+					<div className={cn(
+						"inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-mono tracking-widest uppercase shadow-sm transition-all duration-300",
+						isDark 
+							? "border-zinc-800/80 bg-zinc-900/50 text-zinc-400" 
+							: "border-slate-250 bg-white text-slate-500"
+					)}>
+						<Lock className="size-3 text-brand-500" /> Secure Verification System
 					</div>
-					<h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white font-heading">
+					<h1 className={cn(
+						"text-3xl md:text-4xl font-bold tracking-tight font-heading transition-colors duration-300",
+						isDark ? "text-white" : "text-slate-900"
+					)}>
 						Feedback Portal
 					</h1>
-					<p className="text-zinc-400 text-sm">
+					<p className={cn(
+						"text-sm transition-colors duration-300",
+						isDark ? "text-zinc-400" : "text-slate-600"
+					)}>
 						This dashboard values transparency and safety. Please share your feedback before accessing your main control center.
 					</p>
 				</div>
 
 				<form
 					onSubmit={handleSubmit}
-					className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 md:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden"
+					className={cn(
+						"border rounded-2xl p-6 md:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden transition-all duration-300",
+						isDark 
+							? "bg-zinc-900/40 border-zinc-800/80 text-zinc-100" 
+							: "bg-white border-slate-200/80 text-slate-800"
+					)}
 				>
 					{/* Decorative glowing gradient borders */}
 					<div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brand-500/40 to-transparent" />
 
 					{error && (
-						<div className="mb-6 p-4 rounded-xl border border-red-900/50 bg-red-950/20 text-red-400 text-xs flex items-center gap-3">
+						<div className={cn(
+							"mb-6 p-4 rounded-xl border text-xs flex items-center gap-3",
+							isDark 
+								? "border-red-900/50 bg-red-950/20 text-red-400" 
+								: "border-red-200 bg-red-50 text-red-650"
+						)}>
 							<AlertCircle className="size-4 shrink-0" />
 							<span>{error}</span>
 						</div>
@@ -216,7 +256,10 @@ export function UnanimousFormGate({
 					<div className="space-y-8">
 						{/* Gate Question */}
 						<div className="space-y-4">
-							<label className="block text-sm md:text-base font-semibold text-zinc-100">
+							<label className={cn(
+								"block text-sm md:text-base font-semibold transition-colors duration-300",
+								isDark ? "text-zinc-100" : "text-slate-900"
+							)}>
 								Is there something you have wanted to tell us but haven&apos;t felt comfortable sharing directly?
 							</label>
 							<div className="grid grid-cols-2 gap-4">
@@ -226,8 +269,12 @@ export function UnanimousFormGate({
 									className={cn(
 										'relative py-4 px-6 rounded-xl border font-semibold text-sm transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 cursor-pointer',
 										comfortableSharing === 'Yes'
-											? 'bg-brand-600/10 border-brand-500 text-white shadow-lg shadow-brand-500/10 scale-[1.02]'
-											: 'bg-zinc-900/20 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+											? isDark 
+												? 'bg-brand-600/10 border-brand-500 text-white shadow-lg shadow-brand-500/10 scale-[1.02]'
+												: 'bg-brand-50 border-brand-500 text-brand-700 shadow-md shadow-brand-500/5 scale-[1.02]'
+											: isDark
+												? 'bg-zinc-900/20 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+												: 'bg-slate-50/50 border-slate-200 text-slate-550 hover:border-slate-350 hover:text-slate-800'
 									)}
 								>
 									<span className="text-base">Yes, I want to share</span>
@@ -240,8 +287,12 @@ export function UnanimousFormGate({
 									className={cn(
 										'relative py-4 px-6 rounded-xl border font-semibold text-sm transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 cursor-pointer',
 										comfortableSharing === 'No'
-											? 'bg-zinc-800/50 border-zinc-500 text-white shadow-lg shadow-zinc-500/10 scale-[1.02]'
-											: 'bg-zinc-900/20 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+											? isDark
+												? 'bg-zinc-800/50 border-zinc-550 text-white shadow-lg shadow-zinc-500/10 scale-[1.02]'
+												: 'bg-slate-100 border-slate-400 text-slate-800 shadow-slate-500/5 scale-[1.02]'
+											: isDark
+												? 'bg-zinc-900/20 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+												: 'bg-slate-50/50 border-slate-200 text-slate-550 hover:border-slate-350 hover:text-slate-800'
 									)}
 								>
 									<span className="text-base">No concerns right now</span>
@@ -258,15 +309,24 @@ export function UnanimousFormGate({
 									animate={{ opacity: 1, height: 'auto' }}
 									exit={{ opacity: 0, height: 0 }}
 									transition={{ duration: 0.4, ease: 'easeInOut' }}
-									className="overflow-hidden space-y-8 pt-6 border-t border-zinc-800/50"
+									className={cn(
+										"overflow-hidden space-y-8 pt-6 border-t",
+										isDark ? "border-zinc-800/50" : "border-slate-150"
+									)}
 								>
 									{/* 1. What would you like to tell us? */}
 									<div className="space-y-2.5">
-										<label className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-											<MessageSquare className="size-4 text-brand-400" />
+										<label className={cn(
+											"flex items-center gap-2 text-sm font-semibold",
+											isDark ? "text-zinc-200" : "text-slate-800"
+										)}>
+											<MessageSquare className="size-4 text-brand-500" />
 											<span>What would you like to tell us? *</span>
 										</label>
-										<p className="text-[11px] text-zinc-500 font-mono italic">
+										<p className={cn(
+											"text-[11px] font-mono italic",
+											isDark ? "text-zinc-500" : "text-slate-450"
+										)}>
 											Example prompt: “Share anything you feel you cannot openly discuss with your manager or team.”
 										</p>
 										<textarea
@@ -275,14 +335,22 @@ export function UnanimousFormGate({
 											value={feedbackText}
 											onChange={(e) => setFeedbackText(e.target.value)}
 											placeholder="Write your concerns or feedback in detail here..."
-											className="w-full bg-zinc-950 border border-zinc-800/80 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+											className={cn(
+												"w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-colors",
+												isDark
+													? "bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-650"
+													: "bg-slate-50 border-slate-250 text-slate-900 placeholder:text-slate-450"
+											)}
 										/>
 									</div>
 
 									{/* 2. What is the concern about? */}
 									<div className="space-y-3">
-										<label className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-											<ShieldAlert className="size-4 text-brand-400" />
+										<label className={cn(
+											"flex items-center gap-2 text-sm font-semibold",
+											isDark ? "text-zinc-200" : "text-slate-800"
+										)}>
+											<ShieldAlert className="size-4 text-brand-500" />
 											<span>What is the concern about? *</span>
 										</label>
 										<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -294,8 +362,12 @@ export function UnanimousFormGate({
 													className={cn(
 														'flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left text-xs transition-all duration-200 cursor-pointer',
 														selectedConcerns.includes(option)
-															? 'bg-brand-500/10 border-brand-550 text-white font-medium'
-															: 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
+															? isDark
+																? 'bg-brand-500/10 border-brand-550 text-white font-medium'
+																: 'bg-brand-50 border-brand-500 text-brand-700 font-semibold'
+															: isDark
+																? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
+																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-705'
 													)}
 												>
 													<div
@@ -303,7 +375,9 @@ export function UnanimousFormGate({
 															'size-3.5 rounded border flex items-center justify-center text-[8px]',
 															selectedConcerns.includes(option)
 																? 'border-brand-500 bg-brand-500 text-white'
-																: 'border-zinc-700 bg-zinc-900/60'
+																: isDark
+																	? 'border-zinc-700 bg-zinc-900/60'
+																	: 'border-slate-300 bg-white'
 														)}
 													>
 														{selectedConcerns.includes(option) && '✓'}
@@ -316,8 +390,11 @@ export function UnanimousFormGate({
 
 									{/* 3. How serious do you feel this issue is? */}
 									<div className="space-y-2.5">
-										<label className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-											<AlertCircle className="size-4 text-brand-400" />
+										<label className={cn(
+											"flex items-center gap-2 text-sm font-semibold",
+											isDark ? "text-zinc-200" : "text-slate-800"
+										)}>
+											<AlertCircle className="size-4 text-brand-500" />
 											<span>How serious do you feel this issue is? *</span>
 										</label>
 										<div className="grid grid-cols-4 gap-2">
@@ -330,13 +407,15 @@ export function UnanimousFormGate({
 														'py-2.5 rounded-xl border text-xs font-semibold transition-all duration-250 cursor-pointer',
 														severity === opt
 															? opt === 'Urgent'
-																? 'bg-red-950/30 border-red-500 text-red-400'
+																? isDark ? 'bg-red-950/30 border-red-500 text-red-400' : 'bg-red-50 border-red-500 text-red-700'
 																: opt === 'Serious'
-																? 'bg-orange-950/30 border-orange-500 text-orange-400'
+																? isDark ? 'bg-orange-950/30 border-orange-500 text-orange-400' : 'bg-orange-50 border-orange-500 text-orange-700'
 																: opt === 'Moderate'
-																? 'bg-yellow-950/30 border-yellow-500 text-yellow-400'
-																: 'bg-green-950/30 border-green-500 text-green-400'
-															: 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-300'
+																? isDark ? 'bg-yellow-950/30 border-yellow-500 text-yellow-450' : 'bg-yellow-50 border-yellow-500 text-yellow-705'
+																: isDark ? 'bg-green-950/30 border-green-500 text-green-400' : 'bg-green-50 border-green-500 text-green-700'
+															: isDark
+																? 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-300'
+																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-305 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -347,8 +426,11 @@ export function UnanimousFormGate({
 
 									{/* 4. How long has this been happening? */}
 									<div className="space-y-2.5">
-										<label className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-											<Calendar className="size-4 text-brand-400" />
+										<label className={cn(
+											"flex items-center gap-2 text-sm font-semibold",
+											isDark ? "text-zinc-200" : "text-slate-800"
+										)}>
+											<Calendar className="size-4 text-brand-500" />
 											<span>How long has this been happening? *</span>
 										</label>
 										<div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -358,10 +440,14 @@ export function UnanimousFormGate({
 													type="button"
 													onClick={() => setDuration(opt)}
 													className={cn(
-														'py-2 px-1.5 rounded-xl border text-[11px] font-medium text-center transition-all duration-200 cursor-pointer',
+														'py-2 px-1.5 rounded-xl border text-[11px] font-semibold text-center transition-all duration-200 cursor-pointer',
 														duration === opt
-															? 'bg-brand-500/10 border-brand-500 text-white font-semibold'
-															: 'bg-zinc-950/40 border-zinc-800 text-zinc-455 hover:border-zinc-750 hover:text-zinc-300'
+															? isDark
+																? 'bg-brand-500/10 border-brand-500 text-white'
+																: 'bg-brand-50 border-brand-500 text-brand-700'
+															: isDark
+																? 'bg-zinc-950/40 border-zinc-800 text-zinc-455 hover:border-zinc-750 hover:text-zinc-300'
+																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -372,8 +458,11 @@ export function UnanimousFormGate({
 
 									{/* 5. Does this concern involve someone else? */}
 									<div className="space-y-2.5">
-										<label className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-											<UserCheck className="size-4 text-brand-400" />
+										<label className={cn(
+											"flex items-center gap-2 text-sm font-semibold",
+											isDark ? "text-zinc-200" : "text-slate-800"
+										)}>
+											<UserCheck className="size-4 text-brand-500" />
 											<span>Does this concern involve someone else? *</span>
 										</label>
 										<div className="grid grid-cols-3 gap-2">
@@ -385,8 +474,12 @@ export function UnanimousFormGate({
 													className={cn(
 														'py-2.5 rounded-xl border text-xs font-semibold transition-all duration-200 cursor-pointer',
 														involvesOthers === opt
-															? 'bg-brand-500/10 border-brand-500 text-white shadow-sm'
-															: 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-300'
+															? isDark
+																? 'bg-brand-500/10 border-brand-500 text-white shadow-sm'
+																: 'bg-brand-50 border-brand-500 text-brand-700 shadow-sm'
+															: isDark
+																? 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-300'
+																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -397,8 +490,11 @@ export function UnanimousFormGate({
 
 									{/* 6. What would you like us to do? */}
 									<div className="space-y-3">
-										<label className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
-											<CheckSquare className="size-4 text-brand-400" />
+										<label className={cn(
+											"flex items-center gap-2 text-sm font-semibold",
+											isDark ? "text-zinc-200" : "text-slate-800"
+										)}>
+											<CheckSquare className="size-4 text-brand-500" />
 											<span>What would you like us to do? *</span>
 										</label>
 										<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -410,16 +506,22 @@ export function UnanimousFormGate({
 													className={cn(
 														'flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left text-xs transition-all duration-200 cursor-pointer',
 														selectedActions.includes(option)
-															? 'bg-brand-500/10 border-brand-550 text-white font-medium'
-															: 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
+															? isDark
+																? 'bg-brand-500/10 border-brand-550 text-white font-medium'
+																: 'bg-brand-50 border-brand-500 text-brand-700 font-semibold'
+															: isDark
+																? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
+																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-700'
 													)}
 												>
 													<div
 														className={cn(
 															'size-3.5 rounded border flex items-center justify-center text-[8px]',
 															selectedActions.includes(option)
-																? 'border-brand-550 bg-brand-500 text-white'
-																: 'border-zinc-700 bg-zinc-900/60'
+																? 'border-brand-500 bg-brand-500 text-white'
+																: isDark
+																	? 'border-zinc-700 bg-zinc-900/60'
+																	: 'border-slate-300 bg-white'
 														)}
 													>
 														{selectedActions.includes(option) && '✓'}
@@ -432,7 +534,7 @@ export function UnanimousFormGate({
 
 									{/* 7. Anything else you'd like to add? */}
 									<div className="space-y-2.5">
-										<label className="block text-sm font-semibold text-zinc-200">
+										<label className="block text-sm font-semibold">
 											Anything else you&apos;d like to add? (Optional)
 										</label>
 										<textarea
@@ -440,7 +542,12 @@ export function UnanimousFormGate({
 											value={additionalNotes}
 											onChange={(e) => setAdditionalNotes(e.target.value)}
 											placeholder="Optional additional context, details, or requests..."
-											className="w-full bg-zinc-950 border border-zinc-800/80 rounded-xl px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-650 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-colors"
+											className={cn(
+												"w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-colors",
+												isDark
+													? "bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-650"
+													: "bg-slate-50 border-slate-250 text-slate-900 placeholder:text-slate-450"
+											)}
 										/>
 									</div>
 								</motion.div>
@@ -454,16 +561,19 @@ export function UnanimousFormGate({
 							initial={{ opacity: 0, y: 10 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.3 }}
-							className="mt-8 pt-6 border-t border-zinc-850/60 flex items-center justify-between"
+							className={cn(
+								"mt-8 pt-6 border-t flex items-center justify-between",
+								isDark ? "border-zinc-850/60 text-zinc-500" : "border-slate-200 text-slate-500"
+							)}
 						>
-							<div className="text-[10px] text-zinc-500 max-w-[60%] leading-relaxed flex items-center gap-2">
-								<Lock className="size-3 shrink-0" /> Shared as verified user {userName} ({userEmail})
+							<div className="text-[10px] max-w-[60%] leading-relaxed flex items-center gap-2 font-mono">
+								<Lock className="size-3 shrink-0" /> Verified Submitter: {userName} ({userEmail})
 							</div>
 
 							<Button
 								type="submit"
 								disabled={submitting}
-								className="bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2"
+								className="bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2 animate-none"
 							>
 								{submitting ? (
 									<>
