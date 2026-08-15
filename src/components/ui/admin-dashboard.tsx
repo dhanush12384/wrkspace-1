@@ -2587,7 +2587,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											placeholder="e.g. Critical Update Required"
 											value={quickSubject}
 											onChange={(e) => setQuickSubject(e.target.value)}
-											className="w-full bg-slate-50 border-transparent rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-400 transition-colors"
+											className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-450 transition-colors"
 										/>
 									</div>
 									<div className="space-y-1.5">
@@ -2599,7 +2599,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											placeholder="Compose email body message here... Markdown tags (**bold**, *italic*, _underline_, and links) are supported."
 											value={quickBody}
 											onChange={(e) => setQuickBody(e.target.value)}
-											className="w-full bg-slate-50 border-transparent rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-400 transition-colors font-sans resize-y leading-relaxed"
+											className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-450 transition-colors font-sans resize-y leading-relaxed"
 										/>
 									</div>
 
@@ -2617,7 +2617,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										type="button"
 										onClick={handleSendQuickAlert}
 										disabled={quickSending}
-										className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 text-white text-xs font-semibold py-2.5 px-4 rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed active:scale-[0.98]"
+										className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 text-white text-xs font-light py-2.5 px-4 rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed active:scale-[0.98]"
 									>
 										<SendIcon className="size-3.5" />
 										{quickSending ? 'Sending Quick Alerts...' : 'Broadcast Alert to All Employees'}
@@ -3249,7 +3249,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									setShowTaskForm(!showTaskForm);
 									setTaskMessage(null);
 								}}
-								className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-lg h-auto cursor-pointer shadow-sm active:scale-[0.98] transition-all animate-none"
+								className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-light py-2 px-4 rounded-lg h-auto cursor-pointer shadow-sm active:scale-[0.98] transition-all animate-none"
 							>
 								{showTaskForm ? 'Cancel Allocation' : (
 									<>
@@ -3284,7 +3284,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<Input
 											placeholder="Implement Login Auth Flow"
 											required
-											className="bg-slate-50 border-transparent text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
 											value={taskTitle}
 											onChange={e => setTaskTitle(e.target.value)}
 										/>
@@ -3294,7 +3294,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<Input
 											placeholder="Admin / Team Lead Name"
 											required
-											className="bg-slate-50 border-transparent text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
 											value={taskReportTo}
 											onChange={e => setTaskReportTo(e.target.value)}
 										/>
@@ -3307,7 +3307,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										placeholder="Describe the tasks, objectives, and deliverables..."
 										required
 										rows={3}
-										className="w-full bg-slate-50 border-transparent text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg p-3 outline-none transition-colors"
+										className="w-full bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg p-3 outline-none transition-colors"
 										value={taskDescription}
 										onChange={e => setTaskDescription(e.target.value)}
 									/>
@@ -3334,7 +3334,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											disabled={assignToAll}
 											value={taskAssigneeId}
 											onChange={e => setTaskAssigneeId(e.target.value)}
-											className="w-full bg-slate-50 border-transparent text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+											className="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
 										>
 											<option value="">-- Select Employee --</option>
 											{employeesList.map((emp) => (
@@ -3350,7 +3350,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<Input
 											type="date"
 											required
-											className="bg-slate-50 border-transparent text-slate-900 text-xs focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
 											value={taskDeadline}
 											onChange={e => setTaskDeadline(e.target.value)}
 										/>
@@ -3361,7 +3361,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<select
 											value={taskMode}
 											onChange={e => setTaskMode(e.target.value)}
-											className="w-full bg-slate-50 border-transparent text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors"
+											className="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors"
 										>
 											<option value="Onsite">Onsite</option>
 											<option value="Remote">Remote</option>
@@ -3376,7 +3376,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<select
 											value={taskStatus}
 											onChange={e => setTaskStatus(e.target.value)}
-											className="w-full bg-slate-50 border-transparent text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors"
+											className="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors"
 										>
 											<option value="Pending">Pending</option>
 											<option value="In Progress">In Progress</option>
@@ -3388,7 +3388,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<Button
 											type="submit"
 											disabled={isAddingTask}
-											className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-lg h-9 cursor-pointer transition-colors shadow-sm active:scale-[0.98] animate-none"
+											className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-light py-2 px-4 rounded-lg h-9 cursor-pointer transition-colors shadow-sm active:scale-[0.98] animate-none"
 										>
 											{isAddingTask ? 'Allocating...' : 'Submit Allocation'}
 										</Button>
