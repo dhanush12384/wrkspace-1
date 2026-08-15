@@ -544,3 +544,39 @@ body {
   background: radial-gradient(circle at top, rgba(99, 102, 241, 0.04), transparent 60%) !important;
 }
 
+/* Sub-navbar specific rules under light theme admin-portal */
+.admin-portal .admin-subnav {
+  background-color: #E61E32 !important;
+  border-bottom-color: #b91c1c !important;
+}
+/* Active state tab */
+.admin-portal .admin-subnav button.text-white,
+.admin-portal .admin-subnav button.border-brand-400,
+.admin-portal .admin-subnav button[class*="text-white"],
+.admin-portal .admin-subnav button[class*="border-brand-400"] {
+  color: #ffffff !important;
+  border-bottom-color: #ffffff !important;
+}
+/* Inactive states tab */
+.admin-portal .admin-subnav button.text-brand-300\/60,
+.admin-portal .admin-subnav button[class*="text-brand-300\/60"],
+.admin-portal .admin-subnav button {
+  color: rgba(255, 255, 255, 0.7) !important;
+  border-bottom-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* Inactive states hover */
+.admin-portal .admin-subnav button.hover\:text-white:hover,
+.admin-portal .admin-subnav button:hover {
+  color: #ffffff !important;
+  border-bottom-color: rgba(255, 255, 255, 0.3) !important;
+}
+/* Focus rings removal */
+.admin-portal .admin-subnav button:focus,
+.admin-portal .admin-subnav button:focus-visible,
+.admin-portal .admin-subnav button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
