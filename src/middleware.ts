@@ -170,7 +170,7 @@ async function fetchMaintenanceState(req: NextRequest) {
       };
     } catch (retryError) {
       const retryCode = shortErrorCode(retryError);
-      console.warn('[maintenance-guard] retry failed, allowing live traffic', retryError);
+      console.warn(`[maintenance-guard] retry failed, allowing live traffic: ${retryError instanceof Error ? retryError.message : String(retryError)}`);
       if (maintenanceCache.state) {
         return {
           ...maintenanceCache.state,
