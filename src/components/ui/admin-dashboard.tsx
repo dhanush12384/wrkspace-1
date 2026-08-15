@@ -4493,30 +4493,31 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						</div>
 					);
 				})()}
-
-				{}
 				{activeTab === 'work_submissions' && (
 					<div className="space-y-6">
-						{}
-						<div className="flex items-center justify-between flex-wrap gap-3">
+						{/* Header and Filter Pills */}
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
-								<h2 className="text-xl font-bold text-white flex items-center gap-2">
-									<FileTextIcon className="size-5 text-brand-400" />
-									Work Submissions
-								</h2>
-								<p className="text-zinc-400 text-sm mt-0.5">Review and approve employee work submissions</p>
+								<div className="flex items-center gap-2.5">
+									<div className="p-2 rounded-xl bg-red-50 border border-red-100 text-[#E61E32]">
+										<FileTextIcon className="size-5" />
+									</div>
+									<div>
+										<h2 className="text-xl font-bold text-slate-900 tracking-tight">Work Submissions</h2>
+										<p className="text-xs text-slate-500 mt-0.5">Review, verify, and approve daily employee deliverables and timesheets</p>
+									</div>
+								</div>
 							</div>
-							{}
-							<div className="flex items-center gap-2 flex-wrap">
-								{['All', 'Submitted', 'Reviewed', 'Approved', 'Needs Revision'].map(f => (
+							<div className="flex items-center gap-1.5 flex-wrap bg-slate-100/80 p-1 rounded-xl border border-slate-200/80">
+								{(['All', 'Submitted', 'Reviewed', 'Approved', 'Needs Revision'] as const).map(f => (
 									<button
 										key={f}
 										onClick={() => setSubmissionFilter(f)}
 										className={cn(
-											"text-xs px-3 py-1.5 font-medium border transition-colors cursor-pointer",
+											"text-xs px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer",
 											submissionFilter === f
-												? "bg-brand-600 border-brand-500 text-white"
-												: "bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
+												? "bg-[#E61E32] text-white shadow-sm"
+												: "text-slate-600 hover:text-slate-900 hover:bg-white/80"
 										)}
 									>
 										{f}
@@ -4525,129 +4526,177 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{}
-						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+						{/* Stat Tiles Overview */}
+						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
 							{[
-								{ label: 'Total', count: submissionsList.length, color: 'text-zinc-300' },
-								{ label: 'Pending Review', count: submissionsList.filter(s => s.status === 'Submitted').length, color: 'text-amber-400' },
-								{ label: 'Approved', count: submissionsList.filter(s => s.status === 'Approved').length, color: 'text-emerald-400' },
-								{ label: 'Needs Revision', count: submissionsList.filter(s => s.status === 'Needs Revision').length, color: 'text-red-400' },
+								{ label: 'Total Submissions', count: submissionsList.length, color: 'text-slate-800', bg: 'bg-slate-50', border: 'border-slate-200/90', sub: 'All recorded logs' },
+								{ label: 'Pending Review', count: submissionsList.filter(s => s.status === 'Submitted').length, color: 'text-amber-600', bg: 'bg-amber-50/70', border: 'border-amber-200', sub: 'Awaiting review' },
+								{ label: 'Approved', count: submissionsList.filter(s => s.status === 'Approved').length, color: 'text-emerald-600', bg: 'bg-emerald-50/70', border: 'border-emerald-200', sub: 'Verified work' },
+								{ label: 'Needs Revision', count: submissionsList.filter(s => s.status === 'Needs Revision').length, color: 'text-rose-600', bg: 'bg-rose-50/70', border: 'border-rose-200', sub: 'Action requested' },
 							].map(stat => (
-								<div key={stat.label} className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1">
-									<p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">{stat.label}</p>
-									<p className={`text-2xl font-bold ${stat.color}`}>{stat.count}</p>
+								<div key={stat.label} className={cn("p-4 rounded-2xl border shadow-2xs transition-all", stat.bg, stat.border)}>
+									<p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
+									<p className={cn("text-2xl font-black mt-1", stat.color)}>{stat.count}</p>
+									<p className="text-[10px] text-slate-400 font-medium mt-0.5">{stat.sub}</p>
 								</div>
 							))}
 						</div>
 
-						{}
+						{/* Submissions List */}
 						{submissionsList.filter(s => submissionFilter === 'All' || s.status === submissionFilter).length === 0 ? (
-							<div className="text-center py-16 text-zinc-600 border border-zinc-900">
-								<FileTextIcon className="size-10 mx-auto mb-3 opacity-40" />
-								<p className="text-sm font-medium">No submissions {submissionFilter !== 'All' ? `with status "${submissionFilter}"` : 'yet'}</p>
+							<div className="text-center py-16 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs">
+								<div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+									<FileTextIcon className="size-6" />
+								</div>
+								<h3 className="text-sm font-bold text-slate-800">No Submissions Found</h3>
+								<p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+									{submissionFilter !== 'All' 
+										? `There are currently no employee submissions matching the "${submissionFilter}" filter.` 
+										: 'No employee work submissions have been logged yet.'}
+								</p>
 							</div>
 						) : (
-							<div className="space-y-3">
+							<div className="space-y-3.5">
 								{submissionsList
 									.filter(s => submissionFilter === 'All' || s.status === submissionFilter)
 									.map((sub: any) => {
-										const statusColors: Record<string, string> = {
-											'Submitted': 'bg-amber-950/30 border-amber-900/40 text-amber-300',
-											'Reviewed': 'bg-blue-950/30 border-blue-900/40 text-blue-300',
-											'Approved': 'bg-emerald-950/30 border-emerald-900/40 text-emerald-300',
-											'Needs Revision': 'bg-red-950/30 border-red-900/40 text-red-300',
+										const STATUS_PILL: Record<string, { bg: string; text: string; border: string; dot: string; label: string }> = {
+											'Submitted': { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-300', dot: 'bg-amber-500', label: 'Submitted' },
+											'Reviewed': { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-300', dot: 'bg-blue-500', label: 'Reviewed' },
+											'Approved': { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-300', dot: 'bg-emerald-500', label: 'Approved' },
+											'Needs Revision': { bg: 'bg-rose-50', text: 'text-rose-800', border: 'border-rose-300', dot: 'bg-rose-500', label: 'Needs Revision' },
 										};
+										const pill = STATUS_PILL[sub.status] || { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-300', dot: 'bg-slate-500', label: sub.status };
 										const isReviewing = reviewingId === sub.id;
+
 										return (
-											<div key={sub.id} className="bg-zinc-900/30 border border-zinc-800/80 p-5 space-y-3 hover:border-zinc-700/80 transition-colors">
-												<div className="flex items-start justify-between gap-3 flex-wrap">
-													<div className="space-y-1">
-														<h3 className="text-base font-bold text-white">{sub.title}</h3>
-														<div className="flex items-center gap-3 text-xs text-zinc-500">
-															<span className="font-semibold text-zinc-300">{sub.employeeName}</span>
-															<span>·</span>
-															<span className="font-mono text-zinc-500">{sub.employeeId}</span>
-															<span>·</span>
-															<span>{new Date(sub.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-															<span>·</span>
-															<span className="text-brand-400 font-semibold">{sub.hoursSpent}h</span>
+											<div key={sub.id} className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all space-y-3.5">
+												{/* Header: Title + Meta tags + Status badge */}
+												<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+													<div className="space-y-2 min-w-0">
+														<h3 className="text-base font-bold text-slate-900 leading-snug">{sub.title}</h3>
+														
+														{/* Clear Metadata Tags */}
+														<div className="flex items-center flex-wrap gap-2 text-xs">
+															{/* Employee Name Tag */}
+															<span className="inline-flex items-center gap-1 font-semibold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/70">
+																<span className="size-2 rounded-full bg-[#E61E32]" />
+																{sub.employeeName}
+															</span>
+
+															{/* Employee ID Tag */}
+															<span className="font-mono text-[11px] font-medium text-slate-600 bg-slate-100/80 px-2 py-1 rounded-lg border border-slate-200/70">
+																{sub.employeeId}
+															</span>
+
+															{/* Date Tag */}
+															<span className="inline-flex items-center gap-1 text-slate-500 text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
+																<CalendarIcon className="size-3 text-slate-400" />
+																{new Date(sub.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+															</span>
+
+															{/* Hours Spent Tag */}
+															<span className="inline-flex items-center gap-1 font-bold text-[11px] text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+																<ClockIcon className="size-3 text-amber-600" />
+																{sub.hoursSpent}h logged
+															</span>
 														</div>
 													</div>
-													<span className={cn("text-[10px] px-2 py-1 font-mono uppercase tracking-wider border", statusColors[sub.status] || 'bg-zinc-800/40 border-zinc-700/40 text-zinc-400')}>
-														{sub.status}
-													</span>
+
+													{/* Prominent Status Badge */}
+													<div className="shrink-0">
+														<span className={cn(
+															"inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full border shadow-2xs uppercase tracking-wider",
+															pill.bg, pill.text, pill.border
+														)}>
+															<span className={cn("size-2 rounded-full", pill.dot)} />
+															{pill.label}
+														</span>
+													</div>
 												</div>
 
-												<p className="text-sm text-zinc-400 leading-relaxed">{sub.description}</p>
+												{/* Description */}
+												<div className="bg-slate-50/60 rounded-xl p-3.5 border border-slate-200/60 text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
+													{sub.description}
+												</div>
 
+												{/* Linked Task Banner */}
 												{sub.taskTitle && (
-													<div className="flex items-center gap-1.5 text-xs text-zinc-500">
-														<ClockIcon className="size-3.5 text-zinc-600" />
-														<span>Linked task: <span className="text-zinc-300 font-medium">{sub.taskTitle}</span></span>
+													<div className="inline-flex items-center gap-2 text-xs bg-blue-50/80 text-blue-800 border border-blue-200/80 px-3 py-1.5 rounded-xl font-medium">
+														<ClockIcon className="size-3.5 text-blue-600 shrink-0" />
+														<span>Linked Task: <strong className="font-semibold text-blue-900">{sub.taskTitle}</strong></span>
 													</div>
 												)}
 
+												{/* Admin Note Callout */}
 												{sub.adminNote && (
-													<div className="bg-zinc-900/60 border border-zinc-800 p-3 text-xs text-zinc-400 italic">
-														<span className="text-zinc-500 not-italic font-semibold">Admin Note: </span>{sub.adminNote}
+													<div className="bg-amber-50/80 border border-amber-200/90 rounded-xl p-3 text-xs text-amber-900">
+														<div className="font-bold flex items-center gap-1.5 text-amber-800 mb-0.5">
+															<AlertCircleIcon className="size-3.5 text-amber-600" />
+															Admin Feedback Note:
+														</div>
+														<p className="text-amber-800/90 pl-5">{sub.adminNote}</p>
 													</div>
 												)}
 
-												{}
+												{/* Review Form or Action Bar */}
 												{isReviewing ? (
-													<div className="space-y-3 pt-2 border-t border-zinc-800">
-														<textarea
-															value={reviewNote}
-															onChange={e => setReviewNote(e.target.value)}
-															rows={2}
-															placeholder="Optional note to employee..."
-															className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-xs p-3 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
-														/>
+													<div className="space-y-3 pt-3 border-t border-slate-200/80">
+														<div className="space-y-1">
+															<label className="text-xs font-bold text-slate-700">Admin Note / Feedback (Optional):</label>
+															<textarea
+																value={reviewNote}
+																onChange={e => setReviewNote(e.target.value)}
+																rows={2}
+																placeholder="Enter notes or revision instructions for employee..."
+																className="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 transition-colors"
+															/>
+														</div>
 														<div className="flex items-center gap-2 flex-wrap">
 															<button
 																onClick={() => handleUpdateSubmission(sub.id, 'Approved')}
 																disabled={isUpdatingStatus}
-																className="flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs px-3 py-1.5 cursor-pointer transition-colors disabled:opacity-50"
+																className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
 															>
-																<CheckCircleIcon className="size-3.5" /> Approve
+																<CheckCircleIcon className="size-3.5" /> Approve Submission
 															</button>
 															<button
 																onClick={() => handleUpdateSubmission(sub.id, 'Needs Revision')}
 																disabled={isUpdatingStatus}
-																className="flex items-center gap-1.5 bg-red-800 hover:bg-red-700 text-white text-xs px-3 py-1.5 cursor-pointer transition-colors disabled:opacity-50"
+																className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
 															>
-																<XCircleIcon className="size-3.5" /> Needs Revision
+																<XCircleIcon className="size-3.5" /> Request Revision
 															</button>
 															<button
 																onClick={() => handleUpdateSubmission(sub.id, 'Reviewed')}
 																disabled={isUpdatingStatus}
-																className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 text-white text-xs px-3 py-1.5 cursor-pointer transition-colors disabled:opacity-50"
+																className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-sm"
 															>
 																<AlertCircleIcon className="size-3.5" /> Mark Reviewed
 															</button>
 															<button
 																onClick={() => { setReviewingId(null); setReviewNote(''); }}
-																className="text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer px-2 py-1.5 transition-colors"
+																className="text-xs text-slate-600 hover:text-slate-900 font-semibold px-3 py-2 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
 															>
 																Cancel
 															</button>
 														</div>
 													</div>
 												) : (
-													<div className="pt-1 flex items-center justify-end gap-2">
+													<div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
 														<button
 															onClick={() => { setReviewingId(sub.id); setReviewNote(sub.adminNote || ''); }}
-															className="p-1.5 bg-zinc-900 border border-zinc-800 text-brand-400 hover:text-brand-300 transition-all cursor-pointer"
+															className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
 															title="Review Submission"
 														>
-															<PencilIcon className="size-3.5" />
+															<PencilIcon className="size-3.5 text-slate-400" /> Review / Update Status
 														</button>
 														<button
 															onClick={() => handleDeleteWorkSubmission(sub.id)}
-															className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-400 hover:text-red-300 transition-all cursor-pointer"
+															className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 hover:border-red-300 cursor-pointer transition-all shadow-2xs"
 															title="Delete Submission"
 														>
-															<Trash2Icon className="size-3.5" />
+															<Trash2Icon className="size-3.5" /> Delete
 														</button>
 													</div>
 												)}
