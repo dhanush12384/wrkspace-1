@@ -28,7 +28,7 @@ async function getOrCreateAdmin() {
         email: ADMIN_EMAIL,
         password: 'admin123',
         organizationName: 'WrkSpace Headquarters',
-        allowedPages: 'overview,employees,leaves,attendance,clients,system_status,messages,task_allocation,events,work_submissions,leads,hr_companies',
+        allowedPages: 'overview,employees,leaves,attendance,clients,system_status,messages,task_allocation,events,work_submissions,leads,hr_companies,form',
         inviteToken: 'super-admin-token'
       }
     });
@@ -3690,5 +3690,69 @@ export async function sendBulkAlerts(subject: string, bodyText: string, employee
   } catch (err: any) {
     console.error('Error in sendBulkAlerts server action:', err);
     return { success: false, error: err.message || 'Failed to dispatch alerts.' };
+  }
+}
+
+export async function getUnanimousFeedbackSubmissions() {
+  try {
+    const submissions = await db.unanimousFeedback.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    return submissions;
+  } catch (error) {
+    console.error('Error fetching unanimous feedback submissions:', error);
+    return [];
+  }
+}
+
+export async function checkHasSubmittedFeedback(email: string) {
+  try {
+    if (!email) return { success: false, hasSubmitted: false, error: 'Email is required' };
+    const existing = await db.unanimousFeedback.findFirst({
+      where: { userEmail: email.toLowerCase() }
+    });
+    return { success: true, hasSubmitted: !!existing };
+  } catch (error: any) {
+    console.error('Error checking feedback submission:', error);
+    return { success: false, hasSubmitted: false, error: error.message };
+  }
+}
+
+export async function submitUnanimousFeedback(data: {
+  userType: string;
+  userId?: string;
+  userEmail: string;
+  userName: string;
+  comfortableSharing: string;
+  feedbackText?: string;
+  concerns: string;
+  severity: string;
+  duration: string;
+  involvesOthers: string;
+  desiredAction: string;
+  additionalNotes?: string;
+}) {
+  try {
+    if (!data.userEmail) return { success: false, error: 'User email is required' };
+    const created = await db.unanimousFeedback.create({
+      data: {
+        userType: data.userType,
+        userId: data.userId || null,
+        userEmail: data.userEmail.toLowerCase(),
+        userName: data.userName,
+        comfortableSharing: data.comfortableSharing,
+        feedbackText: data.feedbackText || null,
+        concerns: data.concerns,
+        severity: data.severity,
+        duration: data.duration,
+        involvesOthers: data.involvesOthers,
+        desiredAction: data.desiredAction,
+        additionalNotes: data.additionalNotes || null,
+      }
+    });
+    return { success: true, feedback: created };
+  } catch (error: any) {
+    console.error('Error submitting unanimous feedback:', error);
+    return { success: false, error: error.message };
   }
 }

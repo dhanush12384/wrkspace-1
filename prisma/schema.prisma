@@ -19,7 +19,7 @@ model Admin {
   email            String    @unique
   password         String    @default("admin123")
   organizationName String?   @default("My Organization")
-  allowedPages     String?   @default("overview,employees,leaves,attendance,clients,system_status,messages,task_allocation,events,work_submissions,leads")
+  allowedPages     String?   @default("overview,employees,leaves,attendance,clients,system_status,messages,task_allocation,events,work_submissions,leads,form")
   inviteToken      String?   @unique
   activeOtp        String?
   otpExpiresAt     DateTime?
@@ -438,4 +438,23 @@ model VerificationPortalUser {
 
   @@index([companyId])
   @@index([role])
+}
+
+model UnanimousFeedback {
+  id                   String   @id @default(uuid())
+  userType             String   // "ADMIN" or "EMPLOYEE"
+  userId               String?  // Optional relation identifier
+  userEmail            String   // Submitter's email
+  userName             String   // Submitter's display name
+  comfortableSharing   String   // "Yes" or "No"
+  feedbackText         String?  @db.Text
+  concerns             String   // Comma-separated list of checked concerns
+  severity             String   // Low / Moderate / Serious / Urgent
+  duration             String   // Recently / A few weeks / etc.
+  involvesOthers       String   // Yes / No / Prefer not to say
+  desiredAction        String   // Comma-separated list of desired actions
+  additionalNotes      String?  @db.Text
+  createdAt            DateTime @default(now())
+
+  @@index([userEmail])
 }

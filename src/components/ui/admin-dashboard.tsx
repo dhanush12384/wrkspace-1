@@ -17,7 +17,7 @@ import {
 	UserPlusIcon,
 	PlusIcon,
 } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee, sendBulkAlerts } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee, sendBulkAlerts, getUnanimousFeedbackSubmissions, checkHasSubmittedFeedback } from '@/app/admin/actions';
 import { AdminLiveSafetyPanel } from './safety-panel';
 import { AdminLiveTrackingPanel } from './live-tracking-panel';
 import { AdminShiftTimingsPanel } from './admin-shift-timings-panel';
@@ -26,6 +26,7 @@ import { AdminPayoutsPanel } from './admin-payouts-panel';
 import OfficesPanel from '@/components/ui/offices-panel';
 import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon, SendIcon, MailIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UnanimousFormGate } from './unanimous-form-gate';
 import { MessagesView } from './messages-view';
 import { ChatAvatar } from './chat-avatar';
 import { AdminAlertSender } from './admin-alert-sender';
@@ -35,7 +36,7 @@ interface AdminDashboardProps {
 	onLogout: () => void;
 }
 
-type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'add_remarks' | 'alert_sender';
+type TabType = 'overview' | 'employees' | 'leaves' | 'attendance' | 'offices' | 'clients' | 'system_status' | 'messages' | 'task_allocation' | 'events' | 'work_submissions' | 'leads' | 'hr_companies' | 'super_admin' | 'team_leads' | 'live_safety' | 'live_tracking' | 'add_remarks' | 'alert_sender' | 'form' | 'shift_timings' | 'late_checkins' | 'payouts';
 
 export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -53,7 +54,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [newAdminOrgName, setNewAdminOrgName] = useState('');
 	const [newAdminPassword, setNewAdminPassword] = useState('admin123');
 	const [newAdminPages, setNewAdminPages] = useState<string[]>([
-		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies', 'alert_sender'
+		'overview', 'employees', 'task_allocation', 'attendance', 'offices', 'leaves', 'clients', 'messages', 'system_status', 'events', 'work_submissions', 'leads', 'hr_companies', 'alert_sender', 'form'
 	]);
 	const [allocatedLink, setAllocatedLink] = useState<string | null>(null);
 	const [isAllocating, setIsAllocating] = useState(false);
@@ -67,6 +68,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [adminDisplayName, setAdminDisplayName] = useState('Admin');
 	const [allocatorName, setAllocatorName] = useState('Admin');
 	const [allocatorRole, setAllocatorRole] = useState('Admin');
+
+	// Feedback Form States
+	const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState<boolean | null>(null);
+	const [feedbackSubmissions, setFeedbackSubmissions] = useState<any[]>([]);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [filterUserType, setFilterUserType] = useState('ALL');
+	const [filterSeverity, setFilterSeverity] = useState('ALL');
 
 	useEffect(() => {
 		async function loadAdminProfile() {
@@ -90,6 +98,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					} else {
 						setAllocatorName('Admin');
 						setAllocatorRole('Admin');
+					}
+					
+					// Verify feedback submission status
+					const feedbackRes = await checkHasSubmittedFeedback(email);
+					if (feedbackRes.success) {
+						setHasSubmittedFeedback(feedbackRes.hasSubmitted);
+					} else {
+						setHasSubmittedFeedback(true);
 					}
 					
 					if (tabs.length > 0 && !tabs.includes(activeTab)) {
@@ -867,6 +883,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		}
 	};
 
+	const fetchFeedbackSubmissions = async () => {
+		try {
+			const data = await getUnanimousFeedbackSubmissions();
+			setFeedbackSubmissions(data);
+		} catch (error) {
+			console.error('Failed to fetch feedback submissions:', error);
+		}
+	};
+
 	const handleHrCrawl = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsCrawlingHr(true);
@@ -1118,6 +1143,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		fetchSubmissions();
 		fetchLeads();
 		fetchHrCompaniesList();
+		fetchFeedbackSubmissions();
 		if (email.toLowerCase() === 'webstrixx@gmail.com') {
 			fetchAdmins();
 			fetchTeamLeads();
@@ -1691,12 +1717,24 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 		return { presentList, absentList, onLeaveList };
 	};
 
-	if (!stats) {
+	if (loadingProfile || hasSubmittedFeedback === null || !stats) {
 		return (
 			<main className="dark min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center space-y-4">
 				<RefreshCwIcon className="size-8 text-brand-500 animate-spin" />
 				<p className="text-zinc-400 text-xs font-mono">Initializing live environment console...</p>
 			</main>
+		);
+	}
+
+	if (hasSubmittedFeedback === false) {
+		return (
+			<UnanimousFormGate
+				userEmail={email}
+				userName={adminDisplayName || email}
+				userType="ADMIN"
+				userId={adminEmployeeId || undefined}
+				onSuccess={() => setHasSubmittedFeedback(true)}
+			/>
 		);
 	}
 
@@ -1924,6 +1962,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'hr_companies' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
 						>
 							Companies
+						</button>
+					)}
+					{(isSuperAdmin || allowedTabs.includes('form')) && (
+						<button
+							onClick={() => { setActiveTab('form'); fetchFeedbackSubmissions(); }}
+							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'form' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
+						>
+							Unanimous Form
 						</button>
 					)}
 					{isSuperAdmin && (
@@ -5506,6 +5552,172 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					);
 				})()}
 
+				{activeTab === 'form' && (
+					<div className="space-y-6">
+						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+							<div>
+								<h2 className="text-xl font-bold text-white flex items-center gap-2 font-sans">
+									<FileTextIcon className="size-5 text-brand-400" />
+									Unanimous Form Submissions
+								</h2>
+								<p className="text-zinc-400 text-sm mt-0.5">
+									Review feedback, concerns, and policy suggestions submitted by verified members.
+								</p>
+							</div>
+						</div>
+
+						{/* Search & Filter Controls */}
+						<div className="bg-zinc-900/40 border border-zinc-800/80 p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between backdrop-blur-sm">
+							<div className="flex items-center gap-3 w-full md:w-auto">
+								<input
+									type="text"
+									placeholder="Search email or name..."
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-brand-500 w-full md:w-64"
+								/>
+								<select
+									value={filterUserType}
+									onChange={(e) => setFilterUserType(e.target.value)}
+									className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
+								>
+									<option value="ALL">All Roles</option>
+									<option value="EMPLOYEE">Employees Only</option>
+									<option value="ADMIN">Admins Only</option>
+								</select>
+								<select
+									value={filterSeverity}
+									onChange={(e) => setFilterSeverity(e.target.value)}
+									className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
+								>
+									<option value="ALL">All Severities</option>
+									<option value="Low">Low</option>
+									<option value="Moderate">Moderate</option>
+									<option value="Serious">Serious</option>
+									<option value="Urgent">Urgent</option>
+								</select>
+							</div>
+
+							<div className="text-xs text-zinc-500 font-mono">
+								Found: {feedbackSubmissions.filter(fb => {
+									const matchesSearch = fb.userName.toLowerCase().includes(searchQuery.toLowerCase()) || fb.userEmail.toLowerCase().includes(searchQuery.toLowerCase());
+									const matchesRole = filterUserType === 'ALL' || fb.userType === filterUserType;
+									const matchesSeverity = filterSeverity === 'ALL' || fb.severity === filterSeverity;
+									return matchesSearch && matchesRole && matchesSeverity;
+								}).length}
+							</div>
+						</div>
+
+						{/* Submissions List Grid */}
+						<div className="grid grid-cols-1 gap-4">
+							{feedbackSubmissions
+								.filter(fb => {
+									const matchesSearch = fb.userName.toLowerCase().includes(searchQuery.toLowerCase()) || fb.userEmail.toLowerCase().includes(searchQuery.toLowerCase());
+									const matchesRole = filterUserType === 'ALL' || fb.userType === filterUserType;
+									const matchesSeverity = filterSeverity === 'ALL' || fb.severity === filterSeverity;
+									return matchesSearch && matchesRole && matchesSeverity;
+								})
+								.map((fb) => (
+									<div key={fb.id} className="bg-zinc-900/30 border border-zinc-800/80 rounded-xl p-5 hover:border-zinc-700/80 transition-all duration-200">
+										{/* Card Header */}
+										<div className="flex justify-between items-start gap-4 flex-wrap mb-4">
+											<div className="space-y-1">
+												<div className="flex items-center gap-2">
+													<span className="font-semibold text-zinc-100 text-sm">{fb.userName}</span>
+													<span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+														fb.userType === 'ADMIN' ? 'bg-indigo-950/60 text-indigo-400 border border-indigo-800/60' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
+													}`}>
+														{fb.userType}
+													</span>
+													<span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+														fb.comfortableSharing === 'Yes' ? 'bg-amber-950/60 text-amber-400 border border-amber-800/60' : 'bg-zinc-800/50 text-zinc-400'
+													}`}>
+														{fb.comfortableSharing === 'Yes' ? 'Has Concerns' : 'No Concerns'}
+													</span>
+												</div>
+												<div className="text-xs text-zinc-400 font-mono">{fb.userEmail}</div>
+											</div>
+											<div className="flex items-center gap-2 text-xs font-mono">
+												<span className="text-zinc-500">{new Date(fb.createdAt).toLocaleString()}</span>
+												{fb.comfortableSharing === 'Yes' && fb.severity && (
+													<span className={`px-2.5 py-0.5 rounded-full font-semibold border ${
+														fb.severity === 'Urgent' ? 'bg-red-950/50 text-red-400 border-red-800/60' :
+														fb.severity === 'Serious' ? 'bg-orange-950/50 text-orange-400 border-orange-850/60' :
+														fb.severity === 'Moderate' ? 'bg-yellow-950/50 text-yellow-400 border-yellow-800/60' :
+														'bg-green-950/50 text-green-400 border-green-800/60'
+													}`}>
+														{fb.severity}
+													</span>
+												)}
+											</div>
+										</div>
+
+										{/* Card Content Summary */}
+										{fb.comfortableSharing === 'Yes' ? (
+											<div className="space-y-3 pt-3 border-t border-zinc-800/40">
+												<div>
+													<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">What they want to tell us:</span>
+													<p className="text-zinc-200 text-sm whitespace-pre-wrap leading-relaxed">{fb.feedbackText}</p>
+												</div>
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div>
+														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">Concern categories:</span>
+														<div className="flex flex-wrap gap-1.5">
+															{fb.concerns.split(',').map((c: string) => (
+																<span key={c.trim()} className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded">
+																	{c.trim()}
+																</span>
+															))}
+														</div>
+													</div>
+													<div>
+														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">How long it has been happening:</span>
+														<span className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded block w-max">
+															{fb.duration}
+														</span>
+													</div>
+												</div>
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div>
+														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">Involves someone else?</span>
+														<span className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded block w-max">
+															{fb.involvesOthers}
+														</span>
+													</div>
+													<div>
+														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">Action they would like us to take:</span>
+														<div className="flex flex-wrap gap-1.5">
+															{fb.desiredAction.split(',').map((a: string) => (
+																<span key={a.trim()} className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded">
+																	{a.trim()}
+																</span>
+															))}
+														</div>
+													</div>
+												</div>
+												{fb.additionalNotes && (
+													<div>
+														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono font-semibold">Additional context:</span>
+														<p className="text-zinc-300 text-xs whitespace-pre-wrap bg-zinc-950/40 p-2.5 rounded border border-zinc-850/50">{fb.additionalNotes}</p>
+													</div>
+												)}
+											</div>
+										) : (
+											<div className="text-xs text-zinc-500 italic pt-2 border-t border-zinc-800/40 font-mono">
+												Submitted &quot;No&quot; — No direct concerns reported.
+											</div>
+										)}
+									</div>
+								))}
+							{feedbackSubmissions.length === 0 && (
+								<div className="border border-dashed border-zinc-800 rounded-xl p-12 text-center text-zinc-500">
+									No feedback submissions recorded yet.
+								</div>
+							)}
+						</div>
+					</div>
+				)}
+
 				{activeTab === 'super_admin' && isSuperAdmin && (
 					<div className="space-y-6">
 						<div className="flex items-center justify-between border-b border-zinc-800 pb-3">
@@ -5606,7 +5818,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												{ id: 'events', name: 'Events Calendar' },
 												{ id: 'work_submissions', name: 'Work Submissions' },
 												{ id: 'leads', name: 'Leads CRM Pipeline' },
-												{ id: 'hr_companies', name: 'HR & Companies' }
+												{ id: 'hr_companies', name: 'HR & Companies' },
+												{ id: 'form', name: 'Unanimous Form' }
 											].map(item => (
 												<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
 													<input
@@ -5793,7 +6006,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											{ id: 'events', name: 'Events Calendar' },
 											{ id: 'work_submissions', name: 'Submissions' },
 											{ id: 'leads', name: 'Leads CRM' },
-											{ id: 'hr_companies', name: 'HR & Companies' }
+											{ id: 'hr_companies', name: 'HR & Companies' },
+											{ id: 'form', name: 'Unanimous Form' }
 										].map(item => (
 											<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
 												<input
@@ -6620,7 +6834,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										{ id: 'events', name: 'Events Calendar' },
 										{ id: 'work_submissions', name: 'Submissions' },
 										{ id: 'leads', name: 'Leads CRM' },
-										{ id: 'hr_companies', name: 'HR & Companies' }
+										{ id: 'hr_companies', name: 'HR & Companies' },
+										{ id: 'form', name: 'Unanimous Form' }
 									].map(item => (
 										<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
 											<input

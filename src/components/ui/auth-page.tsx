@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense, ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { GrainGradient } from '@paper-design/shaders-react';
 import { SoftErrorBoundary } from '@/components/soft-error-boundary';
+import { UnanimousFormGate } from './unanimous-form-gate';
 import { importWithRetry } from '@/lib/import-with-retry';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,26 @@ function EmployeeShell({
 	onEmployeeUpdate: (next: any) => void;
 }) {
 	const isMobile = useIsMobile();
+	const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState<boolean | null>(null);
+
+	useEffect(() => {
+		async function checkFeedback() {
+			if (!employee?.email) return;
+			try {
+				const { checkHasSubmittedFeedback } = await import('@/app/admin/actions');
+				const res = await checkHasSubmittedFeedback(employee.email);
+				if (res.success) {
+					setHasSubmittedFeedback(res.hasSubmitted);
+				} else {
+					setHasSubmittedFeedback(true); // Fallback: allow entry if database check fails
+				}
+			} catch (e) {
+				console.error('Feedback check failed', e);
+				setHasSubmittedFeedback(true);
+			}
+		}
+		checkFeedback();
+	}, [employee?.email]);
 
 	useEffect(() => {
 		if (isMobile !== true) return;
@@ -71,7 +92,19 @@ function EmployeeShell({
 		return () => window.clearTimeout(t);
 	}, [isMobile, employee?.id]);
 
-	if (isMobile === null) return <ShellLoading />;
+	if (employee && hasSubmittedFeedback === false) {
+		return (
+			<UnanimousFormGate
+				userEmail={employee.email}
+				userName={`${employee.firstName} ${employee.lastName}`}
+				userType="EMPLOYEE"
+				userId={employee.id}
+				onSuccess={() => setHasSubmittedFeedback(true)}
+			/>
+		);
+	}
+
+	if (isMobile === null || hasSubmittedFeedback === null) return <ShellLoading />;
 
 	if (isMobile) {
 		return (
