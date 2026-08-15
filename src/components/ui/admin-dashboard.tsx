@@ -1794,7 +1794,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			</header>
 
 			{}
-			<div className="w-full border-b border-zinc-800 bg-zinc-950 z-40 sticky top-20 shadow-sm">
+			<div className="w-full border-b border-red-700 bg-[#E61E32] z-40 sticky top-20 shadow-sm admin-subnav">
 				<div className="w-full px-6 md:px-10 flex gap-6 text-xs md:text-sm font-medium tracking-wide overflow-x-auto">
 					{(isSuperAdmin || allowedTabs.includes('overview')) && (
 						<button
@@ -1994,7 +1994,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			{}
 			<div className={cn(
 				"flex-1 w-full relative z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800",
-				activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col overflow-hidden" : activeTab === 'task_allocation' ? "max-w-[98rem] mx-auto p-6 md:p-10 space-y-8 w-full" : "max-w-[90rem] mx-auto p-6 md:p-10 space-y-8"
+				activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col overflow-hidden" : (activeTab === 'task_allocation' || activeTab === 'employees') ? "max-w-[98rem] mx-auto p-6 md:p-10 space-y-8 w-full" : "max-w-[90rem] mx-auto p-6 md:p-10 space-y-8"
 			)}>
 
 				{}
@@ -3510,8 +3510,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div className="flex items-center gap-2">
-								<UsersIcon className="size-5 text-brand-400" />
-								<h2 className="text-lg font-bold text-white">Employee Directory</h2>
+								<UsersIcon className="size-5 text-brand-500" />
+								<h2 className="text-lg font-bold text-slate-900">Employee Directory</h2>
 							</div>
 							<div className="flex items-center gap-3">
 								<input
@@ -3524,23 +3524,23 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<div className="relative" onMouseLeave={() => setShowExportDropdown(false)}>
 									<Button
 										onClick={() => setShowExportDropdown(!showExportDropdown)}
-										className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer flex items-center gap-1.5 border border-zinc-700"
+										className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-light py-2 px-4 rounded-lg h-auto cursor-pointer flex items-center gap-1.5 shadow-xs transition-all"
 									>
-										<UploadIcon className="size-3.5 text-brand-400" />
+										<UploadIcon className="size-3.5 text-brand-500" />
 										export data <span className="text-[9px]">▼</span>
 									</Button>
 									{showExportDropdown && (
 										<div className="absolute right-0 top-full pt-1 w-40 z-50">
-											<div className="bg-zinc-950 border border-zinc-850 shadow-xl py-1 font-mono text-[11px]">
+											<div className="bg-white border border-slate-200 shadow-xl py-1 rounded-lg text-xs text-slate-700 font-sans">
 												<button
 													type="button"
 													onClick={() => {
 														setShowExportDropdown(false);
 														document.getElementById('employee-excel-import')?.click();
 													}}
-													className="w-full text-left px-4 py-2 text-zinc-350 hover:bg-zinc-900 hover:text-white transition-colors cursor-pointer"
+													className="w-full text-left px-4 py-2 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
 												>
-													import excel
+													import csv / excel
 												</button>
 												<button
 													type="button"
@@ -3548,9 +3548,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														setShowExportDropdown(false);
 														handleExportPdf();
 													}}
-													className="w-full text-left px-4 py-2 text-zinc-350 hover:bg-zinc-900 hover:text-white transition-colors cursor-pointer"
+													className="w-full text-left px-4 py-2 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
 												>
-													import into pdf
+													export to pdf
 												</button>
 											</div>
 										</div>
@@ -3562,7 +3562,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										setShowAddForm(!showAddForm);
 										setAddMessage(null);
 									}}
-									className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
+									className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-light py-2 px-4 rounded-lg h-auto shadow-sm active:scale-[0.98] transition-all cursor-pointer"
 								>
 									{showAddForm ? 'Cancel Registration' : (
 										<>
@@ -3574,50 +3574,48 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{}
 						{addMessage && (
 							<div className={cn(
-								"p-3 rounded-none text-xs border font-mono",
+								"p-3 rounded-lg text-xs border font-sans",
 								addMessage.type === 'success'
-									? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
-									: "bg-red-950/30 border-red-800 text-red-400"
+									? "bg-emerald-50 border-emerald-200 text-emerald-800"
+									: "bg-red-50 border-red-200 text-red-800"
 							)}>
 								{addMessage.text}
 							</div>
 						)}
 
-						{}
 						{showAddForm && (
-							<form onSubmit={handleAddEmployee} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
-								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
+							<form onSubmit={handleAddEmployee} className="bg-white border border-slate-200 p-6 space-y-4 rounded-xl shadow-xs">
+								<h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
 									Register New Member
 								</h3>
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">First Name</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">First Name</label>
 										<Input
 											placeholder="John"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={firstName}
 											onChange={e => setFirstName(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Middle Name</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Middle Name</label>
 										<Input
 											placeholder="Lee"
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={middleName}
 											onChange={e => setMiddleName(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Last Name</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Last Name</label>
 										<Input
 											placeholder="Doe"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={lastName}
 											onChange={e => setLastName(e.target.value)}
 										/>
@@ -3626,23 +3624,23 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Email ID</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Email ID</label>
 										<Input
 											type="email"
 											placeholder="john.doe@company.com"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={empEmail}
 											onChange={e => setEmpEmail(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Phone Number</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Phone Number</label>
 										<Input
 											type="tel"
 											placeholder="+1 (555) 000-0000"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={phone}
 											onChange={e => setPhone(e.target.value)}
 										/>
@@ -3651,39 +3649,39 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 								<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Wing Name</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Wing Name</label>
 										<Input
 											placeholder="Engineering / Sales / Support"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={wingName}
 											onChange={e => setWingName(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Wing Lead Name</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Wing Lead Name</label>
 										<Input
 											placeholder="Jane Smith"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={wingLeadName}
 											onChange={e => setWingLeadName(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Role</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Role</label>
 										<Input
 											placeholder="Software Engineer / Designer"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={empRole}
 											onChange={e => setEmpRole(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Gender</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Gender</label>
 										<select
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+											className="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg h-9 px-2 focus:outline-none focus:border-brand-500"
 											value={empGender}
 											onChange={e => setEmpGender(e.target.value)}
 										>
@@ -3696,19 +3694,19 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Month(s) Worked For</label>
 										<Input
 											placeholder="e.g. October 2026, or 6 Months"
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={empMonthWorked}
 											onChange={e => setEmpMonthWorked(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Remarks</label>
 										<Input
 											placeholder="e.g. Outstanding performance, punctual"
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 transition-colors"
 											value={empRemarks}
 											onChange={e => setEmpRemarks(e.target.value)}
 										/>
@@ -3718,126 +3716,145 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<Button
 									type="submit"
 									disabled={isAdding}
-									className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+									className="bg-[#E61E32] hover:bg-[#c9182a] disabled:opacity-50 text-white text-xs font-light py-2 px-4 rounded-lg h-10 w-full shadow-sm active:scale-[0.98] transition-all cursor-pointer"
 								>
 									{isAdding ? 'Registering...' : 'Register Employee & Generate ID'}
 								</Button>
 							</form>
 						)}
 
-						{}
-						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
-							<table className="w-full min-w-[1800px] text-left text-xs text-zinc-300 font-mono">
-								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
-									<tr>
-										<th className="p-4 font-semibold w-44">Employee ID</th>
-										<th className="p-4 font-semibold w-20">Photo</th>
-										<th className="p-4 font-semibold w-72">Full Name</th>
-										<th className="p-4 font-semibold w-96">Email ID</th>
-										<th className="p-4 font-semibold w-56">Phone</th>
-										<th className="p-4 font-semibold w-56">Wing</th>
-										<th className="p-4 font-semibold w-64">Wing Lead</th>
-										<th className="p-4 font-semibold w-64">Role</th>
-										<th className="p-4 font-semibold w-40">Gender</th>
-										<th className="p-4 font-semibold w-48">Month Worked</th>
-										<th className="p-4 font-semibold w-64">Remarks</th>
-										<th className="p-4 font-semibold text-right w-32">Actions</th>
-									</tr>
-								</thead>
-								<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
-									{employeesList.length === 0 ? (
-										<tr>
-											<td colSpan={12} className="p-8 text-center text-zinc-550 text-xs italic font-sans">
-												No employees registered in directory. Click "Add New Employee" to get started.
-											</td>
-										</tr>
-									) : (
-										employeesList.map((emp) => (
-											<tr key={emp.id} className="hover:bg-zinc-900/30 transition-colors">
-												<td className="p-4 font-semibold text-brand-400">{emp.id}</td>
-												<td className="p-4">
-													<div className="flex flex-col items-start gap-1">
-														<ChatAvatar
-															id={emp.id}
-															name={`${emp.firstName} ${emp.lastName}`}
-															hasPhoto={Boolean(emp.hasPhoto)}
-															adminEmail={email}
-															size={36}
-														/>
-														<span
-															className={cn(
-																'text-[9px] font-bold uppercase tracking-wide',
-																emp.hasPhoto ? 'text-emerald-400' : 'text-zinc-500',
-															)}
-														>
-															{emp.hasPhoto ? 'Has photo' : 'No photo'}
-														</span>
-													</div>
-												</td>
-												<td className="p-4 text-white font-sans font-medium">
+						{employeesList.length === 0 ? (
+							<div className="bg-white border border-slate-200 p-8 rounded-xl text-center text-slate-500 text-xs italic">
+								No employees registered in directory. Click "Add New Employee" to get started.
+							</div>
+						) : (
+							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+								{employeesList.map((emp) => (
+									<div key={emp.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative overflow-hidden group">
+										{/* Badge with ID */}
+										<span className="absolute top-4 right-4 bg-slate-50 border border-slate-200 text-slate-650 px-2 py-0.5 rounded text-[10px] font-light">
+											ID: {emp.id}
+										</span>
+
+										{/* Header Info */}
+										<div className="flex items-center gap-3">
+											<div className="relative shrink-0">
+												<ChatAvatar
+													id={emp.id}
+													name={`${emp.firstName} ${emp.lastName}`}
+													hasPhoto={Boolean(emp.hasPhoto)}
+													adminEmail={email}
+													size={44}
+												/>
+												<span
+													className={cn(
+														'absolute -bottom-1 -right-1 block size-2.5 rounded-full border-2 border-white',
+														emp.hasPhoto ? 'bg-emerald-500' : 'bg-slate-350'
+													)}
+													title={emp.hasPhoto ? 'Has Photo' : 'No Photo'}
+												/>
+											</div>
+											<div className="min-w-0">
+												<p className="truncate text-xs font-semibold text-slate-800" title={`${emp.firstName} ${emp.lastName}`}>
 													{emp.firstName} {emp.middleName ? `${emp.middleName} ` : ''}{emp.lastName}
-												</td>
-												<td className="p-4 truncate max-w-[200px]" title={emp.email}>{emp.email}</td>
-												<td className="p-4">{emp.phone}</td>
-												<td className="p-4 text-zinc-200">{emp.wingName}</td>
-												<td className="p-4 text-zinc-200">{emp.wingLeadName}</td>
-												<td className="p-4 text-zinc-200">{emp.role || 'Employee'}</td>
-												<td className="p-4 text-zinc-200">
-													{String(emp.gender || 'UNSPECIFIED').toUpperCase() === 'FEMALE'
-														? 'Female'
-														: String(emp.gender || '').toUpperCase() === 'MALE'
-															? 'Male'
-															: 'Not set'}
-												</td>
-												<td className="p-4 text-zinc-200 truncate max-w-[150px]" title={emp.monthWorked || ''}>{emp.monthWorked || '—'}</td>
-												<td className="p-4 text-zinc-300 truncate max-w-[200px]" title={emp.remarks || ''}>{emp.remarks || '—'}</td>
-												<td className="p-4 text-right">
-													<div className="inline-flex items-center justify-end gap-2 flex-wrap">
-														{String(emp.gender || '').toUpperCase() === 'FEMALE' && (
-															<button
-																type="button"
-																onClick={async () => {
-																	const res = await allowEmployeeHomeSetup(emp.id);
-																	if (res.success) {
-																		alert(
-																			`Home setup allowed for ${emp.firstName}. They will see the yellow banner on Safety and can set/update home once.`
-																		);
-																		fetchEmployees();
-																	} else {
-																		alert(res.error || 'Failed');
-																	}
-																}}
-																className="px-2 py-1 text-[10px] font-bold uppercase tracking-wide bg-amber-400 text-amber-950 border border-amber-500 hover:bg-amber-300 cursor-pointer"
-																title="Allow employee to set/change home location once"
-															>
-																Allow home setup
-															</button>
-														)}
-														<button
-															onClick={() => {
-																setEditingItem(emp);
-																setEditModalType('employee');
-															}}
-															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-brand-400 hover:text-brand-300 transition-all cursor-pointer"
-															title="Edit Employee"
-														>
-															<PencilIcon className="size-3.5" />
-														</button>
-														<button
-															onClick={() => handleDeleteEmployee(emp.id)}
-															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
-															title="Delete Employee"
-														>
-															<Trash2Icon className="size-3.5" />
-														</button>
-													</div>
-												</td>
-											</tr>
-										))
-									)}
-								</tbody>
-							</table>
-						</div>
+												</p>
+												<p className="text-[10px] text-brand-650 font-medium">
+													{emp.role || 'Employee'}
+												</p>
+											</div>
+										</div>
+
+										{/* Details Grid */}
+										<div className="grid grid-cols-1 gap-y-2.5 pt-3 border-t border-slate-100 text-xs text-slate-600">
+											<div>
+												<span className="block text-[9px] text-slate-400 uppercase tracking-wide font-medium">Email ID</span>
+												<span className="block truncate text-slate-750 font-light" title={emp.email}>{emp.email}</span>
+											</div>
+											<div className="grid grid-cols-2 gap-2">
+												<div>
+													<span className="block text-[9px] text-slate-400 uppercase tracking-wide font-medium">Phone</span>
+													<span className="block text-slate-750 font-light">{emp.phone}</span>
+												</div>
+												<div>
+													<span className="block text-[9px] text-slate-400 uppercase tracking-wide font-medium">Gender</span>
+													<span className="block text-slate-750 font-light">
+														{String(emp.gender || 'UNSPECIFIED').toUpperCase() === 'FEMALE'
+															? 'Female'
+															: String(emp.gender || '').toUpperCase() === 'MALE'
+																? 'Male'
+																: 'Not set'}
+													</span>
+												</div>
+											</div>
+											<div className="grid grid-cols-2 gap-2">
+												<div>
+													<span className="block text-[9px] text-slate-400 uppercase tracking-wide font-medium">Wing</span>
+													<span className="block text-slate-750 font-light truncate" title={emp.wingName || ''}>{emp.wingName || '—'}</span>
+												</div>
+												<div>
+													<span className="block text-[9px] text-slate-400 uppercase tracking-wide font-medium">Wing Lead</span>
+													<span className="block text-slate-750 font-light truncate" title={emp.wingLeadName || ''}>{emp.wingLeadName || '—'}</span>
+												</div>
+											</div>
+											<div>
+												<span className="block text-[9px] text-slate-400 uppercase tracking-wide font-medium">Month Worked</span>
+												<span className="block text-slate-750 font-light truncate" title={emp.monthWorked || ''}>{emp.monthWorked || '—'}</span>
+											</div>
+										</div>
+
+										{/* Remarks */}
+										<div className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-[11px] text-slate-600 italic">
+											<span className="block text-[9px] text-slate-400 uppercase tracking-wide font-medium not-italic mb-0.5">Remarks</span>
+											{emp.remarks || 'No remarks recorded.'}
+										</div>
+
+										{/* Actions Footer */}
+										<div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 mt-auto">
+											<div className="flex items-center gap-1.5">
+												<button
+													onClick={() => {
+														setEditingItem(emp);
+														setEditModalType('employee');
+													}}
+													className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-brand-650 hover:border-brand-300 rounded-lg shadow-xs transition-all cursor-pointer"
+													title="Edit Employee"
+												>
+													<PencilIcon className="size-3.5" />
+												</button>
+												<button
+													onClick={() => handleDeleteEmployee(emp.id)}
+													className="p-2 border border-slate-200 bg-white hover:bg-red-50 text-red-650 hover:border-red-200 rounded-lg shadow-xs transition-all cursor-pointer"
+													title="Delete Employee"
+												>
+													<Trash2Icon className="size-3.5" />
+												</button>
+											</div>
+
+											{String(emp.gender || '').toUpperCase() === 'FEMALE' && (
+												<button
+													type="button"
+													onClick={async () => {
+														const res = await allowEmployeeHomeSetup(emp.id);
+														if (res.success) {
+															alert(
+																`Home setup allowed for ${emp.firstName}. They will see the yellow banner on Safety and can set/update home once.`
+															);
+															fetchEmployees();
+														} else {
+															alert(res.error || 'Failed');
+														}
+													}}
+													className="rounded-lg bg-amber-50 border border-amber-250 hover:bg-amber-100 text-amber-800 px-2.5 py-1.5 text-[10px] font-light shadow-xs cursor-pointer transition-colors"
+													title="Allow employee to set/change home location once"
+												>
+													Allow home setup
+												</button>
+											)}
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 				)}
 
