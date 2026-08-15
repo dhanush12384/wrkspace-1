@@ -377,7 +377,7 @@ export function UnanimousFormGate({
 																? 'border-brand-500 bg-brand-500 text-white'
 																: isDark
 																	? 'border-zinc-700 bg-zinc-900/60'
-																	: 'border-slate-205 bg-white'
+																	: 'border-slate-200 bg-white'
 														)}
 													>
 														{selectedConcerns.includes(option) && '✓'}
@@ -521,7 +521,7 @@ export function UnanimousFormGate({
 																? 'border-brand-500 bg-brand-500 text-white'
 																: isDark
 																	? 'border-zinc-700 bg-zinc-900/60'
-																	: 'border-slate-205 bg-white'
+																	: 'border-slate-200 bg-white'
 														)}
 													>
 														{selectedActions.includes(option) && '✓'}
@@ -573,7 +573,7 @@ export function UnanimousFormGate({
 							<Button
 								type="submit"
 								disabled={submitting}
-								className="bg-brand-600 hover:bg-brand-555 text-white text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2 animate-none"
+								className="bg-brand-600 hover:bg-brand-500 text-white text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2 animate-none"
 							>
 								{submitting ? (
 									<>
