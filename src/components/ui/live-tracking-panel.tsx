@@ -110,17 +110,17 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 	const mapEmployees = employees.filter((e) => e.hasLocation);
 
 	return (
-		<div className="space-y-6 text-white">
-			<div className="flex flex-wrap items-start justify-between gap-4">
+		<div className="space-y-6 text-slate-800">
+			<div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-5">
 				<div>
-					<h2 className="text-xl font-bold">Live tracking</h2>
-					<p className="mt-1 max-w-xl text-xs text-zinc-400">
+					<h2 className="text-xl font-bold text-slate-900">Live tracking</h2>
+					<p className="mt-1 max-w-xl text-xs text-slate-500 leading-relaxed">
 						Pins are each employee&apos;s phone GPS (not the office). Click a name to zoom to their
 						exact pin. Green = updated in last 5 min. Track requires their wrkspace app open with
 						location allowed.
 						{lastAt ? ` · Refreshed ${lastAt}` : ''}
 					</p>
-					{error ? <p className="mt-1 text-xs text-rose-400">{error}</p> : null}
+					{error ? <p className="mt-1 text-xs text-rose-600 font-semibold">{error}</p> : null}
 				</div>
 				<div className="flex flex-wrap gap-2">
 					{!globalActive ? (
@@ -137,7 +137,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 									setBusy(false);
 								}
 							}}
-							className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold hover:bg-emerald-500 disabled:opacity-50"
+							className="rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 text-xs font-light shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
 						>
 							{busy ? '…' : 'Start live tracking'}
 						</button>
@@ -155,7 +155,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 									setBusy(false);
 								}
 							}}
-							className="rounded-md bg-rose-600 px-4 py-2 text-sm font-semibold hover:bg-rose-500 disabled:opacity-50"
+							className="rounded-lg bg-rose-600 hover:bg-rose-500 text-white px-4 py-2.5 text-xs font-light shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
 						>
 							{busy ? '…' : 'Stop live tracking'}
 						</button>
@@ -163,7 +163,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 					<button
 						type="button"
 						onClick={() => void load()}
-						className="rounded-md border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
+						className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-light text-slate-700 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
 					>
 						Refresh
 					</button>
@@ -171,33 +171,33 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 			</div>
 
 			<div
-				className={`rounded-lg border px-4 py-3 text-sm ${
+				className={`rounded-xl border px-4 py-3 text-xs shadow-sm ${
 					globalActive
-						? 'border-emerald-700/60 bg-emerald-950/40 text-emerald-200'
-						: 'border-zinc-700 bg-zinc-900/60 text-zinc-300'
+						? 'border-emerald-250 bg-emerald-50 text-emerald-800'
+						: 'border-slate-200 bg-white text-slate-700'
 				}`}
 			>
-				<p className="font-semibold">
+				<p className="font-bold">
 					Global tracking: {globalActive ? 'ON — phones pinging' : 'OFF'}
 				</p>
-				<p className="mt-1 text-xs opacity-90">
+				<p className="mt-1 text-xs opacity-90 font-medium">
 					{stats.live} live now · {stats.withLocation} have a last location · {stats.personalActive}{' '}
 					personal track · {stats.total} employees
 				</p>
 			</div>
 
-			<div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-				<div className="h-[420px] overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+			<div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] items-start">
+				<div className="h-[450px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
 					<LiveMap employees={mapEmployees} focusId={focusId} />
 				</div>
 
-				<div className="flex max-h-[420px] flex-col rounded-lg border border-zinc-800 bg-zinc-950">
-					<div className="flex flex-wrap gap-2 border-b border-zinc-800 p-3">
+				<div className="flex h-[450px] flex-col rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+					<div className="flex flex-wrap gap-2 border-b border-slate-100 bg-slate-50 p-3 items-center">
 						<input
 							value={q}
 							onChange={(e) => setQ(e.target.value)}
 							placeholder="Search name / phone…"
-							className="min-w-[140px] flex-1 rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-xs text-white outline-none focus:border-brand-500"
+							className="min-w-[140px] flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
 						/>
 						{(
 							[
@@ -211,22 +211,22 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 								key={id}
 								type="button"
 								onClick={() => setFilter(id)}
-								className={`rounded px-2 py-1 text-[11px] font-semibold ${
+								className={`rounded-lg px-2.5 py-1.5 text-[10px] font-light transition-all ${
 									filter === id
-										? 'bg-brand-600 text-white'
-										: 'bg-zinc-900 text-zinc-400 hover:text-white'
+										? 'bg-brand-650 text-white shadow-sm cursor-pointer'
+										: 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 shadow-xs cursor-pointer'
 								}`}
 							>
 								{label}
 							</button>
 						))}
 					</div>
-					<ul className="min-h-0 flex-1 divide-y divide-zinc-800 overflow-y-auto">
+					<ul className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto">
 						{filtered.length === 0 ? (
-							<li className="p-4 text-center text-xs text-zinc-500">No employees match.</li>
+							<li className="p-4 text-center text-xs text-slate-500 italic">No employees match.</li>
 						) : (
 							filtered.map((e) => (
-								<li key={e.id} className="px-3 py-2.5 hover:bg-zinc-900/80">
+								<li key={e.id} className="px-4 py-3 hover:bg-slate-50/50 transition-colors">
 									<div className="flex items-start gap-2">
 										<button
 											type="button"
@@ -237,21 +237,21 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 												<span
 													className={`inline-block size-2 shrink-0 rounded-full ${
 														e.isLive
-															? 'bg-emerald-400'
+															? 'bg-emerald-500'
 															: e.hasLocation
 																? 'bg-slate-400'
-																: 'bg-zinc-700'
+																: 'bg-slate-200'
 													}`}
 												/>
-												<p className="truncate text-sm font-semibold text-white">{e.name}</p>
+												<p className="truncate text-xs font-semibold text-slate-800">{e.name}</p>
 												{e.liveTrackActive ? (
-													<span className="rounded bg-emerald-900/80 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
+													<span className="rounded bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-[8px] font-bold text-emerald-800">
 														TRACKING
 													</span>
 												) : null}
 											</div>
-											<p className="mt-0.5 text-[11px] text-zinc-400">{e.phone}</p>
-											<p className="mt-0.5 font-mono text-[10px] text-zinc-500">
+											<p className="mt-0.5 text-[10px] text-slate-500 font-normal">{e.phone}</p>
+											<p className="mt-0.5 text-[10px] text-slate-500 font-normal">
 												{e.hasLocation
 													? `${e.lat!.toFixed(5)}, ${e.lng!.toFixed(5)} · ${ageLabel(e.ageMs)}${
 															(e as any).nearOfficeName
@@ -261,7 +261,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 													: 'No location yet — open app + allow GPS'}
 											</p>
 										</button>
-										<div className="flex shrink-0 flex-col gap-1">
+										<div className="flex shrink-0 flex-col gap-1.5">
 											{e.mapsUrl ? (
 												<a
 													href={e.mapsUrl}
@@ -270,7 +270,6 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 													onClick={(ev) => {
 														ev.stopPropagation();
 														if (e.lat != null && e.lng != null) {
-															
 															ev.preventDefault();
 															window.open(
 																`https://www.google.com/maps/search/?api=1&query=${e.lat},${e.lng}`,
@@ -279,7 +278,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 															);
 														}
 													}}
-													className="rounded border border-zinc-700 px-2 py-1 text-center text-[10px] font-semibold text-zinc-200 hover:bg-zinc-800"
+													className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-center text-[10px] font-light text-slate-700 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
 												>
 													Maps
 												</a>
@@ -298,7 +297,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 															setRowBusy(null);
 														}
 													}}
-													className="rounded bg-rose-700/80 px-2 py-1 text-[10px] font-semibold hover:bg-rose-600 disabled:opacity-50"
+													className="rounded-lg bg-rose-605 hover:bg-rose-500 text-white px-2.5 py-1.5 text-center text-[10px] font-light shadow-sm cursor-pointer transition-colors active:scale-[0.98] disabled:opacity-50"
 												>
 													Stop
 												</button>
@@ -317,7 +316,7 @@ export function AdminLiveTrackingPanel({ adminEmail }: { adminEmail: string }) {
 															setRowBusy(null);
 														}
 													}}
-													className="rounded bg-emerald-700/80 px-2 py-1 text-[10px] font-semibold hover:bg-emerald-600 disabled:opacity-50"
+													className="rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 text-center text-[10px] font-light shadow-sm cursor-pointer transition-colors active:scale-[0.98] disabled:opacity-50"
 												>
 													Track
 												</button>
