@@ -1,12 +1,9 @@
 import { getFirebasePublicConfig } from '@/lib/firebase-public-config';
-
 export const dynamic = 'force-dynamic';
-
-
 export async function GET() {
-	const config = getFirebasePublicConfig();
-	const body = config
-		? `/* generated — do not commit secrets */
+    const config = getFirebasePublicConfig();
+    const body = config
+        ? `/* generated — do not commit secrets */
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 firebase.initializeApp(${JSON.stringify(config)});
@@ -45,14 +42,12 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 `
-		: `/* Firebase not configured */\nself.addEventListener('install', () => self.skipWaiting());\n`;
-
-	return new Response(body, {
-		status: 200,
-		headers: {
-			'Content-Type': 'application/javascript; charset=utf-8',
-			'Cache-Control': 'no-store',
-			
-		},
-	});
+        : `/* Firebase not configured */\nself.addEventListener('install', () => self.skipWaiting());\n`;
+    return new Response(body, {
+        status: 200,
+        headers: {
+            'Content-Type': 'application/javascript; charset=utf-8',
+            'Cache-Control': 'no-store',
+        },
+    });
 }

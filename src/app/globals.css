@@ -354,7 +354,7 @@ body {
   height: 100% !important;
 }
 
-/* ─── Verification Portal — Breadcrumb sub-bar ─────────────────────────── */
+
 .ev-breadcrumb-bar {
   background: #E61E32;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -387,9 +387,7 @@ body {
   font-weight: 600;
 }
 
-/* =========================================================================
-   ─── Admin Portal Light Theme Overrides ───────────────────────────
-   ========================================================================= */
+
 .admin-portal {
   color-scheme: light;
   --background: #e8edf5;
@@ -409,7 +407,7 @@ body {
   color: #0f172a !important;
 }
 
-/* Background mappings */
+
 .admin-portal .bg-zinc-950,
 .admin-portal .bg-zinc-950\/90,
 .admin-portal .bg-zinc-900,
@@ -428,7 +426,7 @@ body {
   background-color: #f1f5f9 !important;
 }
 
-/* Text overrides to dark slate */
+
 .admin-portal .text-zinc-400,
 .admin-portal .text-zinc-500,
 .admin-portal .text-zinc-600,
@@ -439,7 +437,7 @@ body {
   color: #1e293b !important;
 }
 
-/* Re-insulate button / white text elements with brand/red/emerald/rose backgrounds or text-white class */
+
 .admin-portal button.text-white,
 .admin-portal button.text-white *,
 .admin-portal button.bg-amber-500,
@@ -466,7 +464,7 @@ body {
   color: #ffffff !important;
 }
 
-/* Border overrides */
+
 .admin-portal .border-zinc-800,
 .admin-portal .border-zinc-800\/80,
 .admin-portal .border-zinc-800\/60,
@@ -477,7 +475,7 @@ body {
   border-color: #cbd5e1 !important;
 }
 
-/* Header special light mode rules */
+
 .admin-portal > header {
   background: #ffffff !important;
   border-bottom: 1px solid #cbd5e1 !important;
@@ -493,7 +491,7 @@ body {
   background-color: #e2e8f0 !important;
 }
 
-/* Inline gradient override for the tabs bar subnav */
+
 .admin-portal div[style*="linear-gradient"] {
   background-image: none !important;
   background-color: #ffffff !important;
@@ -501,7 +499,7 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Tab active and inactive states overrides */
+
 .admin-portal .border-brand-400.text-white {
   border-color: #ef4444 !important;
   color: #ef4444 !important;
@@ -513,7 +511,7 @@ body {
   color: #0f172a !important;
 }
 
-/* Form fields input/select/textarea overrides */
+
 .admin-portal input,
 .admin-portal select,
 .admin-portal textarea {
@@ -529,7 +527,7 @@ body {
   color: #94a3b8 !important;
 }
 
-/* General texts */
+
 .admin-portal h1,
 .admin-portal h2,
 .admin-portal h3,
@@ -543,17 +541,17 @@ body {
   color: #0f172a !important;
 }
 
-/* Radial gradient background */
+
 .admin-portal > .absolute.inset-0 {
   background: radial-gradient(circle at top, rgba(99, 102, 241, 0.04), transparent 60%) !important;
 }
 
-/* Sub-navbar specific rules under light theme admin-portal */
+
 .admin-portal .admin-subnav {
   background-color: #E61E32 !important;
   border-bottom-color: #b91c1c !important;
 }
-/* Active state tab */
+
 .admin-portal .admin-subnav button.text-white,
 .admin-portal .admin-subnav button.border-brand-400,
 .admin-portal .admin-subnav button[class*="text-white"],
@@ -561,7 +559,7 @@ body {
   color: #ffffff !important;
   border-bottom-color: #ffffff !important;
 }
-/* Inactive states tab */
+
 .admin-portal .admin-subnav button.text-brand-300\/60,
 .admin-portal .admin-subnav button[class*="text-brand-300\/60"],
 .admin-portal .admin-subnav button {
@@ -570,13 +568,13 @@ body {
   outline: none !important;
   box-shadow: none !important;
 }
-/* Inactive states hover */
+
 .admin-portal .admin-subnav button.hover\:text-white:hover,
 .admin-portal .admin-subnav button:hover {
   color: #ffffff !important;
   border-bottom-color: rgba(255, 255, 255, 0.3) !important;
 }
-/* Focus rings removal */
+
 .admin-portal .admin-subnav button:focus,
 .admin-portal .admin-subnav button:focus-visible,
 .admin-portal .admin-subnav button:active {
@@ -584,12 +582,12 @@ body {
   box-shadow: none !important;
 }
 
-/* ── Messaging panel: all structural borders must be light grey ── */
+
 .admin-portal .border-slate-100,
 .admin-portal .border-slate-200 {
   border-color: #f1f5f9 !important;
 }
-/* Sidebar divider between list and footer */
+
 .admin-portal .border-t.border-slate-100,
 .admin-portal .border-b.border-slate-100,
 .admin-portal .border-r.border-slate-100 {

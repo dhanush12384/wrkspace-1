@@ -1,5 +1,4 @@
 import { AuthPage } from "@/components/ui/auth-page";
-
 export default function Home() {
-  return <AuthPage />;
+    return <AuthPage />;
 }
