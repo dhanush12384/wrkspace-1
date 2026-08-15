@@ -208,10 +208,10 @@ export function UnanimousFormGate({
 				{/* Top Premium Badge & Title */}
 				<div className="text-center space-y-4 max-w-xl mx-auto">
 					<div className={cn(
-						"inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] tracking-widest uppercase shadow-sm transition-all duration-300",
+						"inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-sm transition-all duration-300",
 						isDark 
-							? "border-zinc-800/80 bg-zinc-900/50 text-zinc-400" 
-							: "border-slate-250 bg-white text-slate-500"
+							? "bg-zinc-900/50 text-zinc-400" 
+							: "bg-white text-slate-500"
 					)}>
 						<Lock className="size-3 text-brand-500" /> Secure Verification System
 					</div>
