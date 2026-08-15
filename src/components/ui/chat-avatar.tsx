@@ -14,6 +14,7 @@ type Props = {
 	className?: string;
 	
 	adminEmail?: string | null;
+	shape?: 'circle' | 'square' | 'rectangle';
 };
 
 const _cache = new Map<string, string>();
@@ -66,6 +67,7 @@ export function ChatAvatar({
 	size = 32,
 	className,
 	adminEmail,
+	shape = 'circle',
 }: Props) {
 	const color = memberChatColor(id || name);
 	const initials = memberInitials(name);
@@ -161,13 +163,12 @@ export function ChatAvatar({
 
 	if (src) {
 		return (
-			
 			<img
 				src={src}
 				alt={name}
 				width={size}
 				height={size}
-				className={cn('rounded-full object-cover shrink-0 bg-zinc-200', className)}
+				className={cn(shape === 'circle' ? 'rounded-full' : 'rounded-lg', 'object-cover shrink-0 bg-zinc-200', className)}
 				style={{ width: size, height: size }}
 				onError={() => {
 					if (id) {
@@ -182,7 +183,7 @@ export function ChatAvatar({
 
 	return (
 		<span
-			className={cn('rounded-full flex items-center justify-center font-bold shrink-0', className)}
+			className={cn(shape === 'circle' ? 'rounded-full' : 'rounded-lg', 'flex items-center justify-center font-bold shrink-0', className)}
 			style={{
 				width: size,
 				height: size,

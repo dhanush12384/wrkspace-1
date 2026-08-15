@@ -3745,6 +3745,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 													hasPhoto={Boolean(emp.hasPhoto)}
 													adminEmail={email}
 													size={44}
+													shape="rectangle"
 												/>
 												<span
 													className={cn(
@@ -3816,14 +3817,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														setEditingItem(emp);
 														setEditModalType('employee');
 													}}
-													className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-brand-650 hover:border-brand-300 rounded-lg shadow-xs transition-all cursor-pointer"
+													className="p-2 border border-brand-200 bg-brand-50/20 text-brand-650 hover:bg-brand-50 hover:border-brand-500 rounded-lg shadow-xs transition-all cursor-pointer"
 													title="Edit Employee"
 												>
 													<PencilIcon className="size-3.5" />
 												</button>
 												<button
 													onClick={() => handleDeleteEmployee(emp.id)}
-													className="p-2 border border-slate-200 bg-white hover:bg-red-50 text-red-650 hover:border-red-200 rounded-lg shadow-xs transition-all cursor-pointer"
+													className="p-2 border border-red-200 bg-red-50/20 text-red-650 hover:bg-red-50 hover:border-red-500 rounded-lg shadow-xs transition-all cursor-pointer"
 													title="Delete Employee"
 												>
 													<Trash2Icon className="size-3.5" />
