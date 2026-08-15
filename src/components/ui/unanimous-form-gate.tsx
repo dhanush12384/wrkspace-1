@@ -566,9 +566,7 @@ export function UnanimousFormGate({
 								isDark ? "border-zinc-850/60 text-zinc-550" : "border-slate-200 text-slate-500"
 							)}
 						>
-							<div className="text-[10px] max-w-[60%] leading-relaxed flex items-center gap-2">
-								<Lock className="size-3 shrink-0" /> Verified Submitter: {userName} ({userEmail})
-							</div>
+							<div />
 
 							<Button
 								type="submit"
