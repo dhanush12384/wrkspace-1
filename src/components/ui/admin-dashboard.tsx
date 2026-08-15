@@ -3732,7 +3732,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								{employeesList.map((emp) => (
 									<div key={emp.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative overflow-hidden group">
 										{/* Badge with ID */}
-										<span className="absolute top-4 right-4 bg-slate-50 border border-slate-200 text-slate-650 px-2 py-0.5 rounded text-[10px] font-light">
+										<span className="absolute top-4 right-4 bg-slate-50 border border-slate-200 text-slate-500 px-2 py-0.5 rounded text-[10px] font-light">
 											ID: {emp.id}
 										</span>
 
@@ -3750,7 +3750,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												<span
 													className={cn(
 														'absolute -bottom-1 -right-1 block size-2.5 rounded-full border-2 border-white',
-														emp.hasPhoto ? 'bg-emerald-500' : 'bg-slate-350'
+														emp.hasPhoto ? 'bg-emerald-500' : 'bg-slate-300'
 													)}
 													title={emp.hasPhoto ? 'Has Photo' : 'No Photo'}
 												/>
@@ -3759,7 +3759,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												<p className="truncate text-xs font-semibold text-slate-800" title={`${emp.firstName} ${emp.lastName}`}>
 													{emp.firstName} {emp.middleName ? `${emp.middleName} ` : ''}{emp.lastName}
 												</p>
-												<p className="text-[10px] text-brand-650 font-medium">
+												<p className="text-[10px] text-rose-600 font-medium">
 													{emp.role || 'Employee'}
 												</p>
 											</div>
@@ -3817,14 +3817,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														setEditingItem(emp);
 														setEditModalType('employee');
 													}}
-													className="p-2 border border-brand-200 bg-brand-50/20 text-brand-650 hover:bg-brand-50 hover:border-brand-500 rounded-lg shadow-xs transition-all cursor-pointer"
+													className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:border-slate-400 hover:text-slate-900 rounded-lg shadow-xs transition-all cursor-pointer"
 													title="Edit Employee"
 												>
 													<PencilIcon className="size-3.5" />
 												</button>
 												<button
 													onClick={() => handleDeleteEmployee(emp.id)}
-													className="p-2 border border-red-200 bg-red-50/20 text-red-650 hover:bg-red-50 hover:border-red-500 rounded-lg shadow-xs transition-all cursor-pointer"
+													className="p-2 border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-400 rounded-lg shadow-xs transition-all cursor-pointer"
 													title="Delete Employee"
 												>
 													<Trash2Icon className="size-3.5" />
