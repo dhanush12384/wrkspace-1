@@ -3817,14 +3817,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														setEditingItem(emp);
 														setEditModalType('employee');
 													}}
-													className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:border-slate-400 hover:text-slate-900 rounded-lg shadow-xs transition-all cursor-pointer"
+													className="p-2 border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-850 rounded-lg shadow-xs transition-all cursor-pointer font-semibold"
 													title="Edit Employee"
 												>
 													<PencilIcon className="size-3.5" />
 												</button>
 												<button
 													onClick={() => handleDeleteEmployee(emp.id)}
-													className="p-2 border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:border-red-400 rounded-lg shadow-xs transition-all cursor-pointer"
+													className="p-2 border border-red-600 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-xs transition-all cursor-pointer font-semibold"
 													title="Delete Employee"
 												>
 													<Trash2Icon className="size-3.5" />
@@ -3845,7 +3845,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															alert(res.error || 'Failed');
 														}
 													}}
-													className="rounded-lg bg-amber-50 border border-amber-250 hover:bg-amber-100 text-amber-800 px-2.5 py-1.5 text-[10px] font-light shadow-xs cursor-pointer transition-colors"
+													className="rounded-lg bg-amber-500 border border-amber-600 hover:bg-amber-600 text-white px-2.5 py-1.5 text-[10px] font-semibold shadow-xs cursor-pointer transition-colors"
 													title="Allow employee to set/change home location once"
 												>
 													Allow home setup
