@@ -2999,11 +2999,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{activeTab === 'offices' && (
-					<div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-none">
-						<OfficesPanel />
-					</div>
-				)}
+				{activeTab === 'offices' && <OfficesPanel />}
 
 				{}
 				{activeTab === 'attendance' && (() => {
