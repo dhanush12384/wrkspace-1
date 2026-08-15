@@ -3366,7 +3366,6 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											className="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors"
 										>
 											<option value="Onsite">Onsite</option>
-											<option value="Remote">Remote</option>
 											<option value="Hybrid">Hybrid</option>
 										</select>
 									</div>
@@ -6521,7 +6520,6 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<label className="text-[10px] text-zinc-400 uppercase font-medium">Mode</label>
 										<select name="mode" defaultValue={editingItem.mode} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white h-9 px-2 outline-none">
 											<option value="Onsite">Onsite</option>
-											<option value="Remote">Remote</option>
 											<option value="Hybrid">Hybrid</option>
 										</select>
 									</div>
