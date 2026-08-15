@@ -210,7 +210,7 @@ export function UnanimousFormGate({
 					<div className={cn(
 						"inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] tracking-widest uppercase shadow-sm transition-all duration-300",
 						isDark 
-							? "bg-zinc-900/50 text-zinc-400" 
+							? "border border-zinc-800/80 bg-zinc-900/50 text-zinc-400" 
 							: "bg-white text-slate-500"
 					)}>
 						<Lock className="size-3 text-brand-500" /> Secure Verification System
@@ -232,10 +232,10 @@ export function UnanimousFormGate({
 				<form
 					onSubmit={handleSubmit}
 					className={cn(
-						"border rounded-2xl p-6 md:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden transition-all duration-300",
+						"rounded-2xl p-6 md:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden transition-all duration-300",
 						isDark 
-							? "bg-zinc-900/40 border-zinc-800/80 text-zinc-200" 
-							: "bg-white border-slate-200/80 text-slate-800"
+							? "bg-zinc-900/40 border border-zinc-800/80 text-zinc-200" 
+							: "bg-white border-transparent text-slate-800 shadow-xl shadow-slate-200/50"
 					)}
 				>
 					{/* Decorative glowing gradient borders */}
@@ -246,7 +246,7 @@ export function UnanimousFormGate({
 							"mb-6 p-4 rounded-xl border text-xs flex items-center gap-3",
 							isDark 
 								? "border-red-900/50 bg-red-950/20 text-red-400" 
-								: "border-red-200 bg-red-50 text-red-605"
+								: "border-transparent bg-red-50 text-red-605"
 						)}>
 							<AlertCircle className="size-4 shrink-0" />
 							<span>{error}</span>
@@ -271,10 +271,10 @@ export function UnanimousFormGate({
 										comfortableSharing === 'Yes'
 											? isDark 
 												? 'bg-brand-600/10 border-brand-500 text-white shadow-lg shadow-brand-500/10 scale-[1.02]'
-												: 'bg-brand-50 border-brand-500 text-brand-700 shadow-md shadow-brand-500/5 scale-[1.02]'
+												: 'bg-brand-50 border-transparent text-brand-700 shadow-md shadow-brand-500/5 scale-[1.02]'
 											: isDark
 												? 'bg-zinc-900/20 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-												: 'bg-slate-50/50 border-slate-200 text-slate-550 hover:border-slate-350 hover:text-slate-800'
+												: 'bg-slate-50/50 border-transparent text-slate-550 hover:bg-slate-100/80 hover:text-slate-800'
 									)}
 								>
 									<span className="text-base">Yes, I want to share</span>
@@ -289,10 +289,10 @@ export function UnanimousFormGate({
 										comfortableSharing === 'No'
 											? isDark
 												? 'bg-zinc-800/50 border-zinc-550 text-white shadow-lg shadow-zinc-500/10 scale-[1.02]'
-												: 'bg-slate-100 border-slate-400 text-slate-800 shadow-slate-500/5 scale-[1.02]'
+												: 'bg-slate-100 border-transparent text-slate-800 shadow-slate-500/5 scale-[1.02]'
 											: isDark
 												? 'bg-zinc-900/20 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-												: 'bg-slate-50/50 border-slate-200 text-slate-550 hover:border-slate-350 hover:text-slate-800'
+												: 'bg-slate-50/50 border-transparent text-slate-550 hover:bg-slate-100/80 hover:text-slate-800'
 									)}
 								>
 									<span className="text-base">No concerns right now</span>
@@ -311,7 +311,7 @@ export function UnanimousFormGate({
 									transition={{ duration: 0.4, ease: 'easeInOut' }}
 									className={cn(
 										"overflow-hidden space-y-8 pt-6 border-t",
-										isDark ? "border-zinc-800/50" : "border-slate-150"
+										isDark ? "border-zinc-800/50" : "border-slate-100"
 									)}
 								>
 									{/* 1. What would you like to tell us? */}
@@ -339,7 +339,7 @@ export function UnanimousFormGate({
 												"w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-colors",
 												isDark
 													? "bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-650"
-													: "bg-slate-50 border-slate-250 text-slate-900 placeholder:text-slate-450"
+													: "bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-450 focus:bg-white"
 											)}
 										/>
 									</div>
@@ -364,10 +364,10 @@ export function UnanimousFormGate({
 														selectedConcerns.includes(option)
 															? isDark
 																? 'bg-brand-500/10 border-brand-550 text-white'
-																: 'bg-brand-50 border-brand-500 text-brand-700'
+																: 'bg-brand-50 border-transparent text-brand-700'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
-																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-700'
+																: 'bg-slate-50/40 border-transparent text-slate-550 hover:bg-slate-100 hover:text-slate-700'
 													)}
 												>
 													<div
@@ -377,7 +377,7 @@ export function UnanimousFormGate({
 																? 'border-brand-500 bg-brand-500 text-white'
 																: isDark
 																	? 'border-zinc-700 bg-zinc-900/60'
-																	: 'border-slate-300 bg-white'
+																	: 'border-slate-205 bg-white'
 														)}
 													>
 														{selectedConcerns.includes(option) && '✓'}
@@ -407,15 +407,15 @@ export function UnanimousFormGate({
 														'py-2.5 rounded-xl border text-xs transition-all duration-250 cursor-pointer',
 														severity === opt
 															? opt === 'Urgent'
-																? isDark ? 'bg-red-950/30 border-red-500 text-red-400' : 'bg-red-50 border-red-500 text-red-700'
+																? isDark ? 'bg-red-950/30 border-red-500 text-red-400' : 'bg-red-50 border-transparent text-red-700'
 																: opt === 'Serious'
-																? isDark ? 'bg-orange-950/30 border-orange-500 text-orange-400' : 'bg-orange-50 border-orange-500 text-orange-700'
+																? isDark ? 'bg-orange-950/30 border-orange-500 text-orange-400' : 'bg-orange-50 border-transparent text-orange-700'
 																: opt === 'Moderate'
-																? isDark ? 'bg-yellow-950/30 border-yellow-500 text-yellow-450' : 'bg-yellow-50 border-yellow-500 text-yellow-700'
-																: isDark ? 'bg-green-950/30 border-green-500 text-green-400' : 'bg-green-50 border-green-500 text-green-700'
+																? isDark ? 'bg-yellow-950/30 border-yellow-500 text-yellow-450' : 'bg-yellow-50 border-transparent text-yellow-700'
+																: isDark ? 'bg-green-950/30 border-green-500 text-green-400' : 'bg-green-50 border-transparent text-green-700'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-305'
-																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+																: 'bg-slate-50/40 border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -444,10 +444,10 @@ export function UnanimousFormGate({
 														duration === opt
 															? isDark
 																? 'bg-brand-500/10 border-brand-500 text-white'
-																: 'bg-brand-50 border-brand-500 text-brand-700'
+																: 'bg-brand-50 border-transparent text-brand-700'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-455 hover:border-zinc-750 hover:text-zinc-300'
-																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+																: 'bg-slate-50/40 border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -476,10 +476,10 @@ export function UnanimousFormGate({
 														involvesOthers === opt
 															? isDark
 																? 'bg-brand-500/10 border-brand-500 text-white shadow-sm'
-																: 'bg-brand-50 border-brand-500 text-brand-700 shadow-sm'
+																: 'bg-brand-50 border-transparent text-brand-700 shadow-sm'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-300'
-																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-700'
+																: 'bg-slate-50/40 border-transparent text-slate-550 hover:bg-slate-100 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -508,10 +508,10 @@ export function UnanimousFormGate({
 														selectedActions.includes(option)
 															? isDark
 																? 'bg-brand-500/10 border-brand-550 text-white'
-																: 'bg-brand-50 border-brand-500 text-brand-700'
+																: 'bg-brand-50 border-transparent text-brand-700'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
-																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-700'
+																: 'bg-slate-50/40 border-transparent text-slate-550 hover:bg-slate-100 hover:text-slate-700'
 													)}
 												>
 													<div
@@ -521,7 +521,7 @@ export function UnanimousFormGate({
 																? 'border-brand-500 bg-brand-500 text-white'
 																: isDark
 																	? 'border-zinc-700 bg-zinc-900/60'
-																	: 'border-slate-300 bg-white'
+																	: 'border-slate-205 bg-white'
 														)}
 													>
 														{selectedActions.includes(option) && '✓'}
@@ -546,7 +546,7 @@ export function UnanimousFormGate({
 												"w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-colors",
 												isDark
 													? "bg-zinc-950 border-zinc-800 text-zinc-100 placeholder:text-zinc-650"
-													: "bg-slate-50 border-slate-250 text-slate-900 placeholder:text-slate-450"
+													: "bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-450 focus:bg-white"
 											)}
 										/>
 									</div>
@@ -573,7 +573,7 @@ export function UnanimousFormGate({
 							<Button
 								type="submit"
 								disabled={submitting}
-								className="bg-brand-600 hover:bg-brand-550 text-white text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2 animate-none"
+								className="bg-brand-600 hover:bg-brand-555 text-white text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2 animate-none"
 							>
 								{submitting ? (
 									<>
