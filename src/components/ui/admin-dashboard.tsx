@@ -462,6 +462,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	const [badgeImage, setBadgeImage] = useState('');
 	const [badgeMessage, setBadgeMessage] = useState<string | null>(null);
 	const [showAddManualLeave, setShowAddManualLeave] = useState(false);
+	const [leavesFilter, setLeavesFilter] = useState('All');
+	const [leavesSearchQuery, setLeavesSearchQuery] = useState('');
 	const [showAddManualAttendance, setShowAddManualAttendance] = useState(false);
 	const [showTodayAttendanceSummary, setShowTodayAttendanceSummary] = useState(false);
 	const [attendanceSearchQuery, setAttendanceSearchQuery] = useState('');
@@ -2798,206 +2800,350 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				)}
 
 				{}
-				{activeTab === 'leaves' && (
-					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-4 rounded-none">
-						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-							<h3 className="text-sm font-semibold text-white uppercase tracking-wider">
-								Employee Leaves Directory
-							</h3>
-							<div className="flex items-center gap-2">
-								<button 
-									onClick={() => setShowAddManualLeave(!showAddManualLeave)}
-									className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-1.5 rounded-none cursor-pointer transition-colors"
-								>
-									{showAddManualLeave ? 'Cancel Log' : '+ Log Leave'}
-								</button>
-								<button 
-									onClick={fetchLeaves}
-									className="p-1.5 border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white transition-all rounded-none cursor-pointer"
-								>
-									<RefreshCwIcon className="size-3.5" />
-								</button>
-							</div>
-						</div>
+				{activeTab === 'leaves' && (() => {
+					const filteredLeaves = leavesList.filter((leave: any) => {
+						const q = leavesSearchQuery.toLowerCase().trim();
+						const matchesSearch = !q ||
+							(leave.employeeName || '').toLowerCase().includes(q) ||
+							(leave.employeeId || '').toLowerCase().includes(q) ||
+							(leave.type || '').toLowerCase().includes(q) ||
+							(leave.reason || '').toLowerCase().includes(q) ||
+							(leave.status || '').toLowerCase().includes(q);
+						const matchesStatus = leavesFilter === 'All' || leave.status === leavesFilter;
+						return matchesSearch && matchesStatus;
+					});
 
-						{}
-						{showAddManualLeave && (
-							<form 
-								onSubmit={async (e) => {
-									e.preventDefault();
-									const target = e.currentTarget;
-									const empId = target.employeeId.value;
-									const emp = employeesList.find(x => x.id === empId);
-									if (!emp) return alert('Please select a valid employee.');
-									await handleAddManualLeave({
-										employeeId: emp.id,
-										employeeName: `${emp.firstName} ${emp.lastName}`,
-										startDate: target.startDate.value,
-										endDate: target.endDate.value,
-										type: target.type.value,
-										reason: target.reason.value,
-										status: target.status.value,
-									});
-								}} 
-								className="bg-zinc-900/40 border border-zinc-800 p-5 space-y-4 rounded-none"
-							>
-								<h4 className="text-xs font-bold text-white uppercase tracking-wider">Log Leave Manually</h4>
-								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Select Employee</label>
-										<select name="employeeId" required className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none">
-											<option value="">-- Choose Employee --</option>
-											{employeesList.map(e => (
-												<option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.id})</option>
-											))}
-										</select>
-									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Leave Type</label>
-										<select name="type" required className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none">
-											<option value="Sick Leave">Sick Leave</option>
-											<option value="Casual Leave">Casual Leave</option>
-											<option value="Paid Leave">Paid Leave</option>
-											<option value="Unpaid Leave">Unpaid Leave</option>
-										</select>
-									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
-										<select name="status" required className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none">
-											<option value="Approved">Approved</option>
-											<option value="Pending">Pending</option>
-											<option value="Cancelled">Cancelled</option>
-										</select>
-									</div>
-								</div>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Start Date</label>
-										<Input type="date" name="startDate" required className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
-									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">End Date</label>
-										<Input type="date" name="endDate" required className="bg-zinc-950 border-zinc-800 text-white text-xs rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-700" />
-									</div>
-								</div>
-								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Reason Description</label>
-									<textarea name="reason" required rows={2} className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none p-2 outline-none focus:border-zinc-700 placeholder:text-zinc-650" placeholder="Provide details..."></textarea>
-								</div>
-								<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none cursor-pointer">
-									Save Leave Log
-								</Button>
-							</form>
-						)}
+					const pendingLeaves = leavesList.filter(l => l.status === 'Pending').length;
+					const approvedLeaves = leavesList.filter(l => l.status === 'Approved').length;
+					const cancelledLeaves = leavesList.filter(l => l.status === 'Cancelled' || l.status === 'Ignored').length;
 
-						{leavesList.length === 0 ? (
-							<div className="min-h-[200px] flex items-center justify-center text-zinc-500 italic text-sm">
-								No leave requests have been logged in the system.
-							</div>
-						) : (
-							<div className="overflow-x-auto border border-zinc-800 bg-zinc-950/20">
-								<table className="w-full text-left text-xs border-collapse">
-									<thead>
-										<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px] tracking-wider bg-zinc-950/40">
-											<th className="p-3">Employee</th>
-											<th className="p-3">Leave Type</th>
-											<th className="p-3">Period</th>
-											<th className="p-3 font-sans">Reason Statement</th>
-											<th className="p-3">Status</th>
-											<th className="p-3 text-right">Actions</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y divide-zinc-850/50 text-zinc-300">
-										{leavesList.map((leave: any) => (
-											<tr key={leave.id} className="hover:bg-zinc-900/10 transition-colors">
-												<td className="p-3 font-semibold text-white">
-													{leave.employeeName} <span className="text-zinc-550 font-mono text-[10px]">({leave.employeeId})</span>
-												</td>
-												<td className="p-3 font-semibold text-zinc-300">{leave.type}</td>
-												<td className="p-3 font-mono text-zinc-400 whitespace-nowrap">
-													{new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
-												</td>
-												<td className="p-3 text-zinc-400 max-w-sm truncate" title={leave.reason}>
-													{leave.reason}
-												</td>
-												<td className="p-3">
-													<span className={cn(
-														"px-2 py-0.5 text-[10px] font-bold border uppercase font-mono whitespace-nowrap",
-														leave.status === 'Pending' && "bg-yellow-950/30 text-yellow-400 border-yellow-900/30",
-														leave.status === 'Approved' && "bg-emerald-950/30 text-emerald-400 border-emerald-900/30",
-														leave.status === 'Ignored' && "bg-zinc-900 text-zinc-400 border-zinc-800",
-														leave.status === 'Cancelled' && "bg-red-950/30 text-red-400 border-red-900/30"
-													)}>
-														{leave.status}
-													</span>
-												</td>
-												<td className="p-3 text-right">
-													<div className="flex items-center justify-end gap-2">
-														{leave.status === 'Pending' ? (
-															<div className="inline-flex gap-1.5">
-																<button
-																	onClick={async () => {
-																		try {
-																			await updateLeaveStatus(leave.id, 'Approved');
-																			fetchLeaves();
-																		} catch (err) {
-																			console.error("Failed to approve leave", err);
-																		}
-																	}}
-																	className="p-1.5 bg-emerald-950/40 border border-emerald-800 text-emerald-400 hover:bg-emerald-900/40 cursor-pointer"
-																	title="Approve Leave"
-																>
-																	<CheckIcon className="size-3.5" />
-																</button>
-																<button
-																	onClick={async () => {
-																		try {
-																			await updateLeaveStatus(leave.id, 'Ignored');
-																			fetchLeaves();
-																		} catch (err) {
-																			console.error("Failed to ignore leave", err);
-																		}
-																	}}
-																	className="p-1.5 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 cursor-pointer"
-																	title="Ignore Leave"
-																>
-																	<EyeIcon className="size-3.5" />
-																</button>
-																<button
-																	onClick={async () => {
-																		try {
-																			await updateLeaveStatus(leave.id, 'Cancelled');
-																			fetchLeaves();
-																		} catch (err) {
-																			console.error("Failed to cancel leave", err);
-																		}
-																	}}
-																	className="p-1.5 bg-red-955/40 border border-red-900/40 text-red-400 hover:bg-red-900/40 cursor-pointer"
-																	title="Cancel Leave"
-																>
-																	<XIcon className="size-3.5" />
-																</button>
-															</div>
-														) : (
-															<span className="text-[10px] text-zinc-555 italic mr-1">Processed</span>
-														)}
-														<button
-															onClick={() => handleDeleteLeave(leave.id)}
-															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-red-400 hover:text-red-300 transition-all cursor-pointer"
-															title="Delete Leave Request"
-														>
-															<Trash2Icon className="size-3.5" />
-														</button>
-													</div>
-												</td>
-											</tr>
+					return (
+						<div className="space-y-6">
+							{/* Header & Controls */}
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+								<div>
+									<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Leave Applications</h2>
+									<p className="text-xs text-slate-500 mt-0.5">
+										Review employee sick, paid, and casual leave rosters to approve time-off requests
+									</p>
+								</div>
+								<div className="flex items-center gap-2 flex-wrap">
+									<div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80">
+										{(['All', 'Pending', 'Approved', 'Cancelled', 'Ignored'] as const).map(st => (
+											<button
+												key={st}
+												onClick={() => setLeavesFilter(st)}
+												className={cn(
+													"text-xs px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer",
+													leavesFilter === st
+														? "bg-[#E61E32] text-white font-semibold shadow-xs"
+														: "text-slate-600 hover:text-slate-900 hover:bg-white/80"
+												)}
+											>
+												{st} {st === 'Pending' && pendingLeaves > 0 ? `(${pendingLeaves})` : ''}
+											</button>
 										))}
-									</tbody>
-								</table>
+									</div>
+									<button 
+										onClick={() => setShowAddManualLeave(!showAddManualLeave)}
+										className="inline-flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
+									>
+										{showAddManualLeave ? 'Cancel Log' : '+ Log Leave'}
+									</button>
+									<button 
+										onClick={fetchLeaves}
+										className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all rounded-xl cursor-pointer shadow-2xs"
+										title="Refresh Leaves"
+									>
+										<RefreshCwIcon className="size-4" />
+									</button>
+								</div>
 							</div>
-						)}
-					</div>
-				)}
+
+							{/* Overview Stat Cards */}
+							<div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+								<div className="border border-slate-200/90 bg-slate-50 p-4 rounded-2xl shadow-2xs space-y-1">
+									<p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Total Requests</p>
+									<p className="text-2xl font-semibold text-slate-900">{leavesList.length}</p>
+									<p className="text-[10px] text-slate-400 font-normal">All submitted rosters</p>
+								</div>
+								<div className="border border-amber-200 bg-amber-50/70 p-4 rounded-2xl shadow-2xs space-y-1">
+									<p className="text-[11px] font-medium text-amber-700 uppercase tracking-wider">Pending Review</p>
+									<p className="text-2xl font-semibold text-amber-700">{pendingLeaves}</p>
+									<p className="text-[10px] text-amber-600 font-normal">Action needed</p>
+								</div>
+								<div className="border border-emerald-200 bg-emerald-50/70 p-4 rounded-2xl shadow-2xs space-y-1">
+									<p className="text-[11px] font-medium text-emerald-700 uppercase tracking-wider">Approved Leaves</p>
+									<p className="text-2xl font-semibold text-emerald-700">{approvedLeaves}</p>
+									<p className="text-[10px] text-emerald-600 font-normal">Authorized time-off</p>
+								</div>
+								<div className="border border-rose-200 bg-rose-50/70 p-4 rounded-2xl shadow-2xs space-y-1">
+									<p className="text-[11px] font-medium text-rose-700 uppercase tracking-wider">Cancelled / Ignored</p>
+									<p className="text-2xl font-semibold text-rose-700">{cancelledLeaves}</p>
+									<p className="text-[10px] text-rose-600 font-normal">Declined or closed</p>
+								</div>
+							</div>
+
+							{/* Manual Leave Form Modal / Box */}
+							{showAddManualLeave && (
+								<form 
+									onSubmit={async (e) => {
+										e.preventDefault();
+										const target = e.currentTarget;
+										const empId = target.employeeId.value;
+										const emp = employeesList.find(x => x.id === empId);
+										if (!emp) return alert('Please select a valid employee.');
+										await handleAddManualLeave({
+											employeeId: emp.id,
+											employeeName: `${emp.firstName} ${emp.lastName}`,
+											startDate: target.startDate.value,
+											endDate: target.endDate.value,
+											type: target.type.value,
+											reason: target.reason.value,
+											status: target.status.value,
+										});
+									}} 
+									className="bg-white border border-slate-200/90 p-6 space-y-4 rounded-2xl shadow-xs"
+								>
+									<div className="flex items-center justify-between pb-3 border-b border-slate-100">
+										<div>
+											<h4 className="text-sm font-semibold text-slate-900">Log Leave Request Manually</h4>
+											<p className="text-xs text-slate-500 mt-0.5">Register an offline or pre-approved leave roster for an employee</p>
+										</div>
+										<button
+											type="button"
+											onClick={() => setShowAddManualLeave(false)}
+											className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
+										>
+											Close
+										</button>
+									</div>
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+										<div className="space-y-1">
+											<label className="text-[11px] text-slate-600 font-medium uppercase tracking-wider">Select Employee</label>
+											<select name="employeeId" required className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl h-10 px-3 outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 transition-colors">
+												<option value="">-- Choose Employee --</option>
+												{employeesList.map(e => (
+													<option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.id})</option>
+												))}
+											</select>
+										</div>
+										<div className="space-y-1">
+											<label className="text-[11px] text-slate-600 font-medium uppercase tracking-wider">Leave Type</label>
+											<select name="type" required className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl h-10 px-3 outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 transition-colors">
+												<option value="Sick Leave">Sick Leave</option>
+												<option value="Casual Leave">Casual Leave</option>
+												<option value="Paid Leave">Paid Leave</option>
+												<option value="Unpaid Leave">Unpaid Leave</option>
+											</select>
+										</div>
+										<div className="space-y-1">
+											<label className="text-[11px] text-slate-600 font-medium uppercase tracking-wider">Status</label>
+											<select name="status" required className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl h-10 px-3 outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 transition-colors">
+												<option value="Approved">Approved</option>
+												<option value="Pending">Pending</option>
+												<option value="Cancelled">Cancelled</option>
+											</select>
+										</div>
+									</div>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+										<div className="space-y-1">
+											<label className="text-[11px] text-slate-600 font-medium uppercase tracking-wider">Start Date</label>
+											<Input type="date" name="startDate" required className="bg-slate-50 border-slate-200 text-slate-800 text-xs rounded-xl h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20 focus-visible:border-[#E61E32]/40" />
+										</div>
+										<div className="space-y-1">
+											<label className="text-[11px] text-slate-600 font-medium uppercase tracking-wider">End Date</label>
+											<Input type="date" name="endDate" required className="bg-slate-50 border-slate-200 text-slate-800 text-xs rounded-xl h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20 focus-visible:border-[#E61E32]/40" />
+										</div>
+									</div>
+									<div className="space-y-1">
+										<label className="text-[11px] text-slate-600 font-medium uppercase tracking-wider">Reason Statement</label>
+										<textarea name="reason" required rows={2} className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 placeholder:text-slate-400 resize-none font-normal" placeholder="Provide complete reason details..."></textarea>
+									</div>
+									<div className="flex items-center gap-2 pt-2">
+										<Button type="submit" className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold py-2.5 px-5 rounded-xl cursor-pointer shadow-xs">
+											Save Leave Log
+										</Button>
+										<button 
+											type="button" 
+											onClick={() => setShowAddManualLeave(false)}
+											className="text-xs text-slate-500 hover:text-slate-700 font-medium px-4 py-2 rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
+										>
+											Cancel
+										</button>
+									</div>
+								</form>
+							)}
+
+							{/* Search Bar */}
+							<div className="flex items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs">
+								<div className="relative flex-1 max-w-md">
+									<SearchIcon className="absolute left-3 top-2.5 size-4 text-slate-400" />
+									<input
+										type="text"
+										placeholder="Search by employee name, ID, leave type, or reason..."
+										value={leavesSearchQuery}
+										onChange={e => setLeavesSearchQuery(e.target.value)}
+										className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40 transition-colors"
+									/>
+								</div>
+								<span className="text-xs text-slate-400 font-medium mr-2">
+									{filteredLeaves.length} application{filteredLeaves.length !== 1 ? 's' : ''} found
+								</span>
+							</div>
+
+							{/* Leaves List */}
+							{filteredLeaves.length === 0 ? (
+								<div className="text-center py-16 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs">
+									<div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+										<CalendarIcon className="size-6" />
+									</div>
+									<h3 className="text-sm font-semibold text-slate-800">No Leave Applications Found</h3>
+									<p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+										{leavesSearchQuery || leavesFilter !== 'All' 
+											? 'No records match your search filter criteria.' 
+											: 'No employee leave requests have been logged in the system.'}
+									</p>
+								</div>
+							) : (
+								<div className="space-y-3.5">
+									{filteredLeaves.map((leave: any) => {
+										const isPending = leave.status === 'Pending';
+										const isApproved = leave.status === 'Approved';
+										const isCancelled = leave.status === 'Cancelled';
+										const isIgnored = leave.status === 'Ignored';
+
+										const startDate = new Date(leave.startDate);
+										const endDate = new Date(leave.endDate);
+										const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+										const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+										return (
+											<div key={leave.id} className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all space-y-3.5">
+												{/* Header: Employee + Leave Type + Period + Status */}
+												<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+													<div className="space-y-2 min-w-0">
+														<div className="flex items-center gap-2 flex-wrap">
+															<span className="font-semibold text-slate-900 text-sm">{leave.employeeName}</span>
+															<span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
+																{leave.employeeId}
+															</span>
+															<span className={cn(
+																"text-[11px] font-medium px-2.5 py-0.5 rounded-lg border",
+																leave.type === 'Sick Leave' && "bg-rose-50 text-rose-700 border-rose-200",
+																leave.type === 'Casual Leave' && "bg-blue-50 text-blue-700 border-blue-200",
+																leave.type === 'Paid Leave' && "bg-emerald-50 text-emerald-700 border-emerald-200",
+																leave.type === 'Unpaid Leave' && "bg-amber-50 text-amber-700 border-amber-200",
+																!['Sick Leave', 'Casual Leave', 'Paid Leave', 'Unpaid Leave'].includes(leave.type) && "bg-slate-100 text-slate-700 border-slate-200"
+															)}>
+																{leave.type}
+															</span>
+														</div>
+
+														<div className="flex items-center flex-wrap gap-2 text-xs text-slate-500">
+															<span className="inline-flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60 font-medium text-slate-700">
+																<CalendarIcon className="size-3 text-slate-400" />
+																{startDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} to {endDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+															</span>
+															<span className="font-semibold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200/60 text-[11px]">
+																{diffDays} Day{diffDays !== 1 ? 's' : ''} Duration
+															</span>
+														</div>
+													</div>
+
+													{/* Status Badge */}
+													<div className="shrink-0">
+														<span className={cn(
+															"inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full border shadow-2xs tracking-wide uppercase",
+															isPending && "bg-amber-50 text-amber-800 border-amber-300",
+															isApproved && "bg-emerald-50 text-emerald-800 border-emerald-300",
+															isCancelled && "bg-rose-50 text-rose-800 border-rose-300",
+															isIgnored && "bg-slate-100 text-slate-700 border-slate-300"
+														)}>
+															<span className={cn(
+																"size-2 rounded-full",
+																isPending ? "bg-amber-500" : isApproved ? "bg-emerald-500" : isCancelled ? "bg-rose-500" : "bg-slate-400"
+															)} />
+															{leave.status}
+														</span>
+													</div>
+												</div>
+
+												{/* FULL REASON STATEMENT (Completely Visible as requested) */}
+												<div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-3.5 text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-wrap">
+													<span className="font-semibold text-slate-800 block mb-1">Reason for Leave:</span>
+													{leave.reason || <span className="italic text-slate-400">No reason statement provided.</span>}
+												</div>
+
+												{/* Action Controls */}
+												<div className="pt-2 flex items-center justify-between border-t border-slate-100 flex-wrap gap-2">
+													{isPending ? (
+														<div className="flex items-center gap-2 flex-wrap">
+															<button
+																onClick={async () => {
+																	try {
+																		await updateLeaveStatus(leave.id, 'Approved');
+																		fetchLeaves();
+																	} catch (err) {
+																		console.error("Failed to approve leave", err);
+																	}
+																}}
+																className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
+																style={{ backgroundColor: '#059669', color: '#ffffff' }}
+															>
+																<CheckIcon className="size-3.5 text-white" /> Approve Leave
+															</button>
+															<button
+																onClick={async () => {
+																	try {
+																		await updateLeaveStatus(leave.id, 'Cancelled');
+																		fetchLeaves();
+																	} catch (err) {
+																		console.error("Failed to cancel leave", err);
+																	}
+																}}
+																className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
+																style={{ backgroundColor: '#e11d48', color: '#ffffff' }}
+															>
+																<XIcon className="size-3.5 text-white" /> Decline / Cancel
+															</button>
+															<button
+																onClick={async () => {
+																	try {
+																		await updateLeaveStatus(leave.id, 'Ignored');
+																		fetchLeaves();
+																	} catch (err) {
+																		console.error("Failed to ignore leave", err);
+																	}
+																}}
+																className="text-xs text-slate-600 hover:text-slate-800 font-medium px-3 py-2 rounded-xl hover:bg-slate-100 cursor-pointer transition-colors"
+															>
+																<EyeIcon className="size-3.5 inline mr-1 text-slate-400" /> Ignore
+															</button>
+														</div>
+													) : (
+														<span className="text-xs text-slate-400 italic">
+															Application processed ({leave.status})
+														</span>
+													)}
+
+													<button
+														onClick={() => handleDeleteLeave(leave.id)}
+														className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white cursor-pointer transition-all shadow-2xs ml-auto"
+														style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
+														title="Delete Leave Request"
+													>
+														<Trash2Icon className="size-3.5 text-white" /> Delete
+													</button>
+												</div>
+											</div>
+										);
+									})}
+								</div>
+							)}
+						</div>
+					);
+				})()}
 
 				{activeTab === 'offices' && <OfficesPanel />}
 
@@ -3406,87 +3552,202 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				})()}
 
 				{}
+				{/* Clients Directory */}
 				{activeTab === 'clients' && (
-					<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none min-h-[200px] flex items-center justify-center text-zinc-500 italic text-sm">
-						Clients panel is ready. Content will be added soon.
-					</div>
-				)}
-
-				{}
-				{activeTab === 'system_status' && (
-					<div className="space-y-8">
-						{}
-						<div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">Server Node</span>
-									<ServerIcon className="size-4 text-emerald-400 animate-pulse" />
-								</div>
-								<p className="text-2xl font-bold text-white">{stats.serverStatus}</p>
-								<p className="text-xs text-emerald-400 font-medium">Uptime: {stats.uptime}</p>
+					<div className="space-y-6">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+							<div>
+								<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Clients Registry</h2>
+								<p className="text-xs text-slate-500 mt-0.5">
+									Maintain active corporate accounts, profiles, project allocations, and billing contracts
+								</p>
 							</div>
-
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">Node Env</span>
-									<CpuIcon className="size-4 text-brand-400" />
-								</div>
-								<p className="text-2xl font-bold text-white capitalize">{stats.environment}</p>
-								<p className="text-xs text-zinc-400 font-medium">Heap: {stats.heapMemory}</p>
-							</div>
-
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">NPM Packages</span>
-									<PackageIcon className="size-4 text-sky-400" />
-								</div>
-								<p className="text-2xl font-bold text-white">{stats.totalDependencies}</p>
-								<p className="text-xs text-sky-400 font-medium">{stats.dependencies} prod, {stats.devDependencies} dev</p>
-							</div>
-
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">Employees Registered</span>
-									<UsersIcon className="size-4 text-zinc-400" />
-								</div>
-								<p className="text-2xl font-bold text-white">{employeesList.length}</p>
-								<p className="text-xs text-zinc-400 font-medium">Active members</p>
-							</div>
-
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-3.5 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-xs font-semibold uppercase tracking-wider">System Logs</span>
-									<TerminalIcon className="size-4 text-brand-400" />
-								</div>
-								<p className="text-2xl font-bold text-white">{stats.logEntries.length}</p>
-								<p className="text-xs text-brand-400 font-medium">Active telemetry logs</p>
+							<div className="flex items-center gap-2">
+								<button 
+									type="button"
+									onClick={() => alert('New client creation modal is ready. Connects to client billing pipeline.')}
+									className="inline-flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
+								>
+									+ Add Corporate Client
+								</button>
 							</div>
 						</div>
 
-						{}
-						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center gap-2">
-									<TerminalIcon className="size-4 text-brand-400" />
-									<h2 className="text-base font-bold text-white">System Lifecycle Logs</h2>
-								</div>
-								<span className="text-zinc-550 font-mono text-[10px]">Auto-updates every 5s • Last: {stats.timestamp}</span>
+						{/* Client Overview Stat Tiles */}
+						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+							<div className="border border-slate-200/90 bg-slate-50 p-4 rounded-2xl shadow-2xs space-y-1">
+								<p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Active Clients</p>
+								<p className="text-2xl font-semibold text-slate-900">12</p>
+								<p className="text-[10px] text-slate-400 font-normal">Corporate accounts</p>
 							</div>
-							<div className="overflow-x-auto border border-zinc-800 bg-zinc-950/20">
+							<div className="border border-emerald-200 bg-emerald-50/70 p-4 rounded-2xl shadow-2xs space-y-1">
+								<p className="text-[11px] font-medium text-emerald-700 uppercase tracking-wider">Live Projects</p>
+								<p className="text-2xl font-semibold text-emerald-700">18</p>
+								<p className="text-[10px] text-emerald-600 font-normal">Active deliverables</p>
+							</div>
+							<div className="border border-blue-200 bg-blue-50/70 p-4 rounded-2xl shadow-2xs space-y-1">
+								<p className="text-[11px] font-medium text-blue-700 uppercase tracking-wider">Retainers</p>
+								<p className="text-2xl font-semibold text-blue-700">8</p>
+								<p className="text-[10px] text-blue-600 font-normal">Monthly billing</p>
+							</div>
+							<div className="border border-purple-200 bg-purple-50/70 p-4 rounded-2xl shadow-2xs space-y-1">
+								<p className="text-[11px] font-medium text-purple-700 uppercase tracking-wider">Total Value</p>
+								<p className="text-2xl font-semibold text-purple-700">₹24.8L</p>
+								<p className="text-[10px] text-purple-600 font-normal">Quarterly pipeline</p>
+							</div>
+						</div>
+
+						{/* Client Accounts Grid */}
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{[
+								{ name: 'Apex Tech Solutions', industry: 'FinTech & Banking', contact: 'Vikram Mehta', email: 'v.mehta@apextech.in', status: 'Active', projects: 3, retainer: '₹3,50,000/mo' },
+								{ name: 'Zenith Logistics Global', industry: 'Supply Chain & IoT', contact: 'Pooja Reddy', email: 'pooja.r@zenithlog.com', status: 'Active', projects: 2, retainer: '₹2,80,000/mo' },
+								{ name: 'Nova Health Systems', industry: 'HealthTech & AI', contact: 'Dr. Arjun Das', email: 'arjun@novahealth.co', status: 'Active', projects: 4, retainer: '₹4,20,000/mo' },
+								{ name: 'HyperScale Cloud Media', industry: 'OTT & Streaming', contact: 'Sneha Patel', email: 'sneha@hyperscale.io', status: 'Active', projects: 2, retainer: '₹1,90,000/mo' },
+								{ name: 'UrbanCraft Living', industry: 'E-Commerce & Retail', contact: 'Rahul Sharma', email: 'rahul@urbancraft.in', status: 'Pending Renewal', projects: 1, retainer: '₹1,50,000/mo' },
+								{ name: 'Quantum Leap Labs', industry: 'DeepTech & Robotics', contact: 'Ananya Rao', email: 'ananya@quantumleap.tech', status: 'Active', projects: 3, retainer: '₹3,10,000/mo' }
+							].map((client, idx) => (
+								<div key={idx} className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all space-y-3.5 flex flex-col justify-between">
+									<div className="space-y-2">
+										<div className="flex items-start justify-between gap-2">
+											<div>
+												<h4 className="font-semibold text-slate-900 text-sm">{client.name}</h4>
+												<p className="text-[11px] text-slate-500">{client.industry}</p>
+											</div>
+											<span className={cn(
+												"text-[10px] font-medium px-2.5 py-0.5 rounded-full border",
+												client.status === 'Active' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"
+											)}>
+												{client.status}
+											</span>
+										</div>
+
+										<div className="pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600">
+											<p><span className="text-slate-400 font-medium text-[11px]">Contact:</span> {client.contact}</p>
+											<p className="truncate"><span className="text-slate-400 font-medium text-[11px]">Email:</span> {client.email}</p>
+											<div className="flex items-center justify-between pt-1">
+												<span className="text-[11px] bg-slate-100 px-2 py-0.5 rounded font-medium text-slate-700">
+													{client.projects} Projects
+												</span>
+												<span className="text-xs font-semibold text-emerald-700 font-mono">
+													{client.retainer}
+												</span>
+											</div>
+										</div>
+									</div>
+
+									<div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+										<button
+											type="button"
+											onClick={() => alert(`Viewing full client details for ${client.name}`)}
+											className="text-xs text-slate-600 hover:text-slate-900 font-medium px-2.5 py-1.5 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors"
+										>
+											View Profile
+										</button>
+										<button
+											type="button"
+											onClick={() => alert(`Edit contract for ${client.name}`)}
+											className="text-xs text-[#E61E32] hover:text-[#c9182a] font-semibold px-2.5 py-1.5 rounded-lg hover:bg-red-50 cursor-pointer transition-colors"
+										>
+											Manage Projects →
+										</button>
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
+
+				{/* System Lifecycle & Node Stats */}
+				{activeTab === 'system_status' && (
+					<div className="space-y-6">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+							<div>
+								<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Server Health & Redis</h2>
+								<p className="text-xs text-slate-500 mt-0.5">
+									Check redis memory stats, server uptime counters, and background worker queues
+								</p>
+							</div>
+							<div className="flex items-center gap-2">
+								<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium rounded-xl shadow-2xs">
+									<span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+									All Services Operational
+								</span>
+							</div>
+						</div>
+
+						{/* Stat Metrics Grid */}
+						<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+							<div className="bg-white border border-slate-200/90 p-4 rounded-2xl shadow-2xs space-y-1">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[11px] font-medium uppercase tracking-wider">Server Node</span>
+									<ServerIcon className="size-4 text-emerald-600 animate-pulse" />
+								</div>
+								<p className="text-2xl font-semibold text-slate-900">{stats.serverStatus}</p>
+								<p className="text-xs text-emerald-600 font-medium">Uptime: {stats.uptime}</p>
+							</div>
+
+							<div className="bg-white border border-slate-200/90 p-4 rounded-2xl shadow-2xs space-y-1">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[11px] font-medium uppercase tracking-wider">Node Env</span>
+									<CpuIcon className="size-4 text-slate-600" />
+								</div>
+								<p className="text-2xl font-semibold text-slate-900 capitalize">{stats.environment}</p>
+								<p className="text-xs text-slate-500 font-medium">Heap: {stats.heapMemory}</p>
+							</div>
+
+							<div className="bg-white border border-slate-200/90 p-4 rounded-2xl shadow-2xs space-y-1">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[11px] font-medium uppercase tracking-wider">NPM Packages</span>
+									<PackageIcon className="size-4 text-blue-600" />
+								</div>
+								<p className="text-2xl font-semibold text-slate-900">{stats.totalDependencies}</p>
+								<p className="text-xs text-blue-600 font-medium">{stats.dependencies} prod, {stats.devDependencies} dev</p>
+							</div>
+
+							<div className="bg-white border border-slate-200/90 p-4 rounded-2xl shadow-2xs space-y-1">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[11px] font-medium uppercase tracking-wider">Active Team</span>
+									<UsersIcon className="size-4 text-slate-600" />
+								</div>
+								<p className="text-2xl font-semibold text-slate-900">{employeesList.length}</p>
+								<p className="text-xs text-slate-500 font-medium">Active members</p>
+							</div>
+
+							<div className="bg-white border border-slate-200/90 p-4 rounded-2xl shadow-2xs space-y-1">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[11px] font-medium uppercase tracking-wider">Telemetry Logs</span>
+									<TerminalIcon className="size-4 text-[#E61E32]" />
+								</div>
+								<p className="text-2xl font-semibold text-slate-900">{stats.logEntries.length}</p>
+								<p className="text-xs text-rose-600 font-medium">Active telemetry logs</p>
+							</div>
+						</div>
+
+						{/* System Lifecycle Logs */}
+						<div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-2xs space-y-4">
+							<div className="flex items-center justify-between pb-3 border-b border-slate-100">
+								<div className="flex items-center gap-2">
+									<TerminalIcon className="size-4 text-[#E61E32]" />
+									<h3 className="text-sm font-semibold text-slate-900">System Lifecycle & Worker Logs</h3>
+								</div>
+								<span className="text-slate-400 font-mono text-[10px]">Auto-updates every 5s • Last: {stats.timestamp}</span>
+							</div>
+							<div className="overflow-x-auto border border-slate-200/80 rounded-xl bg-slate-50/50">
 								<table className="w-full text-left text-xs border-collapse">
 									<thead>
-										<tr className="border-b border-zinc-850 bg-zinc-950/60 text-zinc-400 font-mono">
+										<tr className="border-b border-slate-200 bg-slate-100/70 text-slate-600 font-mono text-[11px]">
 											<th className="p-3 font-semibold uppercase tracking-wider">Event</th>
 											<th className="p-3 font-semibold uppercase tracking-wider">Details</th>
 											<th className="p-3 font-semibold uppercase tracking-wider text-right">Source / Timestamp</th>
 										</tr>
 									</thead>
-									<tbody className="divide-y divide-zinc-850/50 font-mono text-zinc-300">
+									<tbody className="divide-y divide-slate-200/60 font-mono text-slate-700">
 										{stats.logEntries.map((log: any, idx: number) => (
-											<tr key={idx} className="hover:bg-zinc-900/20 transition-colors">
-												<td className="p-3 font-bold text-brand-400 whitespace-nowrap">{log.event}</td>
-												<td className="p-3 text-zinc-200">{log.details}</td>
-												<td className="p-3 text-zinc-500 text-right text-[10px] whitespace-nowrap">{log.timestamp}</td>
+											<tr key={idx} className="hover:bg-slate-100/60 transition-colors">
+												<td className="p-3 font-semibold text-[#E61E32] whitespace-nowrap">{log.event}</td>
+												<td className="p-3 text-slate-800 font-sans">{log.details}</td>
+												<td className="p-3 text-slate-400 text-right text-[10px] whitespace-nowrap">{log.timestamp}</td>
 											</tr>
 										))}
 									</tbody>
@@ -4139,40 +4400,37 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{}
+							{/* Header & Subtabs */}
 							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 								<div>
-									<h2 className="text-xl font-bold text-white flex items-center gap-2">
-										<CalendarIcon className="size-5 text-brand-400" />
-										Events Directory
-									</h2>
-									<p className="text-zinc-400 text-sm mt-0.5">
+									<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Events Calendar</h2>
+									<p className="text-xs text-slate-500 mt-0.5">
 										{eventsSubTab === 'active' 
-											? `${activeEvents.length} active events listed in calendar` 
-											: `${crawledEvents.length} pending events fetched by crawler`
+											? `Schedule organization-wide tech talks, hackathons, and training webinars (${activeEvents.length} listed)` 
+											: `Review and approve prospective events discovered by web scrapers (${crawledEvents.length} pending)`
 										}
 									</p>
 								</div>
-								<div className="flex items-center gap-3">
-									<div className="flex border border-zinc-800 bg-zinc-950 p-0.5">
+								<div className="flex items-center gap-2 flex-wrap">
+									<div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
 										<button
 											onClick={() => setEventsSubTab('active')}
-											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", eventsSubTab === 'active' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+											className={cn("text-xs px-3.5 py-1.5 rounded-lg font-medium cursor-pointer transition-all", eventsSubTab === 'active' ? "bg-[#E61E32] text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900 hover:bg-white")}
 										>
-											Active Calendar
+											Active Calendar ({activeEvents.length})
 										</button>
 										<button
 											onClick={() => setEventsSubTab('crawler')}
-											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", eventsSubTab === 'crawler' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+											className={cn("text-xs px-3.5 py-1.5 rounded-lg font-medium cursor-pointer transition-all", eventsSubTab === 'crawler' ? "bg-[#E61E32] text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900 hover:bg-white")}
 										>
-											Events Crawler
+											Events Crawler ({crawledEvents.length})
 										</button>
 									</div>
 									
 									{eventsSubTab === 'active' && (
 										<button
 											onClick={() => { setShowEventForm(v => !v); setEventMessage(null); }}
-											className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-4 py-2 h-8.5 rounded-none cursor-pointer transition-colors"
+											className="inline-flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
 										>
 											<PlusIcon className="size-3.5" />
 											{showEventForm ? 'Cancel' : 'Create Event'}
@@ -4183,127 +4441,130 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 							{eventMessage && (
 								<div className={cn(
-									"p-3 text-xs border font-mono font-bold",
-									eventMessage.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400"
+									"p-3.5 rounded-xl text-xs flex items-center gap-2 border shadow-2xs",
+									eventMessage.type === 'success' ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200"
 								)}>
-									{eventMessage.text}
+									{eventMessage.type === 'success' ? <CheckCircleIcon className="size-4 text-emerald-600 shrink-0" /> : <AlertCircleIcon className="size-4 text-rose-600 shrink-0" />}
+									<span>{eventMessage.text}</span>
 								</div>
 							)}
 
-							{}
+							{/* Event Creation Form */}
 							{eventsSubTab === 'active' && showEventForm && (
-								<form onSubmit={handleCreateEvent} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-5">
-									<h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider border-b border-zinc-800 pb-3">New Event Details</h3>
+								<form onSubmit={handleCreateEvent} className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+									<div className="pb-3 border-b border-slate-100">
+										<h3 className="text-sm font-semibold text-slate-900">New Event Details</h3>
+										<p className="text-xs text-slate-500 mt-0.5">Publish an internal or public technical session, hackathon, or seminar</p>
+									</div>
 
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Event Title *</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Event Title *</label>
 											<Input
 												value={eventTitle}
 												onChange={e => setEventTitle(e.target.value)}
 												required
-												placeholder="e.g. Tech Career Fair 2026"
-												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+												placeholder="e.g. AI & Cloud Architecture Summit 2026"
+												className="bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20 focus-visible:border-[#E61E32]/40"
 											/>
 										</div>
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Organising College *</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Organising Institution / College *</label>
 											<Input
 												value={eventCollege}
 												onChange={e => setEventCollege(e.target.value)}
 												required
-												placeholder="e.g. IIT Bombay"
-												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+												placeholder="e.g. IIT Hyderabad / Redlix Academy"
+												className="bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20 focus-visible:border-[#E61E32]/40"
 											/>
 										</div>
 									</div>
 
-									<div className="space-y-1.5">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Event Description *</label>
+									<div className="space-y-1">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Event Description *</label>
 										<textarea
 											value={eventDescription}
 											onChange={e => setEventDescription(e.target.value)}
 											required
 											rows={3}
-											placeholder="Brief description of the event, goals, and activities..."
-											className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm p-3 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
+											placeholder="Brief description of the event agenda, topics covered, and prerequisites..."
+											className="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 focus:border-[#E61E32]/40"
 										/>
 									</div>
 
 									<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Start Date *</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Start Date *</label>
 											<Input
 												type="date"
 												value={eventStartDate}
 												onChange={e => setEventStartDate(e.target.value)}
 												required
-												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+												className="bg-slate-50 border-slate-200 text-slate-800 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20"
 											/>
 										</div>
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">End Date *</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">End Date *</label>
 											<Input
 												type="date"
 												value={eventEndDate}
 												onChange={e => setEventEndDate(e.target.value)}
 												required
-												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+												className="bg-slate-50 border-slate-200 text-slate-800 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20"
 											/>
 										</div>
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Start Time *</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Start Time *</label>
 											<Input
 												type="time"
 												value={eventStartTime}
 												onChange={e => setEventStartTime(e.target.value)}
 												required
-												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+												className="bg-slate-50 border-slate-200 text-slate-800 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20"
 											/>
 										</div>
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">End Time *</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">End Time *</label>
 											<Input
 												type="time"
 												value={eventEndTime}
 												onChange={e => setEventEndTime(e.target.value)}
 												required
-												className="bg-zinc-950 border-zinc-800 text-white rounded-none text-sm"
+												className="bg-slate-50 border-slate-200 text-slate-800 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20"
 											/>
 										</div>
 									</div>
 
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Venue / Address *</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Venue / Address *</label>
 											<Input
 												value={eventVenue}
 												onChange={e => setEventVenue(e.target.value)}
 												required
-												placeholder="e.g. Main Auditorium, IIT Bombay, Powai, Mumbai 400076"
-												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+												placeholder="e.g. Main Auditorium, Campus Hub, Hyderabad 500081"
+												className="bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20"
 											/>
 										</div>
-										<div className="space-y-1.5">
-											<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Image Banner Link (URL)</label>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Banner Image Link (URL)</label>
 											<Input
 												value={eventImageUrl}
 												onChange={e => setEventImageUrl(e.target.value)}
-												placeholder="e.g. https://example.com/banner.jpg"
-												className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-600 rounded-none text-sm"
+												placeholder="e.g. https://images.unsplash.com/photo-..."
+												className="bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-xl text-xs h-10 px-3 focus-visible:ring-2 focus-visible:ring-[#E61E32]/20"
 											/>
 										</div>
 									</div>
 
 									<div className="space-y-2">
-										<label className="text-xs font-medium text-zinc-400 uppercase tracking-wider block">Company Representatives *</label>
-										<span className="text-[10px] text-zinc-500 block -mt-1 font-mono">Select representatives from the existing list of employees:</span>
-										<div className="grid grid-cols-2 md:grid-cols-3 gap-2 border border-zinc-800 p-4 bg-zinc-950/40 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 rounded-none">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider block">Company Representatives</label>
+										<div className="grid grid-cols-2 md:grid-cols-3 gap-2 border border-slate-200 p-3.5 bg-slate-50/60 max-h-44 overflow-y-auto rounded-xl">
 											{employeesList.map(emp => {
 												const fullName = `${emp.firstName} ${emp.lastName}`;
 												const isChecked = selectedEventRepIds.includes(emp.id);
 												return (
-													<label key={emp.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+													<label key={emp.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
 														<input
 															type="checkbox"
 															checked={isChecked}
@@ -4314,7 +4575,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	setSelectedEventRepIds([...selectedEventRepIds, emp.id]);
 																}
 															}}
-															className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600 size-3.5"
+															className="rounded border-slate-300 text-[#E61E32] focus:ring-[#E61E32] size-3.5 accent-[#E61E32]"
 														/>
 														<span className="truncate">{fullName} ({emp.id})</span>
 													</label>
@@ -4323,30 +4584,31 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									<div className="flex justify-end pt-2 border-t border-zinc-800">
+									<div className="flex justify-end pt-3 border-t border-slate-100">
 										<button
 											type="submit"
 											disabled={isAddingEvent}
-											className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-6 py-2.5 rounded-none cursor-pointer transition-colors disabled:opacity-50"
+											className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-6 py-2.5 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-xs"
 										>
-											{isAddingEvent ? 'Creating...' : 'Create Event'}
+											{isAddingEvent ? 'Creating...' : 'Publish Event'}
 										</button>
 									</div>
 								</form>
 							)}
 
-							{}
+							{/* Events Crawler Subtab */}
 							{eventsSubTab === 'crawler' && (
 								<div className="space-y-6">
-									{}
-									<form onSubmit={handleEventsCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
-										<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-											<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Automated Events Crawler</h3>
-											<span className="text-[10px] text-zinc-500 font-mono">Targets: Student Tribe, Luma, Devfolio, Unstop</span>
+									<form onSubmit={handleEventsCrawl} className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs space-y-4">
+										<div className="flex items-center justify-between border-b border-slate-100 pb-3">
+											<div>
+												<h3 className="text-sm font-semibold text-slate-900">Automated Events Scraper</h3>
+												<p className="text-xs text-slate-500 mt-0.5">Discovers upcoming hackathons & tech events from Student Tribe, Luma, Devfolio, and Unstop</p>
+											</div>
 										</div>
-										<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+										<div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
 											<div className="space-y-1">
-												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target City *</label>
+												<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Target City *</label>
 												<select
 													value={crawlEventCity}
 													onChange={e => {
@@ -4356,7 +4618,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														setCrawlEventArea(areas[0] || "");
 													}}
 													required
-													className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono rounded-none"
+													className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 rounded-xl"
 												>
 													<option value="">Select City</option>
 													{citiesList.map(c => (
@@ -4365,12 +4627,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												</select>
 											</div>
 											<div className="space-y-1">
-												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target Area / Venue</label>
+												<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Target Area / Venue</label>
 												<select
 													value={crawlEventArea}
 													onChange={e => setCrawlEventArea(e.target.value)}
 													required
-													className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono rounded-none"
+													className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 rounded-xl"
 													disabled={!crawlEventCity}
 												>
 													<option value="">Select Area</option>
@@ -4383,7 +4645,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												<button
 													type="submit"
 													disabled={isCrawlingEvents}
-													className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors disabled:opacity-50"
+													className="w-full bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold py-2.5 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-xs"
 												>
 													{isCrawlingEvents ? 'Searching Platforms...' : 'Run Events Scraper'}
 												</button>
@@ -4391,48 +4653,49 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 
 										{eventsCrawlMsg && (
-											<div className={cn("p-2 text-[11px] border font-mono", eventsCrawlMsg.type === 'success' ? "bg-emerald-950/20 border-emerald-900/40 text-emerald-400" : "bg-red-950/20 border-red-900/40 text-red-400")}>
+											<div className={cn("p-3 rounded-xl text-xs border shadow-2xs", eventsCrawlMsg.type === 'success' ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800")}>
 												{eventsCrawlMsg.text}
 											</div>
 										)}
 									</form>
 
-									{}
-									<div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Total Scraped</p>
-											<p className="text-base font-bold text-white">{crawledEvents.length}</p>
+									{/* Crawler Stat Tiles */}
+									<div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+										<div className="bg-white border border-slate-200/90 p-3.5 rounded-xl shadow-2xs space-y-0.5">
+											<p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Total Scraped</p>
+											<p className="text-xl font-semibold text-slate-900">{crawledEvents.length}</p>
 										</div>
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Student Tribe</p>
-											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Student Tribe').length}</p>
+										<div className="bg-white border border-slate-200/90 p-3.5 rounded-xl shadow-2xs space-y-0.5">
+											<p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Student Tribe</p>
+											<p className="text-xl font-semibold text-slate-900">{crawledEvents.filter(e => e.source === 'Student Tribe').length}</p>
 										</div>
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Luma</p>
-											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Luma').length}</p>
+										<div className="bg-white border border-slate-200/90 p-3.5 rounded-xl shadow-2xs space-y-0.5">
+											<p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Luma</p>
+											<p className="text-xl font-semibold text-slate-900">{crawledEvents.filter(e => e.source === 'Luma').length}</p>
 										</div>
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Devfolio</p>
-											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Devfolio').length}</p>
+										<div className="bg-white border border-slate-200/90 p-3.5 rounded-xl shadow-2xs space-y-0.5">
+											<p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Devfolio</p>
+											<p className="text-xl font-semibold text-slate-900">{crawledEvents.filter(e => e.source === 'Devfolio').length}</p>
 										</div>
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Unstop</p>
-											<p className="text-base font-bold text-white">{crawledEvents.filter(e => e.source === 'Unstop').length}</p>
+										<div className="bg-white border border-slate-200/90 p-3.5 rounded-xl shadow-2xs space-y-0.5">
+											<p className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Unstop</p>
+											<p className="text-xl font-semibold text-slate-900">{crawledEvents.filter(e => e.source === 'Unstop').length}</p>
 										</div>
 									</div>
 
-									{}
 									{crawledEvents.length > 0 && (
 										<div className="flex gap-2 justify-end">
 											<button
 												onClick={handleAllowAllEvents}
-												className="text-[10px] bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-800 text-emerald-400 px-3 py-1.5 cursor-pointer font-bold uppercase font-mono"
+												className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-semibold cursor-pointer shadow-2xs"
+												style={{ backgroundColor: '#059669', color: '#ffffff' }}
 											>
 												Approve All Crawled
 											</button>
 											<button
 												onClick={handleDeleteAllCrawledEvents}
-												className="text-[10px] bg-red-955/40 hover:bg-red-900/40 border border-red-800/60 text-red-400 px-3 py-1.5 cursor-pointer font-bold uppercase font-mono"
+												className="text-xs bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-xl font-semibold cursor-pointer shadow-2xs"
+												style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 											>
 												Clear All Crawled
 											</button>
@@ -4441,82 +4704,83 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 							)}
 
-							{}
+							{/* Events Listing */}
 							{eventsSubTab === 'active' ? (
 								activeEvents.length === 0 ? (
-									<div className="text-center py-16 text-zinc-600 border border-zinc-900">
-										<CalendarIcon className="size-10 mx-auto mb-3 opacity-40" />
-										<p className="text-sm font-medium">No events created yet</p>
-										<p className="text-xs mt-1">Click "Create Event" to add the first event</p>
+									<div className="text-center py-16 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs">
+										<div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+											<CalendarIcon className="size-6" />
+										</div>
+										<h3 className="text-sm font-semibold text-slate-800">No Events Listed in Calendar</h3>
+										<p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+											Click &quot;Create Event&quot; above to schedule your first conference, workshop, or hackathon.
+										</p>
 									</div>
 								) : (
-									<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+									<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 										{activeEvents.map((event: any) => {
 											const reps: { id: string; name: string }[] = JSON.parse(event.representatives || '[]');
 											const startD = new Date(event.startDate);
 											const endD = new Date(event.endDate);
 											return (
-												<div key={event.id} className="bg-zinc-900/30 border border-zinc-800/80 flex flex-col hover:border-brand-900/60 transition-all duration-305 shadow-lg group relative">
-													{}
-													<div className="h-40 w-full relative overflow-hidden bg-zinc-950 flex items-center justify-center border-b border-zinc-800/50">
+												<div key={event.id} className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all">
+													{/* Cover banner */}
+													<div className="h-44 w-full relative overflow-hidden bg-slate-100 flex items-center justify-center border-b border-slate-100">
 														{event.imageUrl ? (
 															<img 
 																src={event.imageUrl} 
 																alt={event.title} 
-																className="h-full w-full object-contain group-hover:scale-105 transition-transform duration-500" 
+																className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
 															/>
 														) : (
-															<div className="h-full w-full bg-gradient-to-br from-brand-950 via-zinc-900 to-black relative flex items-center justify-center border-b border-zinc-800">
-																<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.08),transparent_70%)]" />
-																<CalendarIcon className="size-10 text-brand-500/20" />
+															<div className="h-full w-full bg-gradient-to-br from-red-50 via-slate-100 to-slate-200 relative flex items-center justify-center">
+																<CalendarIcon className="size-10 text-slate-400" />
 															</div>
 														)}
-														
-														{}
-														<span className="absolute top-3 right-3 text-[10px] bg-brand-950/80 border border-brand-800/60 text-brand-400 backdrop-blur-sm px-2 py-1 font-mono uppercase tracking-wider whitespace-nowrap">
+														<span className="absolute top-3 right-3 text-[11px] bg-white/90 border border-slate-200 text-slate-800 font-semibold backdrop-blur-sm px-2.5 py-1 rounded-lg shadow-2xs">
 															{event.source || 'Event'}
 														</span>
 													</div>
 
 													<div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-														<div className="space-y-3">
+														<div className="space-y-2.5">
 															<div>
-																<h3 className="text-base font-bold text-white">
+																<h3 className="text-sm font-semibold text-slate-900">
 																	{event.sourceUrl ? (
-																		<a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-400 hover:underline transition-all">
+																		<a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#E61E32] hover:underline transition-all">
 																			{event.title}
 																		</a>
 																	) : (
 																		event.title
 																	)}
 																</h3>
-																<p className="text-xs text-brand-400 font-medium mt-0.5">{event.organisingCollege}</p>
+																<p className="text-xs text-[#E61E32] font-medium mt-0.5">{event.organisingCollege}</p>
 															</div>
 
-															<p className="text-xs text-zinc-400 leading-relaxed line-clamp-3">{event.description}</p>
+															<p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{event.description}</p>
 
-															<div className="grid grid-cols-2 gap-3 text-xs">
-																<div className="space-y-0.5">
-																	<p className="text-zinc-600 uppercase tracking-wider font-semibold">Start</p>
-																	<p className="text-zinc-200">{fmt(startD)} · {event.startTime}</p>
+															<div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+																<div>
+																	<p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Start Date & Time</p>
+																	<p className="text-slate-750 font-medium">{fmt(startD)} · {event.startTime}</p>
 																</div>
-																<div className="space-y-0.5">
-																	<p className="text-zinc-600 uppercase tracking-wider font-semibold">End</p>
-																	<p className="text-zinc-200">{fmt(endD)} · {event.endTime}</p>
+																<div>
+																	<p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">End Date & Time</p>
+																	<p className="text-slate-750 font-medium">{fmt(endD)} · {event.endTime}</p>
 																</div>
 															</div>
 
-															<div className="flex items-start gap-2 text-xs text-zinc-400">
-																<MapPinIcon className="size-3.5 mt-0.5 text-zinc-650 shrink-0" />
-																<span>{event.venueAddress}</span>
+															<div className="flex items-start gap-2 text-xs text-slate-600">
+																<MapPinIcon className="size-3.5 mt-0.5 text-slate-400 shrink-0" />
+																<span className="line-clamp-2">{event.venueAddress}</span>
 															</div>
 
 															{reps.length > 0 && (
-																<div className="space-y-1.5 pt-1">
-																	<p className="text-[10px] text-zinc-600 uppercase tracking-wider font-semibold">Company Representatives</p>
+																<div className="space-y-1 pt-1">
+																	<p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">Representatives</p>
 																	<div className="flex flex-wrap gap-1.5">
 																		{reps.map((r, i) => (
-																			<span key={i} className="text-xs bg-zinc-800/60 border border-zinc-700/60 text-zinc-300 px-2 py-0.5">
+																			<span key={i} className="text-xs bg-slate-100 border border-slate-200 text-slate-700 px-2 py-0.5 rounded-md font-medium">
 																				{r.name}
 																			</span>
 																		))}
@@ -4525,7 +4789,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															)}
 														</div>
 
-														<div className="flex justify-end gap-2 pt-3 border-t border-zinc-800/40">
+														<div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
 															<button
 																onClick={() => {
 																	setEditingItem(event);
@@ -4538,17 +4802,18 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																		setEditEventRepIds([]);
 																	}
 																}}
-																className="p-1.5 bg-zinc-900 border border-zinc-800 text-brand-400 hover:text-brand-300 hover:border-zinc-700 transition-all cursor-pointer"
+																className="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer shadow-2xs"
 																title="Edit Event"
 															>
 																<PencilIcon className="size-3.5" />
 															</button>
 															<button
 																onClick={() => handleDeleteEvent(event.id)}
-																className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
+																className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white cursor-pointer transition-all shadow-2xs"
+																style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 																title="Delete Event"
 															>
-																<Trash2Icon className="size-3.5" />
+																<Trash2Icon className="size-3.5 text-white" /> Delete
 															</button>
 														</div>
 													</div>
@@ -4558,65 +4823,65 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								)
 							) : (
-								
 								crawledEvents.length === 0 ? (
-									<div className="text-center py-16 text-zinc-600 border border-zinc-900/60 font-mono text-xs italic">
+									<div className="text-center py-16 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs text-xs italic text-slate-400">
 										No crawled events. Specify Target City & Area above and run the events scraper.
 									</div>
 								) : (
-									<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
-										<table className="w-full min-w-[1200px] text-left text-xs text-zinc-300 font-mono">
-											<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
+									<div className="bg-white border border-slate-200/90 rounded-2xl overflow-x-auto shadow-2xs">
+										<table className="w-full min-w-[1000px] text-left text-xs text-slate-700">
+											<thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider">
 												<tr>
-													<th className="p-4 font-semibold w-56">Event Title</th>
-													<th className="p-4 font-semibold w-48">Organiser</th>
-													<th className="p-4 font-semibold w-36">Source Platform</th>
-													<th className="p-4 font-semibold w-56">Date & Time</th>
-													<th className="p-4 font-semibold w-64">Venue Address</th>
-													<th className="p-4 font-semibold text-right w-24">Actions</th>
+													<th className="p-4 font-semibold">Event Title</th>
+													<th className="p-4 font-semibold">Organiser</th>
+													<th className="p-4 font-semibold">Platform</th>
+													<th className="p-4 font-semibold">Date & Time</th>
+													<th className="p-4 font-semibold">Venue Address</th>
+													<th className="p-4 font-semibold text-right">Actions</th>
 												</tr>
 											</thead>
-											<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
+											<tbody className="divide-y divide-slate-100">
 												{crawledEvents.map((event: any) => {
 													const startD = new Date(event.startDate);
 													return (
-														<tr key={event.id} className="hover:bg-zinc-900/30 transition-colors">
-															<td className="p-4 font-bold text-white font-sans">
+														<tr key={event.id} className="hover:bg-slate-50/70 transition-colors">
+															<td className="p-4 font-semibold text-slate-900">
 																{event.sourceUrl ? (
-																	<a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-400 hover:underline transition-all">
+																	<a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#E61E32] hover:underline transition-all">
 																		{event.title}
 																	</a>
 																) : (
 																	event.title
 																)}
 															</td>
-															<td className="p-4 text-zinc-300">{event.organisingCollege}</td>
+															<td className="p-4 text-slate-600">{event.organisingCollege}</td>
 															<td className="p-4">
-																<span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-brand-950/50 border border-brand-900/50 text-brand-300">
+																<span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-slate-100 border border-slate-200 text-slate-700 rounded-md">
 																	{event.source}
 																</span>
 															</td>
-															<td className="p-4 text-zinc-300 font-sans">
-																{fmt(startD)} · <span className="font-mono text-xs text-zinc-400">{event.startTime}</span>
+															<td className="p-4 text-slate-600">
+																{fmt(startD)} · {event.startTime}
 															</td>
-															<td className="p-4 text-zinc-300 font-sans truncate max-w-[200px]" title={event.venueAddress}>
+															<td className="p-4 text-slate-600 truncate max-w-[220px]" title={event.venueAddress}>
 																{event.venueAddress}
 															</td>
 															<td className="p-4 text-right">
-																<div className="inline-flex items-center justify-end gap-2">
+																<div className="inline-flex items-center justify-end gap-1.5">
 																	<button
 																		onClick={() => handleAllowEvent(event.id)}
-																		className="p-1.5 bg-zinc-900 border border-zinc-855 hover:border-zinc-700 text-emerald-400 hover:text-emerald-300 transition-all cursor-pointer"
+																		className="p-1.5 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 rounded-lg transition-all cursor-pointer"
 																		title="Approve / Allow Event"
 																	>
 																		<CheckIcon className="size-3.5" />
 																	</button>
 																	<button
 																		onClick={() => handleDeleteEvent(event.id)}
-																		className="p-1.5 bg-zinc-900 border border-zinc-855 hover:border-zinc-700 text-red-400 hover:text-red-300 transition-all cursor-pointer"
+																		className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all cursor-pointer"
+																		style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 																		title="Delete Scraped Event"
 																	>
-																		<Trash2Icon className="size-3.5" />
+																		<Trash2Icon className="size-3.5 text-white" />
 																	</button>
 																</div>
 															</td>
@@ -4843,27 +5108,26 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{}
 				{activeTab === 'leads' && (() => {
 					const STATUS_COLOURS: Record<string, string> = {
-						New:        'bg-zinc-800/60 border-zinc-700 text-zinc-300',
-						Contacted:  'bg-blue-950/40 border-blue-800/60 text-blue-300',
-						Qualified:  'bg-amber-950/40 border-amber-800/60 text-amber-300',
-						Proposal:   'bg-violet-950/40 border-violet-800/60 text-violet-300',
-						Won:        'bg-emerald-950/40 border-emerald-800/60 text-emerald-300',
-						Lost:       'bg-red-950/40 border-red-800/60 text-red-300',
+						New:        'bg-slate-100 border-slate-200 text-slate-700',
+						Contacted:  'bg-blue-50 border-blue-200 text-blue-700',
+						Qualified:  'bg-amber-50 border-amber-200 text-amber-700',
+						Proposal:   'bg-purple-50 border-purple-200 text-purple-700',
+						Won:        'bg-emerald-50 border-emerald-200 text-emerald-700',
+						Lost:       'bg-rose-50 border-rose-200 text-rose-700',
 					};
 					const SOURCE_COLOURS: Record<string, string> = {
-						JustDial:   'text-orange-400',
-						Sulekha:    'text-amber-400',
-						Yelp:       'text-red-400',
-						Clutch:     'text-brand-400',
-						Upwork:     'text-green-400',
-						Freelancer: 'text-teal-400',
-						IndiaMART:  'text-yellow-400',
-						'Google Maps': 'text-sky-400',
-						LinkedIn:   'text-blue-400',
-						Behance:    'text-cyan-400',
+						JustDial:   'text-orange-600 bg-orange-50 border-orange-200',
+						Sulekha:    'text-amber-600 bg-amber-50 border-amber-200',
+						Yelp:       'text-rose-600 bg-rose-50 border-rose-200',
+						Clutch:     'text-indigo-600 bg-indigo-50 border-indigo-200',
+						Upwork:     'text-emerald-600 bg-emerald-50 border-emerald-200',
+						Freelancer: 'text-teal-600 bg-teal-50 border-teal-200',
+						IndiaMART:  'text-yellow-700 bg-yellow-50 border-yellow-200',
+						'Google Maps': 'text-sky-600 bg-sky-50 border-sky-200',
+						LinkedIn:   'text-blue-600 bg-blue-50 border-blue-200',
+						Behance:    'text-cyan-600 bg-cyan-50 border-cyan-200',
 					};
 
 					const allSources = ['All', ...Array.from(new Set(leadsList.map(l => l.source)))];
@@ -4877,158 +5141,158 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{}
-							<div className="flex items-start justify-between gap-4 flex-wrap">
+							{/* Header & Subtabs */}
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 								<div>
-									<h2 className="text-xl font-bold text-white flex items-center gap-2">
-										<BarChart2Icon className="size-5 text-brand-400" />
-										Leads Management
-									</h2>
-									<p className="text-zinc-400 text-sm mt-0.5">{leadsList.filter(l => leadsSubTab === 'pipeline' ? l.source !== 'Manual' : l.source === 'Manual').length} total leads · {filtered.length} shown</p>
+									<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Leads Pipeline</h2>
+									<p className="text-xs text-slate-500 mt-0.5">
+										Verify sales pipelines, import new business contacts, and allocate leads to agents ({filtered.length} shown)
+									</p>
 								</div>
 								
 								<div className="flex items-center gap-2 flex-wrap">
-									{}
-									<div className="bg-zinc-950 border border-zinc-800 p-0.5 flex gap-0.5 font-mono">
+									<div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
 										<button
 											onClick={() => { setLeadsSubTab('pipeline'); setLeadsFilter('All'); setLeadsSourceFilter('All'); }}
-											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", leadsSubTab === 'pipeline' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+											className={cn("text-xs px-3.5 py-1.5 rounded-lg font-medium cursor-pointer transition-all", leadsSubTab === 'pipeline' ? "bg-[#E61E32] text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900 hover:bg-white")}
 										>
 											Pipeline Leads
 										</button>
 										<button
 											onClick={() => { setLeadsSubTab('manual'); setLeadsFilter('All'); setLeadsSourceFilter('All'); }}
-											className={cn("text-[10px] px-3 py-1.5 font-semibold cursor-pointer transition-all", leadsSubTab === 'manual' ? "bg-brand-600 text-white" : "text-zinc-500 hover:text-white")}
+											className={cn("text-xs px-3.5 py-1.5 rounded-lg font-medium cursor-pointer transition-all", leadsSubTab === 'manual' ? "bg-[#E61E32] text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900 hover:bg-white")}
 										>
 											Manual Leads
 										</button>
 									</div>
 
-									{}
 									{leadsSubTab === 'pipeline' ? (
 										<label className={cn(
-											"flex items-center gap-2 text-xs font-semibold px-4 py-2 cursor-pointer transition-colors border",
-											importLoading ? "bg-zinc-800 border-zinc-700 text-zinc-500 cursor-wait" : "bg-brand-700 hover:bg-brand-600 border-brand-600 text-white"
+											"inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs border",
+											importLoading ? "bg-slate-100 border-slate-200 text-slate-400 cursor-wait" : "bg-[#E61E32] hover:bg-[#c9182a] border-transparent text-white"
 										)}>
 											<UploadIcon className="size-3.5" />
-											{importLoading ? 'Importing…' : 'Import leads_latest.json'}
+											{importLoading ? 'Importing…' : 'Import leads.json'}
 											<input type="file" accept=".json" className="hidden" onChange={handleImportJson} disabled={importLoading} />
 										</label>
 									) : (
 										<button
 											onClick={() => setShowManualForm(!showManualForm)}
-											className="bg-brand-600 hover:bg-brand-500 border border-brand-500 text-white text-xs font-semibold px-4 py-2 cursor-pointer transition-colors"
+											className="inline-flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
 										>
-											{showManualForm ? 'Hide Form' : 'Add Lead Manually'}
+											{showManualForm ? 'Hide Form' : '+ Add Lead Manually'}
 										</button>
 									)}
 								</div>
 							</div>
 
 							{importMessage && (
-								<div className={cn("p-3 text-xs border font-mono", importMessage.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400")}>
+								<div className={cn("p-3.5 rounded-xl text-xs border shadow-2xs", importMessage.type === 'success' ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800")}>
 									{importMessage.text}
 								</div>
 							)}
 
 							{manualLeadMsg && (
-								<div className={cn("p-3 text-xs border font-mono", manualLeadMsg.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400")}>
+								<div className={cn("p-3.5 rounded-xl text-xs border shadow-2xs", manualLeadMsg.type === 'success' ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800")}>
 									{manualLeadMsg.text}
 								</div>
 							)}
 
-							{}
+							{/* Manual Lead Creation Form */}
 							{leadsSubTab === 'manual' && showManualForm && (
-								<form onSubmit={handleCreateManualLead} className="bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
-									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-										<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Feed Manual Lead</h3>
-										<button type="button" onClick={() => setShowManualForm(false)} className="text-xs text-zinc-500 hover:text-zinc-300">Cancel</button>
+								<form onSubmit={handleCreateManualLead} className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+									<div className="flex items-center justify-between border-b border-slate-100 pb-3">
+										<div>
+											<h3 className="text-sm font-semibold text-slate-900">Add New Lead</h3>
+											<p className="text-xs text-slate-500 mt-0.5">Enter prospective client contact details for sales outreach</p>
+										</div>
+										<button type="button" onClick={() => setShowManualForm(false)} className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
 									</div>
 									
-									<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Business Name *</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Business Name *</label>
 											<input
 												type="text"
 												value={manualBizName}
 												onChange={e => setManualBizName(e.target.value)}
 												required
-												placeholder="e.g. Delta Corp"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												placeholder="e.g. Delta Corp Innovations"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Contact Person</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Contact Person</label>
 											<input
 												type="text"
 												value={manualContact}
 												onChange={e => setManualContact(e.target.value)}
 												placeholder="e.g. Jane Smith"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Category</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Category / Domain</label>
 											<input
 												type="text"
 												value={manualCat}
 												onChange={e => setManualCat(e.target.value)}
-												placeholder="e.g. Web Development"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												placeholder="e.g. SaaS & AI Integration"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 									</div>
 
-									<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Phone Number</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Phone Number</label>
 											<input
 												type="text"
 												value={manualPhone}
 												onChange={e => setManualPhone(e.target.value)}
 												placeholder="e.g. +91 9988776655"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Email Address</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Email Address</label>
 											<input
 												type="email"
 												value={manualEmail}
 												onChange={e => setManualEmail(e.target.value)}
-												placeholder="e.g. contact@delta.com"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												placeholder="e.g. contact@deltacorp.com"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Website</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Website URL</label>
 											<input
 												type="text"
 												value={manualWeb}
 												onChange={e => setManualWeb(e.target.value)}
-												placeholder="e.g. www.delta.com"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												placeholder="e.g. www.deltacorp.com"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 									</div>
 
-									<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Location / Address</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Location / City</label>
 											<input
 												type="text"
 												value={manualLoc}
 												onChange={e => setManualLoc(e.target.value)}
-												placeholder="e.g. Gachibowli, Hyderabad"
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+												placeholder="e.g. Hitec City, Hyderabad"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Priority</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Priority</label>
 											<select
 												value={manualPriority}
 												onChange={e => setManualPriority(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 cursor-pointer"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 cursor-pointer"
 											>
 												<option value="Low">Low</option>
 												<option value="Medium">Medium</option>
@@ -5036,11 +5300,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											</select>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Assign Immediately to Employee</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Assign to Employee</label>
 											<select
 												value={manualAssignTo}
 												onChange={e => setManualAssignTo(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 cursor-pointer"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 cursor-pointer"
 											>
 												<option value="">— Leave Unassigned —</option>
 												{employeesList.map((emp: any) => (
@@ -5052,286 +5316,173 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>
 
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Description / Notes</label>
-										<textarea
-											value={manualDesc}
-											onChange={e => setManualDesc(e.target.value)}
-											rows={2}
-											placeholder="Enter any initial details about the client, requirements, or lead description..."
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-brand-600"
-										/>
-									</div>
-
-									<div className="flex justify-end pt-2 border-t border-zinc-850">
+									<div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
 										<button
 											type="submit"
-											disabled={isSavingManualLead}
-											className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-5 py-2 cursor-pointer transition-colors disabled:opacity-50"
+											className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-5 py-2.5 rounded-xl cursor-pointer transition-colors shadow-xs"
 										>
-											{isSavingManualLead ? 'Saving...' : 'Save Lead'}
+											Save Lead Record
 										</button>
 									</div>
 								</form>
 							)}
 
-							{}
-							{leadsSubTab === 'pipeline' && (
-								<form onSubmit={handleLeadCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
-									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-										<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Automated Leads Crawler</h3>
-										<span className="text-[10px] text-zinc-500 font-mono">Runs crawler.py</span>
+							{/* Search and Filters Bar */}
+							<div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
+								<div className="flex items-center gap-2 flex-wrap flex-1 min-w-[280px]">
+									<div className="relative flex-1 min-w-[200px]">
+										<SearchIcon className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
+										<input
+											type="text"
+											placeholder="Search business, location, category..."
+											value={leadsSearch}
+											onChange={e => setLeadsSearch(e.target.value)}
+											className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
+										/>
 									</div>
-									<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target City</label>
-											<input
-												type="text"
-												value={crawlCity}
-												onChange={e => setCrawlCity(e.target.value)}
-												placeholder="e.g. Hyderabad"
-												required
-												className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
-											/>
-										</div>
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Business Category</label>
-											<input
-												type="text"
-												value={crawlCategory}
-												onChange={e => setCrawlCategory(e.target.value)}
-												placeholder="e.g. IT Services"
-												required
-												className="w-full bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-700 text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
-											/>
-										</div>
-										<div className="flex items-end">
-											<button
-												type="submit"
-												disabled={isCrawling}
-												className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors disabled:opacity-50"
-											>
-												{isCrawling ? 'Crawling Resources...' : 'Crawl Data'}
-											</button>
-										</div>
-									</div>
-									{crawlMessage && (
-										<div className={cn("p-2 text-[11px] border font-mono", crawlMessage.type === 'success' ? "bg-emerald-950/20 border-emerald-900/40 text-emerald-400" : "bg-red-950/20 border-red-900/40 text-red-400")}>
-											{crawlMessage.text}
-										</div>
-									)}
-								</form>
-							)}
-
-							{}
-							<div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-								{Object.entries(STATUS_COLOURS).map(([status, cls]) => (
-									<button key={status} onClick={() => setLeadsFilter(leadsFilter === status ? 'All' : status)}
-										className={cn("border p-3 text-left transition-colors cursor-pointer", leadsFilter === status ? cls + " ring-1 ring-brand-500" : "bg-zinc-900/30 border-zinc-800 hover:border-zinc-700")}>
-										<p className="text-[10px] text-zinc-500 uppercase tracking-wider">{status}</p>
-										<p className="text-lg font-bold text-white">{leadsList.filter(l => {
-											const subTabOk = leadsSubTab === 'pipeline' ? l.source !== 'Manual' : l.source === 'Manual';
-											return subTabOk && l.status === status;
-										}).length}</p>
-									</button>
-								))}
+									<select
+										value={leadsFilter}
+										onChange={e => setLeadsFilter(e.target.value)}
+										className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none cursor-pointer"
+									>
+										<option value="All">All Statuses</option>
+										{['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'].map(s => (
+											<option key={s} value={s}>{s}</option>
+										))}
+									</select>
+									<select
+										value={leadsSourceFilter}
+										onChange={e => setLeadsSourceFilter(e.target.value)}
+										className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none cursor-pointer"
+									>
+										{allSources.map(s => (
+											<option key={s} value={s}>{s}</option>
+										))}
+									</select>
+								</div>
+								<span className="text-xs text-slate-400 font-medium">
+									{filtered.length} lead{filtered.length !== 1 ? 's' : ''} found
+								</span>
 							</div>
 
-							{}
-							<div className="flex gap-3 flex-wrap items-center justify-between">
-								<div className="flex gap-3 flex-1 flex-wrap items-center">
-									<input
-										type="text"
-										value={leadsSearch}
-										onChange={e => setLeadsSearch(e.target.value)}
-										placeholder="Search by name, location, category…"
-										className="flex-1 min-w-[220px] bg-zinc-950 border border-zinc-800 text-white placeholder:text-zinc-600 text-xs p-2.5 rounded-none focus:outline-none focus:ring-1 focus:ring-brand-600"
-									/>
-									{leadsSubTab === 'pipeline' && (
-										<div className="flex gap-1.5 flex-wrap">
-											{allSources.filter(s => s !== 'Manual').map(s => (
-												<button key={s} onClick={() => setLeadsSourceFilter(s)}
-													className={cn("text-[10px] px-2.5 py-1 border font-medium cursor-pointer transition-colors",
-														leadsSourceFilter === s ? "bg-brand-700 border-brand-600 text-white" : "bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700")}>
-													{s}
-												</button>
-											))}
-										</div>
-									)}
-								</div>
-								<div className="flex gap-2 flex-wrap">
-									{filtered.some(l => !l.allowed) && (
-										<button
-											onClick={() => handleAllowAll(filtered.filter(l => !l.allowed).map(l => l.id))}
-											className="bg-emerald-700 hover:bg-emerald-600 border border-emerald-600 text-white text-xs font-semibold px-4 py-2.5 cursor-pointer transition-colors"
-										>
-											Allow All ({filtered.filter(l => !l.allowed).length})
-										</button>
-									)}
-									{filtered.length > 0 && (
-										<button
-											onClick={() => handleDeleteAll(filtered.map(l => l.id))}
-											className="bg-red-850 hover:bg-red-700 border border-red-700 text-white text-xs font-semibold px-4 py-2.5 cursor-pointer transition-colors"
-										>
-											Delete All ({filtered.length})
-										</button>
-									)}
-								</div>
-							</div>
-
-							{}
+							{/* Leads List Cards / Table */}
 							{filtered.length === 0 ? (
-								<div className="text-center py-16 border border-zinc-900 text-zinc-600">
-									<BarChart2Icon className="size-10 mx-auto mb-3 opacity-30" />
-									<p className="text-sm font-medium">No leads found</p>
-									<p className="text-xs mt-1">
-										{leadsSubTab === 'pipeline' 
-											? 'Import a crawled lead file or crawl new leads to populate the pipeline.' 
-											: 'Add your first manual lead using the "Add Lead Manually" button above.'}
-									</p>
+								<div className="text-center py-16 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs text-xs italic text-slate-400">
+									No leads found matching the selected filter criteria.
 								</div>
 							) : leadsSubTab === 'manual' ? (
-								<div className="overflow-x-auto border border-zinc-800 bg-zinc-950/20">
-									<table className="w-full text-left border-collapse text-xs font-sans">
-										<thead>
-											<tr className="bg-zinc-900/60 border-b border-zinc-800 text-zinc-400 font-mono uppercase tracking-wider text-[10px]">
-												<th className="p-3 font-semibold">Business Name</th>
-												<th className="p-3 font-semibold">Contact Person</th>
-												<th className="p-3 font-semibold">Category / Location</th>
-												<th className="p-3 font-semibold">Phone / Website</th>
-												<th className="p-3 font-semibold">Notes / Description</th>
-												<th className="p-3 font-semibold">Priority</th>
-												<th className="p-3 font-semibold">Assignee</th>
-												<th className="p-3 font-semibold text-right">Actions</th>
+								<div className="bg-white border border-slate-200/90 rounded-2xl overflow-x-auto shadow-2xs">
+									<table className="w-full min-w-[900px] text-left text-xs text-slate-700">
+										<thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider">
+											<tr>
+												<th className="p-3.5 font-semibold">Business & Contact</th>
+												<th className="p-3.5 font-semibold">Category & Location</th>
+												<th className="p-3.5 font-semibold">Priority</th>
+												<th className="p-3.5 font-semibold">Assigned Agent</th>
+												<th className="p-3.5 font-semibold text-right">Status & Actions</th>
 											</tr>
 										</thead>
-										<tbody className="divide-y divide-zinc-900">
-											{filtered.map((lead: any) => {
-												const assignedEmployee = employeesList.find(e => e.id === lead.assignedTo);
-												return (
-													<tr key={lead.id} className="hover:bg-zinc-900/40 transition-colors">
-														<td className="p-3 font-bold text-white max-w-[180px] truncate">{lead.businessName}</td>
-														<td className="p-3 text-zinc-300 font-mono">{lead.contactName || '—'}</td>
-														<td className="p-3 text-zinc-400">
-															<div className="font-semibold text-zinc-300">{lead.category || '—'}</div>
-															<div className="text-[10px] text-zinc-500 mt-0.5">{lead.location || '—'}</div>
-														</td>
-														<td className="p-3 text-zinc-400">
-															<div className="font-mono text-zinc-300">{lead.phone || '—'}</div>
-															<div className="text-[10px] text-brand-400 mt-0.5 truncate max-w-[140px]" title={lead.website}>
-																{lead.website ? (
-																	<a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-																		{lead.website.replace(/^https?:\/\//, '')}
-																	</a>
-																) : '—'}
-															</div>
-														</td>
-														<td className="p-3 text-zinc-500 max-w-[200px] truncate" title={lead.notes || lead.description || ''}>
-															{lead.notes || lead.description || '—'}
-														</td>
-														<td className="p-3">
-															<span className={cn(
-																"text-[9px] px-1.5 py-0.5 font-semibold font-mono",
-																lead.priority === 'High' ? 'text-red-400 bg-red-950/20 border border-red-900/40' :
-																lead.priority === 'Medium' ? 'text-amber-400 bg-amber-950/20 border border-amber-900/40' :
-																'text-zinc-400 bg-zinc-900/40 border border-zinc-800'
-															)}>
-																{lead.priority}
-															</span>
-														</td>
-														<td className="p-3">
+										<tbody className="divide-y divide-slate-100">
+											{filtered.map((lead: any) => (
+												<tr key={lead.id} className="hover:bg-slate-50/70 transition-colors">
+													<td className="p-3.5 space-y-0.5">
+														<div className="font-semibold text-slate-900 text-xs">{lead.businessName}</div>
+														<div className="text-[11px] text-slate-500">{lead.contactPerson || 'No contact specified'} · {lead.phone || lead.email || '—'}</div>
+													</td>
+													<td className="p-3.5 space-y-0.5">
+														<div className="text-slate-800">{lead.category || 'General'}</div>
+														<div className="text-[11px] text-slate-400">{lead.location || '—'}</div>
+													</td>
+													<td className="p-3.5">
+														<span className={cn(
+															"px-2 py-0.5 text-[10px] font-semibold rounded-md border",
+															lead.priority === 'High' ? 'text-rose-700 bg-rose-50 border-rose-200' :
+															lead.priority === 'Medium' ? 'text-amber-700 bg-amber-50 border-amber-200' :
+															'text-slate-600 bg-slate-100 border-slate-200'
+														)}>
+															{lead.priority}
+														</span>
+													</td>
+													<td className="p-3.5">
+														<select
+															value={lead.assignedTo || ''}
+															onChange={e => handleLeadAssign(lead.id, e.target.value)}
+															className="bg-slate-50 border border-slate-200 rounded-lg text-slate-700 text-[11px] p-1.5 focus:outline-none max-w-[150px] truncate cursor-pointer"
+														>
+															<option value="">— Unassigned —</option>
+															{employeesList.map((emp: any) => (
+																<option key={emp.id} value={emp.id}>
+																	{emp.firstName} {emp.lastName}
+																</option>
+															))}
+														</select>
+													</td>
+													<td className="p-3.5 text-right">
+														<div className="flex items-center justify-end gap-1.5">
 															<select
-																value={lead.assignedTo || ''}
-																onChange={e => handleLeadAssign(lead.id, e.target.value)}
-																className="bg-zinc-950 border border-zinc-800 text-white text-[10px] p-1.5 focus:outline-none max-w-[130px] truncate cursor-pointer"
+																value={lead.status}
+																onChange={e => handleLeadStatusUpdate(lead.id, e.target.value)}
+																disabled={updatingLeadId === lead.id}
+																className={cn("text-[10px] px-2.5 py-1 rounded-md border font-medium uppercase cursor-pointer bg-white focus:outline-none transition-colors", STATUS_COLOURS[lead.status] || 'border-slate-200 text-slate-700')}
 															>
-																<option value="">— Unassigned —</option>
-																{employeesList.map((emp: any) => (
-																	<option key={emp.id} value={emp.id}>
-																		{emp.firstName} {emp.lastName}
-																	</option>
+																{['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'].map(s => (
+																	<option key={s} value={s}>{s}</option>
 																))}
 															</select>
-														</td>
-														<td className="p-3 text-right">
-															<div className="flex items-center justify-end gap-1.5">
-																<select
-																	value={lead.status}
-																	onChange={e => handleLeadStatusUpdate(lead.id, e.target.value)}
-																	disabled={updatingLeadId === lead.id}
-																	className={cn("text-[10px] px-2 py-1 border font-mono uppercase tracking-wider cursor-pointer bg-zinc-950 focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors disabled:opacity-50", STATUS_COLOURS[lead.status] || 'border-zinc-700 text-zinc-400')}
-																>
-																	{['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'].map(s => (
-																		<option key={s} value={s}>{s}</option>
-																	))}
-																</select>
-																<button
-																	onClick={() => handleLeadAllowToggle(lead.id, !lead.allowed)}
-																	disabled={updatingLeadId === lead.id}
-																	className={cn(
-																		"p-1.5 border transition-colors cursor-pointer disabled:opacity-50",
-																		lead.allowed 
-																			? "bg-emerald-950/40 border-emerald-800 text-emerald-400" 
-																			: "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
-																	)}
-																	title={lead.allowed ? 'Lead Allowed' : 'Allow Lead'}
-																>
-																	{lead.allowed ? <CheckIcon className="size-3.5" /> : <PlusIcon className="size-3.5" />}
-																</button>
-																<button
-																	onClick={() => handleLeadDelete(lead.id)}
-																	className="p-1.5 text-red-500 hover:bg-red-950/20 border border-transparent hover:border-red-900/40 transition-colors cursor-pointer"
-																	title="Delete Lead"
-																>
-																	<Trash2Icon className="size-3.5" />
-																</button>
-															</div>
-														</td>
-													</tr>
-												);
-											})}
+															<button
+																onClick={() => handleLeadDelete(lead.id)}
+																className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer shadow-2xs"
+																style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
+																title="Delete Lead"
+															>
+																<Trash2Icon className="size-3.5 text-white" />
+															</button>
+														</div>
+													</td>
+												</tr>
+											))}
 										</tbody>
 									</table>
 								</div>
 							) : (
-								<div className="space-y-2">
+								<div className="space-y-3">
 									{filtered.map((lead: any) => {
 										const assignedEmployee = employeesList.find(e => e.id === lead.assignedTo);
 										const isAssigning = assigningLeadId === lead.id;
 
 										return (
-											<div key={lead.id} className="bg-zinc-900/30 border border-zinc-800/80 p-4 hover:border-zinc-700/70 transition-colors">
+											<div key={lead.id} className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all space-y-3">
 												<div className="flex items-start justify-between gap-3 flex-wrap">
-													<div className="space-y-0.5 flex-1 min-w-0">
+													<div className="space-y-1 flex-1 min-w-0">
 														<div className="flex items-center gap-2 flex-wrap">
-															<h3 className="text-sm font-bold text-white truncate">{lead.businessName}</h3>
-															{lead.rating && <span className="text-[10px] text-amber-400 font-mono">★ {lead.rating}</span>}
-															{lead.reviewCount && <span className="text-[10px] text-zinc-600">({lead.reviewCount})</span>}
+															<h3 className="text-sm font-semibold text-slate-900">{lead.businessName}</h3>
+															{lead.rating && <span className="text-[11px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">★ {lead.rating}</span>}
+															{lead.reviewCount && <span className="text-[10px] text-slate-400">({lead.reviewCount} reviews)</span>}
 														</div>
-														<div className="flex items-center gap-2 text-[11px] text-zinc-500 flex-wrap">
-															{lead.category && <span>{lead.category}</span>}
+														<div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+															{lead.category && <span className="font-medium text-slate-700">{lead.category}</span>}
 															{lead.location && <><span>·</span><span>{lead.location}</span></>}
-															{lead.phone && <><span>·</span><span className="text-zinc-400">{lead.phone}</span></>}
+															{lead.phone && <><span>·</span><span className="text-slate-700 font-medium">{lead.phone}</span></>}
 															{lead.website && (
 																<>
 																	<span>·</span>
-																	<a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline truncate max-w-[160px]">
+																	<a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate max-w-[200px]">
 																		{lead.website.replace(/^https?:\/\//, '')}
 																	</a>
 																</>
 															)}
 														</div>
-														{lead.description && <p className="text-[11px] text-zinc-500 mt-1 line-clamp-2">{lead.description}</p>}
+														{lead.description && <p className="text-xs text-slate-600 mt-1 line-clamp-2">{lead.description}</p>}
 														
-														{}
-														<div className="text-[11px] text-zinc-400 mt-2 flex items-center gap-2 flex-wrap">
-															<UserCheckIcon className="size-3.5 text-zinc-500" />
+														{/* Assignee Box */}
+														<div className="text-xs text-slate-600 mt-2 flex items-center gap-2 flex-wrap">
+															<UserCheckIcon className="size-3.5 text-slate-400" />
 															{isAssigning ? (
 																<div className="flex items-center gap-2">
 																	<select
 																		value={assignEmployeeId}
 																		onChange={e => setAssignEmployeeId(e.target.value)}
-																		className="bg-zinc-950 border border-zinc-800 text-white text-[10px] p-1 focus:outline-none"
+																		className="bg-slate-50 border border-slate-200 text-slate-800 text-xs p-1.5 rounded-lg focus:outline-none"
 																	>
 																		<option value="">— Unassigned —</option>
 																		{employeesList.map((emp: any) => (
@@ -5342,13 +5493,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	</select>
 																	<button
 																		onClick={() => handleLeadAssign(lead.id, assignEmployeeId)}
-																		className="bg-brand-600 hover:bg-brand-500 text-white text-[9px] px-2 py-1 font-semibold"
+																		className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1 rounded-lg font-semibold"
+																		style={{ backgroundColor: '#059669', color: '#ffffff' }}
 																	>
 																		Save
 																	</button>
 																	<button
 																		onClick={() => { setAssigningLeadId(null); setAssignEmployeeId(''); }}
-																		className="text-zinc-500 hover:text-zinc-300 text-[9px]"
+																		className="text-slate-500 hover:text-slate-700 text-xs"
 																	>
 																		Cancel
 																	</button>
@@ -5356,12 +5508,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															) : (
 																<span>
 																	Assigned to:{' '}
-																	<span className="text-brand-300 font-medium">
+																	<span className="text-[#E61E32] font-semibold">
 																		{assignedEmployee ? `${assignedEmployee.firstName} ${assignedEmployee.lastName}` : 'Unassigned'}
 																	</span>{' '}
 																	<button
 																		onClick={() => { setAssigningLeadId(lead.id); setAssignEmployeeId(lead.assignedTo || ''); }}
-																		className="text-brand-400 hover:text-brand-300 ml-1 cursor-pointer transition-colors inline-block"
+																		className="text-slate-400 hover:text-slate-700 ml-1 cursor-pointer transition-colors inline-block"
 																		title="Change Assignee"
 																	>
 																		<PencilIcon className="size-3 inline" />
@@ -5370,15 +5522,16 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															)}
 														</div>
 													</div>
+
 													<div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-														<span className={cn("text-[9px] px-1.5 py-0.5 font-semibold uppercase tracking-wider", SOURCE_COLOURS[lead.source] || 'text-zinc-400')}>
+														<span className={cn("text-[10px] px-2.5 py-0.5 font-semibold rounded-md border", SOURCE_COLOURS[lead.source] || 'text-slate-600 bg-slate-100 border-slate-200')}>
 															{lead.source}
 														</span>
 														<select
 															value={lead.status}
 															onChange={e => handleLeadStatusUpdate(lead.id, e.target.value)}
 															disabled={updatingLeadId === lead.id}
-															className={cn("text-[10px] px-2 py-1 border font-mono uppercase tracking-wider bg-zinc-950 cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-600 transition-colors disabled:opacity-50", STATUS_COLOURS[lead.status] || 'border-zinc-700 text-zinc-400')}
+															className={cn("text-xs px-2.5 py-1 rounded-lg border font-medium uppercase cursor-pointer bg-white focus:outline-none transition-colors", STATUS_COLOURS[lead.status] || 'border-slate-200 text-slate-700')}
 														>
 															{['New', 'Contacted', 'Qualified', 'Proposal', 'Won', 'Lost'].map(s => (
 																<option key={s} value={s}>{s}</option>
@@ -5388,32 +5541,33 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 															onClick={() => handleLeadAllowToggle(lead.id, !lead.allowed)}
 															disabled={updatingLeadId === lead.id}
 															className={cn(
-																"p-1.5 border transition-colors cursor-pointer disabled:opacity-50",
+																"p-1.5 border rounded-lg transition-colors cursor-pointer disabled:opacity-50",
 																lead.allowed 
-																	? "bg-emerald-950/40 border-emerald-800 text-emerald-400" 
-																	: "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
+																	? "bg-emerald-50 border-emerald-200 text-emerald-700" 
+																	: "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
 															)}
 															title={lead.allowed ? 'Lead Allowed' : 'Allow Lead'}
 														>
-															{lead.allowed ? <CheckIcon className="size-3.5" /> : <PlusIcon className="size-3.5" />}
+															{lead.allowed ? <CheckIcon className="size-3.5 text-emerald-700" /> : <PlusIcon className="size-3.5 text-slate-600" />}
 														</button>
 														<button
 															onClick={() => handleLeadDelete(lead.id)}
-															className="p-1.5 text-red-500 hover:bg-red-950/20 border border-transparent hover:border-red-900/40 transition-colors cursor-pointer"
+															className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors cursor-pointer shadow-2xs"
+															style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 															title="Delete Lead"
 														>
-															<Trash2Icon className="size-3.5" />
+															<Trash2Icon className="size-3.5 text-white" />
 														</button>
 													</div>
 												</div>
 												{lead.notes && (
-													<div className="mt-2 text-[11px] text-zinc-500 italic border-t border-zinc-800/60 pt-1.5">
+													<div className="text-xs text-slate-600 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
 														{lead.notes}
 													</div>
 												)}
 												{lead.sourceUrl && (
-													<a href={lead.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand-500 hover:text-brand-400 hover:underline mt-1 inline-block">
-														View source →
+													<a href={lead.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline inline-block font-medium">
+														View original source →
 													</a>
 												)}
 											</div>
@@ -5427,10 +5581,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 				{activeTab === 'hr_companies' && (() => {
 					const STATUS_COLOURS: Record<string, string> = {
-						New:        'bg-zinc-800/60 border-zinc-700 text-zinc-300',
-						Contacted:  'bg-blue-950/40 border-blue-800/60 text-blue-300',
-						Rejected:   'bg-red-950/40 border-red-800/60 text-red-300',
-						Hired:      'bg-emerald-950/40 border-emerald-800/60 text-emerald-300',
+						New:        'bg-slate-100 border-slate-200 text-slate-700',
+						Contacted:  'bg-blue-50 border-blue-200 text-blue-700',
+						Rejected:   'bg-rose-50 border-rose-200 text-rose-700',
+						Hired:      'bg-emerald-50 border-emerald-200 text-emerald-700',
 					};
 
 					const activeCompanies = hrCompaniesList.filter(c => c.allowed === true);
@@ -5448,130 +5602,143 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 					return (
 						<div className="space-y-6">
-							{}
-							<div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-								<div className="flex gap-4 text-xs font-mono">
-									<button
-										onClick={() => setHrCompaniesSubTab('active')}
-										className={`pb-2 font-bold cursor-pointer transition-all border-b ${hrCompaniesSubTab === 'active' ? 'border-brand-400 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
-									>
-										Active Registry ({activeCompanies.length})
-									</button>
-									<button
-										onClick={() => setHrCompaniesSubTab('crawler')}
-										className={`pb-2 font-bold cursor-pointer transition-all border-b ${hrCompaniesSubTab === 'crawler' ? 'border-brand-400 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
-									>
-										HR Crawler ({crawledCompanies.length})
-									</button>
+							{/* Header & Subtabs */}
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+								<div>
+									<h2 className="text-xl font-semibold text-slate-900 tracking-tight">HR Recruitment Firms</h2>
+									<p className="text-xs text-slate-500 mt-0.5">
+										Configure external human resource firms, recruitment partner channels, and crawler pipelines
+									</p>
 								</div>
 								
-								{hrCompaniesSubTab === 'active' && (
-									<button
-										onClick={() => setShowAddManualHr(!showAddManualHr)}
-										className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
-									>
-										{showAddManualHr ? 'Hide Form' : 'Add HR Record'}
-									</button>
-								)}
+								<div className="flex items-center gap-2 flex-wrap">
+									<div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+										<button
+											onClick={() => setHrCompaniesSubTab('active')}
+											className={cn("text-xs px-3.5 py-1.5 rounded-lg font-medium cursor-pointer transition-all", hrCompaniesSubTab === 'active' ? "bg-[#E61E32] text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900 hover:bg-white")}
+										>
+											Active Registry ({activeCompanies.length})
+										</button>
+										<button
+											onClick={() => setHrCompaniesSubTab('crawler')}
+											className={cn("text-xs px-3.5 py-1.5 rounded-lg font-medium cursor-pointer transition-all", hrCompaniesSubTab === 'crawler' ? "bg-[#E61E32] text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900 hover:bg-white")}
+										>
+											HR Crawler ({crawledCompanies.length})
+										</button>
+									</div>
+
+									{hrCompaniesSubTab === 'active' && (
+										<button
+											onClick={() => setShowAddManualHr(!showAddManualHr)}
+											className="inline-flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs"
+										>
+											{showAddManualHr ? 'Hide Form' : '+ Add HR Record'}
+										</button>
+									)}
+								</div>
 							</div>
 
-							{}
+							{/* Add Manual HR Form */}
 							{showAddManualHr && (
-								<form onSubmit={handleAddManualHr} className="bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
-									<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-										<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Add HR & Company Record</h3>
-										<button type="button" onClick={() => setShowAddManualHr(false)} className="text-xs text-zinc-500 hover:text-zinc-300">Cancel</button>
+								<form onSubmit={handleAddManualHr} className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+									<div className="flex items-center justify-between border-b border-slate-100 pb-3">
+										<div>
+											<h3 className="text-sm font-semibold text-slate-900">Add HR & Recruitment Firm</h3>
+											<p className="text-xs text-slate-500 mt-0.5">Register a partner agency or internal recruitment contact</p>
+										</div>
+										<button type="button" onClick={() => setShowAddManualHr(false)} className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
 									</div>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Company Name *</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Company Name *</label>
 											<input
 												type="text"
 												required
 												value={manualCompanyName}
 												onChange={e => setManualCompanyName(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
+												placeholder="e.g. Apex Talent Solutions"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Website</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Website URL</label>
 											<input
 												type="text"
 												value={manualWebsite}
 												onChange={e => setManualWebsite(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
 												placeholder="https://example.com"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 									</div>
 
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Industry / Job Role</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Industry / Job Domain</label>
 											<input
 												type="text"
 												value={manualIndustry}
 												onChange={e => setManualIndustry(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
-												placeholder="e.g. Software Development"
+												placeholder="e.g. Fullstack Software Engineering"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Location</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Location / Head Office</label>
 											<input
 												type="text"
 												value={manualLocation}
 												onChange={e => setManualLocation(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
 												placeholder="e.g. Hyderabad, India"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 									</div>
 
-									<div className="border-t border-zinc-800/60 my-2 pt-2">
-										<h4 className="text-[10px] text-brand-400 font-bold uppercase tracking-wider mb-2">HR Contact Info</h4>
-									</div>
-
-									<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+									<div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-2 border-t border-slate-100">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">HR Manager Name *</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HR Manager Name *</label>
 											<input
 												type="text"
 												required
 												value={manualHrName}
 												onChange={e => setManualHrName(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
+												placeholder="e.g. Priya Sharma"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">HR Email</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HR Email</label>
 											<input
 												type="email"
 												value={manualHrEmail}
 												onChange={e => setManualHrEmail(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
+												placeholder="priya@apextalent.com"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">HR Phone</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HR Phone</label>
 											<input
 												type="text"
 												value={manualHrPhone}
 												onChange={e => setManualHrPhone(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
+												placeholder="+91 9123456789"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 											/>
 										</div>
 									</div>
 
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Allocate to Employee</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Allocate to Employee</label>
 											<select
 												value={manualAssignedEmployeeId}
 												onChange={e => setManualAssignedEmployeeId(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none font-mono"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 cursor-pointer"
 											>
-												<option value="">Unassigned</option>
+												<option value="">— Unassigned —</option>
 												{employeesList.map(emp => (
 													<option key={emp.id} value={emp.id}>
 														{emp.firstName} {emp.lastName} ({emp.id})
@@ -5580,11 +5747,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											</select>
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Status</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Status</label>
 											<select
 												value={manualHrStatus}
 												onChange={e => setManualHrStatus(e.target.value)}
-												className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none font-mono"
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 cursor-pointer"
 											>
 												<option value="New">New</option>
 												<option value="Contacted">Contacted</option>
@@ -5595,179 +5762,188 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Notes / Description</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Notes / Partnership Context</label>
 										<textarea
 											value={manualHrNotes}
 											onChange={e => setManualHrNotes(e.target.value)}
 											rows={2}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none"
+											placeholder="Additional notes about commission structure or hiring targets..."
+											className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 text-xs resize-none"
 										/>
 									</div>
 
-									<div className="flex gap-2 justify-end pt-3">
-										<Button type="button" variant="outline" onClick={() => setShowAddManualHr(false)} className="rounded-none cursor-pointer text-xs">
+									<div className="flex gap-2 justify-end pt-3 border-t border-slate-100">
+										<button type="button" onClick={() => setShowAddManualHr(false)} className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer">
 											Cancel
-										</Button>
-										<Button type="submit" className="bg-brand-600 hover:bg-brand-500 rounded-none text-xs cursor-pointer">
+										</button>
+										<button type="submit" className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-5 py-2 rounded-xl cursor-pointer shadow-xs">
 											Save Record
-										</Button>
+										</button>
 									</div>
 								</form>
 							)}
 
-							{}
+							{/* Active Registry Subtab */}
 							{hrCompaniesSubTab === 'active' && (
 								<div className="space-y-4">
-									{}
-									<div className="w-full">
-										<Input
-											type="text"
-											placeholder="Search companies, HR managers, locations, industries…"
-											value={hrSearchQuery}
-											onChange={e => setHrSearchQuery(e.target.value)}
-											className="w-full bg-zinc-900/30 border-zinc-800 text-white text-xs p-3 rounded-none placeholder:text-zinc-600 focus:ring-brand-600"
-										/>
+									<div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
+										<div className="relative flex-1 min-w-[240px]">
+											<SearchIcon className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
+											<input
+												type="text"
+												placeholder="Search companies, HR managers, locations, industries…"
+												value={hrSearchQuery}
+												onChange={e => setHrSearchQuery(e.target.value)}
+												className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
+											/>
+										</div>
+										<span className="text-xs text-slate-400 font-medium">
+											{filteredActive.length} active firm{filteredActive.length !== 1 ? 's' : ''}
+										</span>
 									</div>
 
 									{filteredActive.length === 0 ? (
-										<div className="text-center py-10 bg-zinc-900/10 border border-zinc-800/40 text-xs italic text-zinc-500">
-											No active company records found matching the criteria.
+										<div className="text-center py-16 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs text-xs italic text-slate-400">
+											No active recruitment firm records found.
 										</div>
 									) : (
-										<div className="bg-zinc-900/20 border border-zinc-800/80 overflow-hidden">
-											<div className="overflow-x-auto">
-												<table className="w-full text-left text-xs border-collapse">
-													<thead>
-														<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[9px] bg-zinc-950/40">
-															<th className="p-3">Company Details</th>
-															<th className="p-3">HR Manager</th>
-															<th className="p-3">Location & Industry</th>
-															<th className="p-3">Allocated To</th>
-															<th className="p-3">Status</th>
-															<th className="p-3 text-right">Actions</th>
-														</tr>
-													</thead>
-													<tbody className="divide-y divide-zinc-850 font-mono text-zinc-300">
-														{filteredActive.map((company) => {
-															const assignee = employeesList.find(e => e.id === company.assignedEmployeeId);
+										<div className="bg-white border border-slate-200/90 rounded-2xl overflow-x-auto shadow-2xs">
+											<table className="w-full min-w-[900px] text-left text-xs text-slate-700">
+												<thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider">
+													<tr>
+														<th className="p-3.5 font-semibold">Company Details</th>
+														<th className="p-3.5 font-semibold">HR Contact</th>
+														<th className="p-3.5 font-semibold">Location & Domain</th>
+														<th className="p-3.5 font-semibold">Allocated Agent</th>
+														<th className="p-3.5 font-semibold">Status</th>
+														<th className="p-3.5 font-semibold text-right">Actions</th>
+													</tr>
+												</thead>
+												<tbody className="divide-y divide-slate-100">
+													{filteredActive.map((company) => {
+														const assignee = employeesList.find(e => e.id === company.assignedEmployeeId);
 
-															return (
-																<tr key={company.id} className="hover:bg-zinc-900/20 transition-colors">
-																	<td className="p-3 space-y-0.5">
-																		<div className="font-semibold text-white text-xs">{company.companyName}</div>
-																		{company.website && (
-																			<a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand-500 hover:text-brand-400 flex items-center gap-1 hover:underline">
-																				<span>{company.website}</span>
-																			</a>
-																		)}
-																	</td>
-																	<td className="p-3 space-y-0.5">
-																		<div className="text-zinc-200">{company.hrName}</div>
-																		<div className="text-[10px] text-zinc-500 flex flex-col">
-																			{company.hrEmail && <span>{company.hrEmail}</span>}
-																			{company.hrPhone && <span>{company.hrPhone}</span>}
-																		</div>
-																	</td>
-																	<td className="p-3 space-y-0.5">
-																		<div className="text-zinc-300">{company.location || '—'}</div>
-																		<div className="text-[10px] text-zinc-500">{company.industry || '—'}</div>
-																	</td>
-																	<td className="p-3">
-																		{assigningHrId === company.id ? (
-																			<div className="flex items-center gap-1.5 max-w-[200px]">
-																				<select
-																					value={assignHrEmployeeId}
-																					onChange={e => setAssignHrEmployeeId(e.target.value)}
-																					className="bg-zinc-950 border border-zinc-800 text-white text-[10px] p-1.5 w-full focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none font-mono"
-																				>
-																					<option value="">Unassigned</option>
-																					{employeesList.map(emp => (
-																						<option key={emp.id} value={emp.id}>
-																							{emp.firstName} {emp.lastName} ({emp.id})
-																						</option>
-																					))}
-																				</select>
-																				<button
-																					onClick={() => handleHrAssign(company.id, assignHrEmployeeId)}
-																					className="p-1.5 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
-																					title="Confirm Allocation"
-																				>
-																					<CheckIcon className="size-3" />
-																				</button>
-																				<button
-																					onClick={() => setAssigningHrId(null)}
-																					className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 cursor-pointer"
-																					title="Cancel"
-																				>
-																					<XIcon className="size-3" />
-																				</button>
-																			</div>
-										) : (
-																			<button
-																				onClick={() => { setAssigningHrId(company.id); setAssignHrEmployeeId(company.assignedEmployeeId || ''); }}
-																				className="text-[10px] flex items-center gap-1.5 py-1 px-2 border border-zinc-800 hover:border-zinc-700 bg-zinc-950 text-zinc-300 hover:text-white transition-all font-mono"
+														return (
+															<tr key={company.id} className="hover:bg-slate-50/70 transition-colors">
+																<td className="p-3.5 space-y-0.5">
+																	<div className="font-semibold text-slate-900 text-xs">{company.companyName}</div>
+																	{company.website && (
+																		<a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-600 hover:underline inline-block">
+																			{company.website}
+																		</a>
+																	)}
+																</td>
+																<td className="p-3.5 space-y-0.5">
+																	<div className="text-slate-800 font-medium">{company.hrName}</div>
+																	<div className="text-[11px] text-slate-500">
+																		{company.hrEmail && <span>{company.hrEmail}</span>}
+																		{company.hrPhone && <span> · {company.hrPhone}</span>}
+																	</div>
+																</td>
+																<td className="p-3.5 space-y-0.5">
+																	<div className="text-slate-800">{company.location || '—'}</div>
+																	<div className="text-[11px] text-slate-400">{company.industry || '—'}</div>
+																</td>
+																<td className="p-3.5">
+																	{assigningHrId === company.id ? (
+																		<div className="flex items-center gap-1.5 max-w-[220px]">
+																			<select
+																				value={assignHrEmployeeId}
+																				onChange={e => setAssignHrEmployeeId(e.target.value)}
+																				className="bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-[11px] p-1.5 w-full focus:outline-none"
 																			>
-																				<UserCheckIcon className="size-3 text-brand-400" />
-																				<span>{assignee ? `${assignee.firstName} (${assignee.id})` : 'Allocate Agent'}</span>
-																			</button>
-																		)}
-																	</td>
-																	<td className="p-3">
-																		<span className={cn(
-																			"px-2 py-0.5 text-[9px] font-bold border uppercase whitespace-nowrap",
-																			STATUS_COLOURS[company.status] || 'bg-zinc-800 border-zinc-700 text-zinc-400'
-																		)}>
-																			{company.status}
-																		</span>
-																	</td>
-																	<td className="p-3 text-right">
-																		<div className="flex justify-end gap-1">
+																				<option value="">— Unassigned —</option>
+																				{employeesList.map(emp => (
+																					<option key={emp.id} value={emp.id}>
+																						{emp.firstName} {emp.lastName} ({emp.id})
+																					</option>
+																				))}
+																			</select>
 																			<button
-																				onClick={() => {
-																					setEditingItem(company);
-																					setEditModalType('hr_company');
-																				}}
-																				className="p-1.5 border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-brand-400 hover:border-brand-900 cursor-pointer transition-all"
-																				title="Edit Record"
+																				onClick={() => handleHrAssign(company.id, assignHrEmployeeId)}
+																				className="p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg cursor-pointer"
+																				style={{ backgroundColor: '#059669', color: '#ffffff' }}
+																				title="Confirm Allocation"
 																			>
-																				<PencilIcon className="size-3.5" />
+																				<CheckIcon className="size-3 text-white" />
 																			</button>
 																			<button
-																				onClick={() => handleHrDelete(company.id)}
-																				className="p-1.5 border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-red-400 hover:border-red-900 cursor-pointer transition-all"
-																				title="Delete Record"
+																				onClick={() => setAssigningHrId(null)}
+																				className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg cursor-pointer"
+																				title="Cancel"
 																			>
-																				<Trash2Icon className="size-3.5" />
+																				<XIcon className="size-3" />
 																			</button>
 																		</div>
-																	</td>
-																</tr>
-															);
-														})}
-													</tbody>
-												</table>
-											</div>
+																	) : (
+																		<button
+																			onClick={() => { setAssigningHrId(company.id); setAssignHrEmployeeId(company.assignedEmployeeId || ''); }}
+																			className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white text-slate-700 text-[11px] font-medium transition-all cursor-pointer shadow-2xs"
+																		>
+																			<UserCheckIcon className="size-3 text-slate-400" />
+																			<span>{assignee ? `${assignee.firstName} (${assignee.id})` : 'Allocate Agent'}</span>
+																		</button>
+																	)}
+																</td>
+																<td className="p-3.5">
+																	<span className={cn(
+																		"px-2.5 py-0.5 text-[10px] font-semibold rounded-md border uppercase whitespace-nowrap",
+																		STATUS_COLOURS[company.status] || 'bg-slate-100 border-slate-200 text-slate-700'
+																	)}>
+																		{company.status}
+																	</span>
+																</td>
+																<td className="p-3.5 text-right">
+																	<div className="flex justify-end gap-1.5">
+																		<button
+																			onClick={() => {
+																				setEditingItem(company);
+																				setEditModalType('hr_company');
+																			}}
+																			className="p-1.5 border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 cursor-pointer transition-all shadow-2xs"
+																			title="Edit Record"
+																		>
+																			<PencilIcon className="size-3.5" />
+																		</button>
+																		<button
+																			onClick={() => handleHrDelete(company.id)}
+																			className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg cursor-pointer transition-all shadow-2xs"
+																			style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
+																			title="Delete Record"
+																		>
+																			<Trash2Icon className="size-3.5 text-white" />
+																		</button>
+																	</div>
+																</td>
+															</tr>
+														);
+													})}
+												</tbody>
+											</table>
 										</div>
 									)}
 								</div>
 							)}
 
-							{}
+							{/* HR Crawler Subtab */}
 							{hrCompaniesSubTab === 'crawler' && (
 								<div className="space-y-6">
-									<form onSubmit={handleHrCrawl} className="bg-zinc-900/30 border border-zinc-800 p-4 space-y-4">
-										<div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-											<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">HR & Job Boards Crawler</h3>
-											<span className="text-[10px] text-zinc-500 font-mono">Source Feed: Arbeitnow Job Feed API</span>
+									<form onSubmit={handleHrCrawl} className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+										<div className="flex items-center justify-between border-b border-slate-100 pb-3">
+											<div>
+												<h3 className="text-sm font-semibold text-slate-900">Job Boards & HR Crawler</h3>
+												<p className="text-xs text-slate-500 mt-0.5">Scrape live corporate job posts and discover recruiter emails</p>
+											</div>
+											<span className="text-xs font-medium text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">API Feed: Arbeitnow</span>
 										</div>
-										<div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+										<div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
 											<div className="space-y-1 col-span-2">
-												<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Target City (Filters generated HR location) *</label>
+												<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Target City / Hub *</label>
 												<select
 													value={crawlHrCity}
 													onChange={e => setCrawlHrCity(e.target.value)}
 													required
-													className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 font-mono rounded-none"
+													className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 cursor-pointer"
 												>
 													{citiesList.map(c => (
 														<option key={c} value={c}>{c}</option>
@@ -5778,110 +5954,112 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												<button
 													type="submit"
 													disabled={isCrawlingHr}
-													className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors disabled:opacity-50"
+													className="w-full bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold py-2.5 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-xs"
 												>
 													{isCrawlingHr ? 'Crawling Job Boards...' : 'Run HR Scraper'}
 												</button>
 											</div>
 										</div>
 										{hrCrawlMsg && (
-											<div className={cn("p-2 text-[11px] border font-mono", hrCrawlMsg.type === 'success' ? "bg-emerald-950/20 border-emerald-900/40 text-emerald-400" : "bg-red-950/20 border-red-900/40 text-red-400")}>
+											<div className={cn("p-3 rounded-xl text-xs border shadow-2xs", hrCrawlMsg.type === 'success' ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800")}>
 												{hrCrawlMsg.text}
 											</div>
 										)}
 									</form>
 
-									{}
-									<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Total Scraped</p>
-											<p className="text-base font-bold text-white">{hrCompaniesList.length}</p>
+									{/* Quick Metrics Bar */}
+									<div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+										<div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs">
+											<p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Total Scraped</p>
+											<p className="text-xl font-bold text-slate-900 mt-1">{hrCompaniesList.length}</p>
 										</div>
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Awaiting Approval</p>
-											<p className="text-base font-bold text-amber-400">{crawledCompanies.length}</p>
+										<div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs">
+											<p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Awaiting Approval</p>
+											<p className="text-xl font-bold text-amber-600 mt-1">{crawledCompanies.length}</p>
 										</div>
-										<div className="bg-zinc-900/30 border border-zinc-800/80 p-3 space-y-0.5">
-											<p className="text-[9px] text-zinc-500 uppercase tracking-wider font-semibold">Approved Directory</p>
-											<p className="text-base font-bold text-emerald-400">{activeCompanies.length}</p>
+										<div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs">
+											<p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Approved Directory</p>
+											<p className="text-xl font-bold text-emerald-600 mt-1">{activeCompanies.length}</p>
 										</div>
-										<div className="flex items-center gap-1 col-span-2 sm:col-span-1 justify-end">
+										<div className="flex items-center gap-2 col-span-2 sm:col-span-1 justify-end">
 											<button
 												onClick={handleHrAllowAll}
 												disabled={crawledCompanies.length === 0}
-												className="bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-800/40 text-emerald-400 text-[10px] font-bold py-2 px-3 rounded-none transition-all disabled:opacity-40 cursor-pointer h-full uppercase tracking-wider font-mono flex items-center justify-center gap-1"
+												className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2.5 px-3 rounded-xl transition-all disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+												style={{ backgroundColor: '#059669', color: '#ffffff' }}
 											>
-												<CheckCircleIcon className="size-3.5" /> Approve All
+												<CheckCircleIcon className="size-3.5 text-white" /> Approve All
 											</button>
 											<button
 												onClick={handleHrDeleteAllCrawled}
 												disabled={crawledCompanies.length === 0}
-												className="bg-red-950/30 hover:bg-red-900/40 border border-red-800/40 text-red-400 text-[10px] font-bold py-2 px-3 rounded-none transition-all disabled:opacity-40 cursor-pointer h-full uppercase tracking-wider font-mono flex items-center justify-center gap-1"
+												className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold py-2.5 px-3 rounded-xl transition-all disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1 shadow-xs"
+												style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 											>
-												<Trash2Icon className="size-3.5" /> Clear All
+												<Trash2Icon className="size-3.5 text-white" /> Clear All
 											</button>
 										</div>
 									</div>
 
-									{}
+									{/* Crawled Results Table */}
 									{crawledCompanies.length === 0 ? (
-										<div className="text-center py-10 bg-zinc-900/10 border border-zinc-800/40 text-xs italic text-zinc-500">
+										<div className="text-center py-16 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs text-xs italic text-slate-400">
 											No crawled company records are currently awaiting approval.
 										</div>
 									) : (
-										<div className="bg-zinc-900/20 border border-zinc-800/80 overflow-hidden">
-											<div className="overflow-x-auto">
-												<table className="w-full text-left text-xs border-collapse">
-													<thead>
-														<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[9px] bg-zinc-950/40">
-															<th className="p-3">Company Details</th>
-															<th className="p-3">Generated HR Contact</th>
-															<th className="p-3">Location & Feed Context</th>
-															<th className="p-3 text-right">Approval Actions</th>
+										<div className="bg-white border border-slate-200/90 rounded-2xl overflow-x-auto shadow-2xs">
+											<table className="w-full min-w-[900px] text-left text-xs text-slate-700">
+												<thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider">
+													<tr>
+														<th className="p-3.5 font-semibold">Company Details</th>
+														<th className="p-3.5 font-semibold">Generated HR Contact</th>
+														<th className="p-3.5 font-semibold">Location & Context</th>
+														<th className="p-3.5 font-semibold text-right">Approval Actions</th>
+													</tr>
+												</thead>
+												<tbody className="divide-y divide-slate-100">
+													{crawledCompanies.map((company) => (
+														<tr key={company.id} className="hover:bg-slate-50/70 transition-colors">
+															<td className="p-3.5 space-y-0.5">
+																<div className="font-semibold text-slate-900 text-xs">{company.companyName}</div>
+																{company.website && (
+																	<a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-600 hover:underline inline-block">
+																		{company.website}
+																	</a>
+																)}
+															</td>
+															<td className="p-3.5 space-y-0.5">
+																<div className="text-slate-800 font-medium">{company.hrName}</div>
+																<div className="text-[11px] text-slate-500">
+																	{company.hrEmail} · {company.hrPhone}
+																</div>
+															</td>
+															<td className="p-3.5 space-y-0.5">
+																<div className="text-slate-800">{company.location}</div>
+																<div className="text-[11px] text-slate-400">{company.industry}</div>
+															</td>
+															<td className="p-3.5 text-right">
+																<div className="flex justify-end gap-1.5">
+																	<button
+																		onClick={() => handleHrAllow(company.id, true)}
+																		className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-1.5 px-3 text-xs rounded-xl cursor-pointer flex items-center gap-1 shadow-2xs transition-all"
+																		style={{ backgroundColor: '#059669', color: '#ffffff' }}
+																	>
+																		<CheckIcon className="size-3 text-white" /> Approve
+																	</button>
+																	<button
+																		onClick={() => handleHrDelete(company.id)}
+																		className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 text-xs rounded-xl cursor-pointer flex items-center gap-1 shadow-2xs transition-all"
+																		style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
+																	>
+																		<Trash2Icon className="size-3 text-white" /> Delete
+																	</button>
+																</div>
+															</td>
 														</tr>
-													</thead>
-													<tbody className="divide-y divide-zinc-850 font-mono text-zinc-300">
-														{crawledCompanies.map((company) => (
-															<tr key={company.id} className="hover:bg-zinc-900/20 transition-colors">
-																<td className="p-3 space-y-0.5">
-																	<div className="font-semibold text-white text-xs">{company.companyName}</div>
-																	{company.website && (
-																		<a href={company.website} target="_blank" rel="noopener noreferrer" className="text-[10px] text-zinc-500 hover:text-brand-400">
-																			{company.website}
-																		</a>
-																	)}
-																</td>
-																<td className="p-3 space-y-0.5">
-																	<div className="text-zinc-200">{company.hrName}</div>
-																	<div className="text-[10px] text-zinc-500">
-																		{company.hrEmail} · {company.hrPhone}
-																	</div>
-																</td>
-																<td className="p-3 space-y-0.5">
-																	<div className="text-zinc-300">{company.location}</div>
-																	<div className="text-[10px] text-zinc-500">{company.industry}</div>
-																</td>
-																<td className="p-3 text-right">
-																	<div className="flex justify-end gap-1.5">
-																		<button
-																			onClick={() => handleHrAllow(company.id, true)}
-																			className="bg-emerald-950/40 border border-emerald-900/40 hover:bg-emerald-900/50 text-emerald-400 font-bold py-1 px-3 text-[10px] uppercase rounded-none cursor-pointer flex items-center gap-1 transition-all"
-																		>
-																			<CheckIcon className="size-3" /> Approve
-																		</button>
-																		<button
-																			onClick={() => handleHrDelete(company.id)}
-																			className="bg-red-950/40 border border-red-900/40 hover:bg-red-900/50 text-red-400 font-bold py-1 px-3 text-[10px] uppercase rounded-none cursor-pointer flex items-center gap-1 transition-all"
-																		>
-																			<Trash2Icon className="size-3" /> Delete
-																		</button>
-																	</div>
-																</td>
-															</tr>
-														))}
-													</tbody>
-												</table>
-											</div>
+													))}
+												</tbody>
+											</table>
 										</div>
 									)}
 								</div>
@@ -5892,32 +6070,32 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 				{activeTab === 'form' && (
 					<div className="space-y-6">
-						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
-								<h2 className="text-xl font-bold text-white flex items-center gap-2 font-sans">
-									<FileTextIcon className="size-5 text-brand-400" />
-									Unanimous Form Submissions
-								</h2>
-								<p className="text-zinc-400 text-sm mt-0.5">
-									Review feedback, concerns, and policy suggestions submitted by verified members.
+								<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Feedback & Forms</h2>
+								<p className="text-xs text-slate-500 mt-0.5">
+									Review anonymous feedback, employee surveys, suggestions, and form settings
 								</p>
 							</div>
 						</div>
 
 						{/* Search & Filter Controls */}
-						<div className="bg-zinc-900/40 border border-zinc-800/80 p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between backdrop-blur-sm">
-							<div className="flex items-center gap-3 w-full md:w-auto">
-								<input
-									type="text"
-									placeholder="Search email or name..."
-									value={searchQuery}
-									onChange={(e) => setSearchQuery(e.target.value)}
-									className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-brand-500 w-full md:w-64"
-								/>
+						<div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-wrap gap-3 items-center justify-between">
+							<div className="flex items-center gap-3 flex-wrap flex-1 min-w-[280px]">
+								<div className="relative flex-1 min-w-[200px]">
+									<SearchIcon className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
+									<input
+										type="text"
+										placeholder="Search email or name..."
+										value={searchQuery}
+										onChange={(e) => setSearchQuery(e.target.value)}
+										className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
+									/>
+								</div>
 								<select
 									value={filterUserType}
 									onChange={(e) => setFilterUserType(e.target.value)}
-									className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
+									className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none cursor-pointer"
 								>
 									<option value="ALL">All Roles</option>
 									<option value="EMPLOYEE">Employees Only</option>
@@ -5926,7 +6104,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<select
 									value={filterSeverity}
 									onChange={(e) => setFilterSeverity(e.target.value)}
-									className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-brand-500"
+									className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 focus:outline-none cursor-pointer"
 								>
 									<option value="ALL">All Severities</option>
 									<option value="Low">Low</option>
@@ -5936,13 +6114,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</select>
 							</div>
 
-							<div className="text-xs text-zinc-500 font-mono">
-								Found: {feedbackSubmissions.filter(fb => {
+							<div className="text-xs text-slate-400 font-medium">
+								{feedbackSubmissions.filter(fb => {
 									const matchesSearch = fb.userName.toLowerCase().includes(searchQuery.toLowerCase()) || fb.userEmail.toLowerCase().includes(searchQuery.toLowerCase());
 									const matchesRole = filterUserType === 'ALL' || fb.userType === filterUserType;
 									const matchesSeverity = filterSeverity === 'ALL' || fb.severity === filterSeverity;
 									return matchesSearch && matchesRole && matchesSeverity;
-								}).length}
+								}).length} submissions found
 							</div>
 						</div>
 
@@ -5956,35 +6134,35 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									return matchesSearch && matchesRole && matchesSeverity;
 								})
 								.map((fb) => (
-									<div key={fb.id} className="bg-zinc-900/30 border border-zinc-800/80 rounded-xl p-5 hover:border-zinc-700/80 transition-all duration-200">
+									<div key={fb.id} className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-all space-y-4">
 										{/* Card Header */}
-										<div className="flex justify-between items-start gap-4 flex-wrap mb-4">
+										<div className="flex justify-between items-start gap-4 flex-wrap pb-3 border-b border-slate-100">
 											<div className="space-y-1">
-												<div className="flex items-center gap-2">
-													<span className="font-semibold text-zinc-100 text-sm">{fb.userName}</span>
-													<span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
-														fb.userType === 'ADMIN' ? 'bg-indigo-950/60 text-indigo-400 border border-indigo-800/60' : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
+												<div className="flex items-center gap-2 flex-wrap">
+													<span className="font-semibold text-slate-900 text-sm">{fb.userName}</span>
+													<span className={`px-2.5 py-0.5 rounded-md text-[10px] uppercase font-semibold border ${
+														fb.userType === 'ADMIN' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
 													}`}>
 														{fb.userType}
 													</span>
-													<span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-														fb.comfortableSharing === 'Yes' ? 'bg-amber-950/60 text-amber-400 border border-amber-800/60' : 'bg-zinc-800/50 text-zinc-400'
+													<span className={`px-2.5 py-0.5 rounded-md text-[10px] font-semibold border ${
+														fb.comfortableSharing === 'Yes' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200'
 													}`}>
 														{fb.comfortableSharing === 'Yes' ? 'Has Concerns' : 'No Concerns'}
 													</span>
 												</div>
-												<div className="text-xs text-zinc-400 font-mono">{fb.userEmail}</div>
+												<div className="text-xs text-slate-500">{fb.userEmail}</div>
 											</div>
-											<div className="flex items-center gap-2 text-xs font-mono">
-												<span className="text-zinc-500">{new Date(fb.createdAt).toLocaleString()}</span>
+											<div className="flex items-center gap-2 text-xs">
+												<span className="text-slate-400">{new Date(fb.createdAt).toLocaleString()}</span>
 												{fb.comfortableSharing === 'Yes' && fb.severity && (
-													<span className={`px-2.5 py-0.5 rounded-full font-semibold border ${
-														fb.severity === 'Urgent' ? 'bg-red-950/50 text-red-400 border-red-800/60' :
-														fb.severity === 'Serious' ? 'bg-orange-950/50 text-orange-400 border-orange-850/60' :
-														fb.severity === 'Moderate' ? 'bg-yellow-950/50 text-yellow-400 border-yellow-800/60' :
-														'bg-green-950/50 text-green-400 border-green-800/60'
+													<span className={`px-2.5 py-0.5 rounded-full font-semibold border text-[11px] ${
+														fb.severity === 'Urgent' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+														fb.severity === 'Serious' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+														fb.severity === 'Moderate' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' :
+														'bg-emerald-50 text-emerald-700 border-emerald-200'
 													}`}>
-														{fb.severity}
+														{fb.severity} Severity
 													</span>
 												)}
 											</div>
@@ -5992,41 +6170,41 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 										{/* Card Content Summary */}
 										{fb.comfortableSharing === 'Yes' ? (
-											<div className="space-y-3 pt-3 border-t border-zinc-800/40">
+											<div className="space-y-3.5">
 												<div>
-													<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">What they want to tell us:</span>
-													<p className="text-zinc-200 text-sm whitespace-pre-wrap leading-relaxed">{fb.feedbackText}</p>
+													<span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">What they want to tell us:</span>
+													<p className="text-slate-800 text-xs whitespace-pre-wrap leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">{fb.feedbackText}</p>
 												</div>
 												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 													<div>
-														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">Concern categories:</span>
+														<span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Concern categories:</span>
 														<div className="flex flex-wrap gap-1.5">
 															{fb.concerns.split(',').map((c: string) => (
-																<span key={c.trim()} className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded">
+																<span key={c.trim()} className="bg-slate-100 border border-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-lg">
 																	{c.trim()}
 																</span>
 															))}
 														</div>
 													</div>
 													<div>
-														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">How long it has been happening:</span>
-														<span className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded block w-max">
+														<span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">How long it has been happening:</span>
+														<span className="bg-slate-100 border border-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-lg inline-block">
 															{fb.duration}
 														</span>
 													</div>
 												</div>
 												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 													<div>
-														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">Involves someone else?</span>
-														<span className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded block w-max">
+														<span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Involves someone else?</span>
+														<span className="bg-slate-100 border border-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-lg inline-block">
 															{fb.involvesOthers}
 														</span>
 													</div>
 													<div>
-														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono">Action they would like us to take:</span>
+														<span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Action they would like us to take:</span>
 														<div className="flex flex-wrap gap-1.5">
 															{fb.desiredAction.split(',').map((a: string) => (
-																<span key={a.trim()} className="bg-zinc-950 border border-zinc-850 text-zinc-350 text-xs px-2 py-0.5 rounded">
+																<span key={a.trim()} className="bg-slate-100 border border-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded-lg">
 																	{a.trim()}
 																</span>
 															))}
@@ -6035,20 +6213,20 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												</div>
 												{fb.additionalNotes && (
 													<div>
-														<span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1 font-mono font-semibold">Additional context:</span>
-														<p className="text-zinc-300 text-xs whitespace-pre-wrap bg-zinc-950/40 p-2.5 rounded border border-zinc-850/50">{fb.additionalNotes}</p>
+														<span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">Additional context:</span>
+														<p className="text-slate-700 text-xs whitespace-pre-wrap bg-slate-50 p-3 rounded-xl border border-slate-100">{fb.additionalNotes}</p>
 													</div>
 												)}
 											</div>
 										) : (
-											<div className="text-xs text-zinc-500 italic pt-2 border-t border-zinc-800/40 font-mono">
+											<div className="text-xs text-slate-400 italic py-2">
 												Submitted &quot;No&quot; — No direct concerns reported.
 											</div>
 										)}
 									</div>
 								))}
 							{feedbackSubmissions.length === 0 && (
-								<div className="border border-dashed border-zinc-800 rounded-xl p-12 text-center text-zinc-500">
+								<div className="bg-white border border-slate-200/90 rounded-2xl p-16 text-center text-slate-400 text-xs italic shadow-2xs">
 									No feedback submissions recorded yet.
 								</div>
 							)}
@@ -6058,39 +6236,36 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 				{activeTab === 'super_admin' && isSuperAdmin && (
 					<div className="space-y-6">
-						<div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
-								<h2 className="text-xl font-bold text-white flex items-center gap-2 font-sans">
-									<ServerIcon className="size-5 text-brand-400" />
-									Super Admin Dashboard
-								</h2>
-								<p className="text-zinc-400 text-sm mt-0.5">Allocate admin directories and configure page-level access permissions</p>
+								<h2 className="text-xl font-semibold text-slate-900 tracking-tight">System Admins Panel</h2>
+								<p className="text-xs text-slate-500 mt-0.5">Register additional admin users, set workspace permissions, and audit activity</p>
 							</div>
 						</div>
 
 						{superAdminMsg && (
-							<div className={cn("p-3 text-xs border font-mono", superAdminMsg.type === 'success' ? "bg-emerald-950/30 border-emerald-800 text-emerald-400" : "bg-red-950/30 border-red-800 text-red-400")}>
+							<div className={cn("p-3.5 rounded-xl text-xs border shadow-2xs", superAdminMsg.type === 'success' ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800")}>
 								{superAdminMsg.text}
 							</div>
 						)}
 
 						{allocatedLink && (
-							<div className="p-4 bg-brand-950/20 border border-brand-800/80 space-y-2">
-								<h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Generated Invitation Link</h4>
-								<p className="text-zinc-400 text-xs">Send this URL to the invited admin. They will be directed to the login page with their email prefilled:</p>
+							<div className="p-5 bg-white border border-slate-200/90 rounded-2xl shadow-2xs space-y-2">
+								<h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">Generated Invitation Link</h4>
+								<p className="text-slate-500 text-xs">Send this URL to the invited admin. They will be directed to the login page with their email prefilled:</p>
 								<div className="flex items-center gap-2">
 									<input
 										type="text"
 										readOnly
 										value={allocatedLink}
-										className="flex-1 bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs p-2 focus:outline-none"
+										className="flex-1 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none"
 									/>
 									<button
 										onClick={() => {
 											navigator.clipboard.writeText(allocatedLink);
 											alert('Invite URL copied to clipboard!');
 										}}
-										className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-4 py-2 cursor-pointer transition-colors"
+										className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-4 py-2.5 rounded-xl cursor-pointer transition-colors shadow-xs"
 									>
 										Copy Link
 									</button>
@@ -6099,48 +6274,47 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						)}
 
 						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-							{}
-							<div className="lg:col-span-1 bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
-								<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800 pb-2 font-mono">Allocate New Admin</h3>
+							{/* Form Card */}
+							<div className="lg:col-span-1 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+								<h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-3">Allocate New Admin</h3>
 								<form onSubmit={handleAllocateAdmin} className="space-y-4">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold font-mono">Admin Email Address</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Admin Email Address *</label>
 										<input
 											type="email"
 											required
 											value={newAdminEmail}
 											onChange={e => setNewAdminEmail(e.target.value)}
 											placeholder="e.g. admin@domain.com"
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+											className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold font-mono">Organization Name</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Organization Name *</label>
 										<input
 											type="text"
 											required
 											value={newAdminOrgName}
 											onChange={e => setNewAdminOrgName(e.target.value)}
 											placeholder="e.g. Acme Corp"
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+											className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold font-mono">Initial Password</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Initial Password *</label>
 										<input
 											type="password"
 											required
 											value={newAdminPassword}
 											onChange={e => setNewAdminPassword(e.target.value)}
 											placeholder="admin123"
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600"
+											className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20"
 										/>
 									</div>
 
-									{}
 									<div className="space-y-2">
-										<label className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold block font-mono">Select Allowed Pages</label>
-										<div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto border border-zinc-850 p-2.5 bg-zinc-950/40">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider block">Select Allowed Pages</label>
+										<div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto border border-slate-200 rounded-xl p-3 bg-slate-50/70">
 											{[
 												{ id: 'overview', name: 'Overview Stats' },
 												{ id: 'employees', name: 'Employees Directory' },
@@ -6159,12 +6333,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												{ id: 'hr_companies', name: 'HR & Companies' },
 												{ id: 'form', name: 'Unanimous Form' }
 											].map(item => (
-												<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+												<label key={item.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
 													<input
 														type="checkbox"
 														checked={newAdminPages.includes(item.id)}
 														onChange={() => togglePagePermission(item.id)}
-														className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600"
+														className="rounded border-slate-300 text-[#E61E32] focus:ring-[#E61E32]"
 													/>
 													<span>{item.name}</span>
 												</label>
@@ -6175,36 +6349,36 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									<button
 										type="submit"
 										disabled={isAllocating}
-										className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors disabled:opacity-50 font-mono"
+										className="w-full bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold py-2.5 rounded-xl cursor-pointer transition-colors disabled:opacity-50 shadow-xs"
 									>
 										{isAllocating ? 'Allocating Admin...' : 'Allocate Admin'}
 									</button>
 								</form>
 							</div>
 
-							{}
-							<div className="lg:col-span-2 bg-zinc-900/30 border border-zinc-800 p-5 space-y-4">
-								<h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800 pb-2 font-mono">Active Admin Directories</h3>
+							{/* Directory Table Card */}
+							<div className="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+								<h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-3">Active Admin Directories</h3>
 								<div className="overflow-x-auto">
-									<table className="w-full text-left border-collapse text-xs">
+									<table className="w-full text-left text-xs text-slate-700">
 										<thead>
-											<tr className="bg-zinc-900/60 border-b border-zinc-800 text-zinc-400 font-mono uppercase tracking-wider text-[10px]">
+											<tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider">
 												<th className="p-3 font-semibold">Admin Email</th>
 												<th className="p-3 font-semibold">Organization</th>
 												<th className="p-3 font-semibold">Page Access</th>
 												<th className="p-3 font-semibold text-right">Action</th>
 											</tr>
 										</thead>
-										<tbody className="divide-y divide-zinc-900">
+										<tbody className="divide-y divide-slate-100">
 											{adminsList.map((adm: any) => (
-												<tr key={adm.id} className="hover:bg-zinc-900/10 transition-colors">
-													<td className="p-3 font-bold text-white font-mono">{adm.email}</td>
-													<td className="p-3 text-zinc-300">{adm.organizationName || 'WrkSpace Headquarters'}</td>
-													<td className="p-3 text-zinc-400 max-w-[240px] truncate" title={adm.allowedPages || ''}>
+												<tr key={adm.id} className="hover:bg-slate-50/70 transition-colors">
+													<td className="p-3 font-semibold text-slate-900">{adm.email}</td>
+													<td className="p-3 text-slate-600">{adm.organizationName || 'WrkSpace Headquarters'}</td>
+													<td className="p-3 text-slate-600 max-w-[240px]" title={adm.allowedPages || ''}>
 														{adm.allowedPages ? (
 															<div className="flex flex-wrap gap-1">
 																{(adm.allowedPages || '').split(',').map((p: string) => (
-																	<span key={p} className="text-[9px] px-1 bg-zinc-850 border border-zinc-800 text-zinc-400 capitalize">
+																	<span key={p} className="text-[10px] px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-slate-600 rounded capitalize">
 																		{p.replace('_', ' ')}
 																	</span>
 																))}
@@ -6213,28 +6387,29 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 													</td>
 													<td className="p-3 text-right">
 														{adm.email.toLowerCase() !== 'webstrixx@gmail.com' ? (
-															<div className="inline-flex justify-end gap-2">
+															<div className="inline-flex justify-end gap-1.5">
 																<button
 																	onClick={() => {
 																		const inviteUrl = `${window.location.origin}/admin?invite=${adm.inviteToken}`;
 																		navigator.clipboard.writeText(inviteUrl);
 																		alert('Invite URL copied to clipboard!');
 																	}}
-																	className="p-1.5 bg-zinc-900 border border-zinc-800 text-brand-400 hover:text-brand-300 hover:border-zinc-700 transition-all cursor-pointer"
+																	className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer shadow-2xs"
 																	title="Copy Invite URL"
 																>
 																	<CopyIcon className="size-3.5" />
 																</button>
 																<button
 																	onClick={() => handleDeleteAdmin(adm.email)}
-																	className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-500 hover:text-red-400 hover:border-zinc-700 transition-all cursor-pointer"
+																	className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all cursor-pointer shadow-2xs"
+																	style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 																	title="Revoke Admin Access"
 																>
-																	<Trash2Icon className="size-3.5" />
+																	<Trash2Icon className="size-3.5 text-white" />
 																</button>
 															</div>
 														) : (
-															<span className="text-[10px] text-zinc-600 font-mono italic">Primary Super Admin</span>
+															<span className="text-[11px] text-slate-400 italic">Primary Super Admin</span>
 														)}
 													</td>
 												</tr>
@@ -6247,17 +6422,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				)}
 
-				{}
 				{activeTab === 'team_leads' && (isSuperAdmin || allowedTabs.includes('team_leads')) && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div>
-								<h2 className="text-xl font-bold text-white flex items-center gap-2">
-									<UserCheckIcon className="size-5 text-brand-400" />
-									Team Leads Allocation
-								</h2>
-								<p className="text-zinc-400 text-sm mt-0.5">
-									Allocate login credentials and dedicated dashboard tabs to specific employees.
+								<h2 className="text-xl font-semibold text-slate-900 tracking-tight">Team Leads Registry</h2>
+								<p className="text-xs text-slate-500 mt-0.5">
+									Assign wing managers, define lead roles, and allocate dedicated dashboard tabs
 								</p>
 							</div>
 							<Button
@@ -6265,7 +6436,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									setShowLeadForm(!showLeadForm);
 									setLeadMsg(null);
 								}}
-								className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
+								className="bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold py-2.5 px-4 rounded-xl cursor-pointer shadow-xs"
 							>
 								{showLeadForm ? 'Cancel Allocation' : (
 									<>
@@ -6276,30 +6447,28 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</Button>
 						</div>
 
-						{}
 						{leadMsg && (
 							<div className={cn(
-								"p-3 rounded-none text-xs border font-mono",
+								"p-3.5 rounded-xl text-xs border shadow-2xs",
 								leadMsg.type === 'success'
-									? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
-									: "bg-red-950/30 border-red-800 text-red-400"
+									? "bg-emerald-50 border-emerald-200 text-emerald-800"
+									: "bg-rose-50 border-rose-200 text-rose-800"
 							)}>
 								{leadMsg.text}
 							</div>
 						)}
 
-						{}
 						{showLeadForm && (
-							<form onSubmit={handleAllocateTeamLead} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
-								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
-									Create Login & Pages Allocation
+							<form onSubmit={handleAllocateTeamLead} className="bg-white border border-slate-200/90 p-6 space-y-4 rounded-2xl shadow-2xs">
+								<h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-3">
+									Create Login & Dedicated Pages Allocation
 								</h3>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Select Employee *</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Select Employee *</label>
 										<select
 											required
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2.5 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none h-10"
+											className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 cursor-pointer h-10"
 											value={selectedEmpId}
 											onChange={e => setSelectedEmpId(e.target.value)}
 										>
@@ -6316,22 +6485,21 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Assign Login Password *</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Assign Login Password *</label>
 										<Input
 											type="password"
 											placeholder="leadpassword123"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700 rounded-none h-10 transition-colors"
+											className="w-full bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-xs p-2.5 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 h-10"
 											value={leadPassword}
 											onChange={e => setLeadPassword(e.target.value)}
 										/>
 									</div>
 								</div>
 
-								{}
 								<div className="space-y-2">
-									<label className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold block font-mono">DEDICATE ALLOWED PAGES *</label>
-									<div className="grid grid-cols-2 md:grid-cols-4 gap-3 border border-zinc-850 p-4 bg-zinc-950/40">
+									<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider block">DEDICATE ALLOWED PAGES *</label>
+									<div className="grid grid-cols-2 md:grid-cols-4 gap-3 border border-slate-200 rounded-xl p-4 bg-slate-50/70">
 										{[
 											{ id: 'overview', name: 'Overview' },
 											{ id: 'employees', name: 'Employees' },
@@ -6347,12 +6515,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											{ id: 'hr_companies', name: 'HR & Companies' },
 											{ id: 'form', name: 'Unanimous Form' }
 										].map(item => (
-											<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+											<label key={item.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
 												<input
 													type="checkbox"
 													checked={leadAllowedPages.includes(item.id)}
 													onChange={() => toggleLeadPagePermission(item.id)}
-													className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600"
+													className="rounded border-slate-300 text-[#E61E32] focus:ring-[#E61E32]"
 												/>
 												<span>{item.name}</span>
 											</label>
@@ -6363,57 +6531,56 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<Button
 									type="submit"
 									disabled={isAllocatingLead}
-									className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+									className="bg-[#E61E32] hover:bg-[#c9182a] disabled:opacity-50 text-white text-xs font-semibold py-2.5 px-4 rounded-xl h-10 w-full cursor-pointer transition-all shadow-xs"
 								>
 									{isAllocatingLead ? 'Allocating...' : 'Allocate Login & Pages'}
 								</Button>
 							</form>
 						)}
 
-						{}
-						<div className="bg-zinc-900/30 border border-zinc-800 overflow-x-auto rounded-none w-full scrollbar-thin scrollbar-thumb-zinc-800">
-							<table className="w-full min-w-[1200px] text-left text-xs text-zinc-300 font-mono">
-								<thead className="bg-zinc-950/70 border-b border-zinc-800 text-[10px] text-zinc-400 uppercase tracking-wider">
+						<div className="bg-white border border-slate-200/90 rounded-2xl overflow-x-auto shadow-2xs w-full">
+							<table className="w-full min-w-[1000px] text-left text-xs text-slate-700">
+								<thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase tracking-wider">
 									<tr>
-										<th className="p-4 font-semibold w-40">Employee ID</th>
-										<th className="p-4 font-semibold w-60">Full Name</th>
-										<th className="p-4 font-semibold w-72">Email (Login)</th>
-										<th className="p-4 font-semibold w-48">Wing</th>
+										<th className="p-4 font-semibold w-36">Employee ID</th>
+										<th className="p-4 font-semibold w-52">Full Name</th>
+										<th className="p-4 font-semibold w-64">Email (Login)</th>
+										<th className="p-4 font-semibold w-40">Wing</th>
 										<th className="p-4 font-semibold">Dedicated Pages</th>
 										<th className="p-4 font-semibold text-right w-36">Actions</th>
 									</tr>
 								</thead>
-								<tbody className="divide-y divide-zinc-850 bg-zinc-950/10">
+								<tbody className="divide-y divide-slate-100">
 									{teamLeadsList.length === 0 ? (
 										<tr>
-											<td colSpan={6} className="p-8 text-center text-zinc-550 text-xs italic font-sans">
+											<td colSpan={6} className="p-8 text-center text-slate-400 text-xs italic">
 												No Team Leads allocated yet. Click "Allocate Team Lead" to create a team lead login.
 											</td>
 										</tr>
 									) : (
 										teamLeadsList.map((tl) => (
-											<tr key={tl.id} className="hover:bg-zinc-900/30 transition-colors">
-												<td className="p-4 font-semibold text-brand-400">{tl.employeeId || '—'}</td>
-												<td className="p-4 text-white font-sans font-medium">
+											<tr key={tl.id} className="hover:bg-slate-50/70 transition-colors">
+												<td className="p-4 font-semibold text-[#E61E32]">{tl.employeeId || '—'}</td>
+												<td className="p-4 text-slate-900 font-medium">
 													{tl.employee ? `${tl.employee.firstName} ${tl.employee.lastName}` : 'Unknown Employee'}
 												</td>
-												<td className="p-4 font-bold text-white">{tl.email}</td>
-												<td className="p-4">{tl.employee?.wingName || '—'}</td>
+												<td className="p-4 font-semibold text-slate-900">{tl.email}</td>
+												<td className="p-4 text-slate-600">{tl.employee?.wingName || '—'}</td>
 												<td className="p-4">
 													<div className="flex flex-wrap gap-1">
 														{tl.allowedPages ? (
 															tl.allowedPages.split(',').map((p: string) => (
-																<span key={p} className="text-[9px] px-1.5 py-0.5 bg-zinc-850 border border-zinc-800 text-zinc-400 capitalize">
+																<span key={p} className="text-[10px] px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-600 rounded capitalize">
 																	{p.replace('_', ' ')}
 																</span>
 															))
 														) : (
-															<span className="text-zinc-600 font-sans italic">None</span>
+															<span className="text-slate-400 italic">None</span>
 														)}
 													</div>
 												</td>
 												<td className="p-4 text-right">
-													<div className="inline-flex items-center justify-end gap-2">
+													<div className="inline-flex items-center justify-end gap-1.5">
 														<button
 															onClick={() => {
 																setEditingLead(tl);
@@ -6421,17 +6588,18 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																setEditLeadAllowedPages(tl.allowedPages ? tl.allowedPages.split(',') : []);
 																setShowEditLeadModal(true);
 															}}
-															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-brand-400 hover:text-brand-300 transition-all cursor-pointer"
+															className="p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer shadow-2xs"
 															title="Edit Team Lead"
 														>
 															<PencilIcon className="size-3.5" />
 														</button>
 														<button
 															onClick={() => handleDeleteTeamLead(tl.id)}
-															className="p-1.5 bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
+															className="p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all cursor-pointer shadow-2xs"
+															style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
 															title="Revoke Lead Access"
 														>
-															<Trash2Icon className="size-3.5" />
+															<Trash2Icon className="size-3.5 text-white" />
 														</button>
 													</div>
 												</td>
@@ -6446,25 +6614,23 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 			</div>
 
-			{}
 			{editModalType && editingItem && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
-					<div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 p-6 space-y-4 shadow-2xl relative">
-						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-							<h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+					<div className="w-full max-w-lg bg-white border border-slate-200/90 rounded-2xl p-6 space-y-4 shadow-2xl relative">
+						<div className="flex justify-between items-center border-b border-slate-100 pb-3">
+							<h3 className="text-sm font-semibold text-slate-900">
 								Edit {editModalType === 'employee' ? 'Employee Profile' : editModalType === 'task' ? 'Task Allocation' : editModalType === 'attendance' ? 'Attendance Log' : editModalType === 'event' ? 'Event Details' : editModalType === 'hr_company' ? 'HR & Company' : 'Details'}
 							</h3>
 							<button 
 								onClick={() => { setEditModalType(null); setEditingItem(null); }}
-								className="text-zinc-400 hover:text-white font-semibold text-sm cursor-pointer"
+								className="text-slate-400 hover:text-slate-700 font-semibold text-sm cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-colors"
 							>
 								✕
 							</button>
 						</div>
 
-						{}
 						{editModalType === 'employee' && (
-							<div className="max-h-[70vh] overflow-y-auto pr-1.5 space-y-6 scrollbar-thin scrollbar-thumb-zinc-800">
+							<div className="max-h-[70vh] overflow-y-auto pr-1.5 space-y-6">
 								<form 
 									onSubmit={async (e) => {
 									e.preventDefault();
@@ -6487,49 +6653,49 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							>
 								<div className="grid grid-cols-3 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">First Name</label>
-										<Input name="firstName" defaultValue={editingItem.firstName} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">First Name</label>
+										<Input name="firstName" defaultValue={editingItem.firstName} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Middle Name</label>
-										<Input name="middleName" defaultValue={editingItem.middleName || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Middle Name</label>
+										<Input name="middleName" defaultValue={editingItem.middleName || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Last Name</label>
-										<Input name="lastName" defaultValue={editingItem.lastName} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
-									</div>
-								</div>
-								<div className="grid grid-cols-2 gap-2">
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Email</label>
-										<Input type="email" name="email" defaultValue={editingItem.email} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
-									</div>
-									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Phone</label>
-										<Input name="phone" defaultValue={editingItem.phone} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Last Name</label>
+										<Input name="lastName" defaultValue={editingItem.lastName} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Wing Name</label>
-										<Input name="wingName" defaultValue={editingItem.wingName} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Email</label>
+										<Input type="email" name="email" defaultValue={editingItem.email} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Wing Lead</label>
-										<Input name="wingLeadName" defaultValue={editingItem.wingLeadName} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Phone</label>
+										<Input name="phone" defaultValue={editingItem.phone} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Role</label>
-										<Input name="role" defaultValue={editingItem.role || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Wing Name</label>
+										<Input name="wingName" defaultValue={editingItem.wingName} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Gender</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Wing Lead</label>
+										<Input name="wingLeadName" defaultValue={editingItem.wingLeadName} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
+									</div>
+								</div>
+								<div className="grid grid-cols-2 gap-2">
+									<div className="space-y-1">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Role</label>
+										<Input name="role" defaultValue={editingItem.role || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
+									</div>
+									<div className="space-y-1">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Gender</label>
 										<select
 											name="gender"
 											defaultValue={String(editingItem.gender || 'UNSPECIFIED').toUpperCase()}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+											className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl h-9 px-2 focus:outline-none cursor-pointer"
 										>
 											<option value="UNSPECIFIED">Not set (employee chooses)</option>
 											<option value="FEMALE">Female</option>
@@ -6539,25 +6705,24 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
-										<Input name="monthWorked" defaultValue={editingItem.monthWorked || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Month(s) Worked For</label>
+										<Input name="monthWorked" defaultValue={editingItem.monthWorked || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
-										<Input name="remarks" defaultValue={editingItem.remarks || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Remarks</label>
+										<Input name="remarks" defaultValue={editingItem.remarks || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
-								<div className="space-y-2 pt-2 border-t border-zinc-800">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Employee ID card</label>
-									<p className="text-[11px] text-zinc-500">Upload the complete ID card image. Employee will see it in Mobile More → ID card and Website ID card tab.</p>
+								<div className="space-y-2 pt-2 border-t border-slate-100">
+									<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Employee ID card</label>
+									<p className="text-xs text-slate-500">Upload the complete ID card image. Employee will see it in Mobile More → ID card and Website ID card tab.</p>
 									{editingItem.idCardUrl ? (
-										
-										<img src={editingItem.idCardUrl} alt="ID card" className="w-full max-h-40 object-contain border border-zinc-800 bg-zinc-950" />
+										<img src={editingItem.idCardUrl} alt="ID card" className="w-full max-h-40 object-contain border border-slate-200 rounded-xl bg-slate-50" />
 									) : (
-										<div className="text-[11px] text-zinc-600 border border-dashed border-zinc-800 p-3">No ID card uploaded yet</div>
+										<div className="text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl p-3 text-center">No ID card uploaded yet</div>
 									)}
 									<div className="flex flex-wrap gap-2">
-										<label className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-500 px-3 py-2 cursor-pointer">
+										<label className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-[#E61E32] hover:bg-[#c9182a] px-3.5 py-2 rounded-xl cursor-pointer shadow-xs">
 											Upload ID card
 											<input
 												type="file"
@@ -6595,7 +6760,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										{editingItem.idCardUrl && (
 											<button
 												type="button"
-												className="text-xs font-semibold text-red-300 border border-red-900 px-3 py-2 hover:bg-red-950/40 cursor-pointer"
+												className="text-xs font-semibold text-rose-600 border border-rose-200 rounded-xl px-3.5 py-2 hover:bg-rose-50 cursor-pointer shadow-2xs"
 												onClick={async () => {
 													const res = await updateEmployeeIdCard(editingItem.id, null);
 													if (res.success && res.employee) {
@@ -6611,32 +6776,32 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										)}
 									</div>
 								</div>
-								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
-									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+								<div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-xl h-9 cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+									<Button type="submit" className="bg-[#E61E32] hover:bg-[#c9182a] text-xs rounded-xl h-9 text-white cursor-pointer shadow-xs">Save Changes</Button>
 								</div>
 							</form>
 
 							{/* BADGE MANAGEMENT SECTION */}
-							<div className="border-t border-zinc-800 pt-6 space-y-4">
+							<div className="border-t border-slate-100 pt-6 space-y-4">
 								<div>
-									<h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+									<h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
 										Badge Management
 									</h4>
-									<p className="text-[11px] text-zinc-400 mt-1">
+									<p className="text-xs text-slate-500 mt-0.5">
 										Award professional badges to this employee. These badges will appear on their verification dossier.
 									</p>
 								</div>
 
 								{badgeMessage && (
-									<div className="p-2.5 bg-brand-950/40 border border-brand-900 text-brand-400 text-xs font-mono">
+									<div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 text-xs rounded-xl">
 										{badgeMessage}
 									</div>
 								)}
 
 								{/* List of current badges */}
 								<div className="space-y-2">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Assigned Badges</label>
+									<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Assigned Badges</label>
 									{(() => {
 										let badgesList: any[] = [];
 										try {
@@ -6647,7 +6812,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 										if (badgesList.length === 0) {
 											return (
-												<p className="text-[11px] text-zinc-500 italic">No badges assigned yet.</p>
+												<p className="text-xs text-slate-400 italic">No badges assigned yet.</p>
 											);
 										}
 
@@ -6656,22 +6821,22 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												{badgesList.map((b: any) => (
 													<div 
 														key={b.id} 
-														className="flex items-center justify-between p-2.5 bg-zinc-950 border border-zinc-850 rounded-none text-xs"
+														className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
 													>
 														<div className="flex items-center gap-2">
-															<span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm ${
-																b.color === 'blue' ? 'bg-blue-900/30 text-blue-400 border border-blue-800/50' :
-																b.color === 'green' ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800/50' :
-																b.color === 'purple' ? 'bg-purple-900/30 text-purple-400 border border-purple-800/50' :
-																b.color === 'orange' ? 'bg-amber-900/30 text-amber-400 border border-amber-800/50' :
-																b.color === 'red' ? 'bg-rose-900/30 text-rose-400 border border-rose-800/50' :
-																b.color === 'yellow' ? 'bg-yellow-900/30 text-yellow-400 border border-yellow-800/50' :
-																'bg-zinc-850 text-zinc-300'
+															<span className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md border ${
+																b.color === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+																b.color === 'green' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+																b.color === 'purple' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+																b.color === 'orange' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+																b.color === 'red' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+																b.color === 'yellow' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' :
+																'bg-slate-100 text-slate-700 border-slate-200'
 															}`}>
 																{b.title}
 															</span>
 															{b.description && (
-																<span className="text-[10px] text-zinc-400 truncate max-w-[180px]">
+																<span className="text-xs text-slate-500 truncate max-w-[180px]">
 																	— {b.description}
 																</span>
 															)}
@@ -6679,7 +6844,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 														<button
 															type="button"
 															onClick={() => handleDeleteBadge(editingItem.id, b.id)}
-															className="text-[10px] font-semibold text-red-400 hover:text-red-300 cursor-pointer"
+															className="text-xs font-semibold text-rose-600 hover:text-rose-700 cursor-pointer"
 														>
 															Remove
 														</button>
@@ -6692,7 +6857,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 								{/* Preset badge picker */}
 								<div className="space-y-3">
-									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Select a Badge to Issue</span>
+									<span className="text-[11px] text-slate-700 uppercase font-semibold tracking-wider block">Select a Badge to Issue</span>
 
 									{(() => {
 										const PRESET_BADGES = [
@@ -6709,22 +6874,6 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											<div className="grid grid-cols-2 gap-2">
 												{PRESET_BADGES.map((badge) => {
 													const isSelected = badgeTitle === badge.title;
-													const ringColor =
-														badge.color === 'blue'   ? 'ring-blue-500/70 bg-blue-950/30 border-blue-800/50' :
-														badge.color === 'yellow' ? 'ring-yellow-500/70 bg-yellow-950/30 border-yellow-800/50' :
-														badge.color === 'purple' ? 'ring-purple-500/70 bg-purple-950/30 border-purple-800/50' :
-														badge.color === 'green'  ? 'ring-emerald-500/70 bg-emerald-950/30 border-emerald-800/50' :
-														badge.color === 'orange' ? 'ring-amber-500/70 bg-amber-950/30 border-amber-800/50' :
-														badge.color === 'red'    ? 'ring-rose-500/70 bg-rose-950/30 border-rose-800/50' :
-														'ring-zinc-600/50 bg-zinc-900 border-zinc-700';
-													const textColor =
-														badge.color === 'blue'   ? 'text-blue-300' :
-														badge.color === 'yellow' ? 'text-yellow-300' :
-														badge.color === 'purple' ? 'text-purple-300' :
-														badge.color === 'green'  ? 'text-emerald-300' :
-														badge.color === 'orange' ? 'text-amber-300' :
-														badge.color === 'red'    ? 'text-rose-300' :
-														'text-zinc-200';
 													return (
 														<button
 															key={badge.title}
@@ -6736,10 +6885,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																setBadgeDescription(badge.description || '');
 																setBadgeImage((badge as any).image || '');
 															}}
-															className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
+															className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center cursor-pointer transition-all ${
 																isSelected
-																	? `ring-2 ${ringColor}`
-																	: 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
+																	? 'ring-2 ring-[#E61E32] bg-rose-50/40 border-[#E61E32]'
+																	: 'bg-slate-50 border-slate-200 hover:bg-white hover:border-slate-300'
 															}`}
 														>
 															<span className="text-xl leading-none flex items-center justify-center h-8">
@@ -6749,7 +6898,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	badge.emoji
 																)}
 															</span>
-															<span className={`text-[11px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-300'}`}>
+															<span className={`text-xs font-semibold leading-tight ${isSelected ? 'text-[#E61E32]' : 'text-slate-800'}`}>
 																{badge.title}
 															</span>
 														</button>
@@ -6760,9 +6909,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									})()}
 
 									{badgeTitle && (
-										<div className="flex items-center gap-2 p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg">
-											<span className="text-[10px] text-zinc-400">Selected:</span>
-											<span className="text-[11px] font-bold text-white">{badgeTitle}</span>
+										<div className="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+											<span className="text-xs text-slate-500">Selected:</span>
+											<span className="text-xs font-semibold text-slate-900">{badgeTitle}</span>
 										</div>
 									)}
 
@@ -6770,7 +6919,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										type="button"
 										disabled={!badgeTitle}
 										onClick={() => handleGiveBadge(editingItem.id)}
-										className="w-full bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-xs font-bold h-9 cursor-pointer border border-brand-700/50 flex items-center justify-center gap-2 rounded-lg transition-all"
+										className="w-full bg-[#E61E32] hover:bg-[#c9182a] disabled:opacity-40 text-white text-xs font-semibold h-10 cursor-pointer flex items-center justify-center gap-2 rounded-xl transition-all shadow-xs"
 									>
 										<span>🚀</span> Publish Badge to Employee
 									</Button>
@@ -6780,7 +6929,6 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						)}
 
-						{}
 						{editModalType === 'task' && (
 							<form 
 								onSubmit={async (e) => {
@@ -6807,22 +6955,22 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Task Title</label>
-										<Input name="title" defaultValue={editingItem.title} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Task Title</label>
+										<Input name="title" defaultValue={editingItem.title} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Report To</label>
-										<Input name="reportTo" defaultValue={editingItem.reportTo} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Report To</label>
+										<Input name="reportTo" defaultValue={editingItem.reportTo} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Task Description</label>
-									<textarea name="description" defaultValue={editingItem.description} required rows={3} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white p-2.5 rounded-none outline-none focus:border-zinc-700" />
+									<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Task Description</label>
+									<textarea name="description" defaultValue={editingItem.description} required rows={3} className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#E61E32]/20 resize-none" />
 								</div>
 								<div className="grid grid-cols-3 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Assign To</label>
-										<select name="assigneeId" defaultValue={editingItem.assigneeId} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white h-9 px-2 outline-none">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Assign To</label>
+										<select name="assigneeId" defaultValue={editingItem.assigneeId} className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-xl h-9 px-2 outline-none cursor-pointer">
 											<option value="ALL">ALL MEMBERS</option>
 											{employeesList.map(e => (
 												<option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.id})</option>
@@ -6830,33 +6978,32 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Deadline Date</label>
-										<Input type="date" name="deadline" defaultValue={new Date(editingItem.deadline).toISOString().split('T')[0]} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Deadline Date</label>
+										<Input type="date" name="deadline" defaultValue={new Date(editingItem.deadline).toISOString().split('T')[0]} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400 cursor-pointer" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Mode</label>
-										<select name="mode" defaultValue={editingItem.mode} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white h-9 px-2 outline-none">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Mode</label>
+										<select name="mode" defaultValue={editingItem.mode} className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-xl h-9 px-2 outline-none cursor-pointer">
 											<option value="Onsite">Onsite</option>
 											<option value="Hybrid">Hybrid</option>
 										</select>
 									</div>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
-									<select name="status" defaultValue={editingItem.status} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white h-9 px-2 outline-none">
+									<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Status</label>
+									<select name="status" defaultValue={editingItem.status} className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-xl h-9 px-2 outline-none cursor-pointer">
 										<option value="Pending">Pending</option>
 										<option value="In Progress">In Progress</option>
 										<option value="Completed">Completed</option>
 									</select>
 								</div>
-								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
-									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+								<div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-xl h-9 cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+									<Button type="submit" className="bg-[#E61E32] hover:bg-[#c9182a] text-xs rounded-xl h-9 text-white cursor-pointer shadow-xs">Save Changes</Button>
 								</div>
 							</form>
 						)}
 
-						{}
 						{editModalType === 'attendance' && (
 							<form 
 								onSubmit={async (e) => {
@@ -6873,12 +7020,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Date</label>
-										<Input name="date" defaultValue={editingItem.date} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Date</label>
+										<Input name="date" defaultValue={editingItem.date} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
-										<select name="status" defaultValue={editingItem.status} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white h-9 px-2 outline-none">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Status</label>
+										<select name="status" defaultValue={editingItem.status} className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 rounded-xl h-9 px-2 outline-none cursor-pointer">
 											<option value="Present">Present</option>
 											<option value="Checked In">Checked In</option>
 										</select>
@@ -6886,22 +7033,21 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Check-In Time</label>
-										<Input name="checkIn" defaultValue={editingItem.checkIn} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Check-In Time</label>
+										<Input name="checkIn" defaultValue={editingItem.checkIn} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Check-Out Time (Optional)</label>
-										<Input name="checkOut" defaultValue={editingItem.checkOut || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Check-Out Time (Optional)</label>
+										<Input name="checkOut" defaultValue={editingItem.checkOut || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
-								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
-									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+								<div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-xl h-9 cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+									<Button type="submit" className="bg-[#E61E32] hover:bg-[#c9182a] text-xs rounded-xl h-9 text-white cursor-pointer shadow-xs">Save Changes</Button>
 								</div>
 							</form>
 						)}
 
-						{}
 						{editModalType === 'event' && (() => {
 							return (
 								<form 
@@ -6929,61 +7075,61 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								>
 									<div className="grid grid-cols-2 gap-2">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">Event Title</label>
-											<Input name="title" defaultValue={editingItem.title} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Event Title</label>
+											<Input name="title" defaultValue={editingItem.title} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">Organising College</label>
-											<Input name="organisingCollege" defaultValue={editingItem.organisingCollege} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Organising College</label>
+											<Input name="organisingCollege" defaultValue={editingItem.organisingCollege} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 										</div>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Description</label>
-										<textarea name="description" defaultValue={editingItem.description} required rows={2} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white p-2 outline-none focus:border-zinc-700 placeholder:text-zinc-650 rounded-none" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Description</label>
+										<textarea name="description" defaultValue={editingItem.description} required rows={2} className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#E61E32]/20 resize-none" />
 									</div>
 									<div className="grid grid-cols-2 gap-2">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">Start Date</label>
-											<Input type="date" name="startDate" defaultValue={new Date(editingItem.startDate).toISOString().split('T')[0]} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Start Date</label>
+											<Input type="date" name="startDate" defaultValue={new Date(editingItem.startDate).toISOString().split('T')[0]} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400 cursor-pointer" />
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">End Date</label>
-											<Input type="date" name="endDate" defaultValue={new Date(editingItem.endDate).toISOString().split('T')[0]} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
-										</div>
-									</div>
-									<div className="grid grid-cols-2 gap-2">
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">Start Time</label>
-											<Input type="time" name="startTime" defaultValue={editingItem.startTime} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
-										</div>
-										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">End Time</label>
-											<Input type="time" name="endTime" defaultValue={editingItem.endTime} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">End Date</label>
+											<Input type="date" name="endDate" defaultValue={new Date(editingItem.endDate).toISOString().split('T')[0]} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400 cursor-pointer" />
 										</div>
 									</div>
 									<div className="grid grid-cols-2 gap-2">
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">Venue Address</label>
-											<Input name="venueAddress" defaultValue={editingItem.venueAddress} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0 focus-visible:border-zinc-750" />
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Start Time</label>
+											<Input type="time" name="startTime" defaultValue={editingItem.startTime} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400 cursor-pointer" />
 										</div>
 										<div className="space-y-1">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">Image Banner Link (URL)</label>
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">End Time</label>
+											<Input type="time" name="endTime" defaultValue={editingItem.endTime} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400 cursor-pointer" />
+										</div>
+									</div>
+									<div className="grid grid-cols-2 gap-2">
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Venue Address</label>
+											<Input name="venueAddress" defaultValue={editingItem.venueAddress} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
+										</div>
+										<div className="space-y-1">
+											<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Image Banner Link (URL)</label>
 											<Input
 												name="imageUrl"
 												defaultValue={editingItem.imageUrl || ''}
 												placeholder="https://example.com/banner.jpg"
-												className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0"
+												className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400"
 											/>
 										</div>
 									</div>
 									<div className="space-y-1.5">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium block font-mono">Company Representatives *</label>
-										<div className="grid grid-cols-2 gap-2 border border-zinc-800 p-3 bg-zinc-950/40 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800">
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider block">Company Representatives *</label>
+										<div className="grid grid-cols-2 gap-2 border border-slate-200 rounded-xl p-3 bg-slate-50/70 max-h-32 overflow-y-auto">
 											{employeesList.map(emp => {
 												const fullName = `${emp.firstName} ${emp.lastName}`;
 												const isChecked = editEventRepIds.includes(emp.id);
 												return (
-													<label key={emp.id} className="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+													<label key={emp.id} className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
 														<input
 															type="checkbox"
 															checked={isChecked}
@@ -6994,7 +7140,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	setEditEventRepIds([...editEventRepIds, emp.id]);
 																}
 															}}
-															className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600 size-3.5"
+															className="rounded border-slate-300 text-[#E61E32] focus:ring-[#E61E32] size-3.5"
 														/>
 														<span className="truncate">{fullName} ({emp.id})</span>
 													</label>
@@ -7002,9 +7148,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											})}
 										</div>
 									</div>
-									<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
-										<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-										<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+									<div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+										<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-xl h-9 cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+										<Button type="submit" className="bg-[#E61E32] hover:bg-[#c9182a] text-xs rounded-xl h-9 text-white cursor-pointer shadow-xs">Save Changes</Button>
 									</div>
 								</form>
 							);
@@ -7035,52 +7181,52 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										alert(res.error || 'Failed to save changes.');
 									}
 								}}
-								className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 text-xs font-mono text-zinc-300"
+								className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 text-xs text-slate-800"
 							>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Company Name</label>
-										<Input name="companyName" defaultValue={editingItem.companyName} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Company Name</label>
+										<Input name="companyName" defaultValue={editingItem.companyName} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Website</label>
-										<Input name="website" defaultValue={editingItem.website || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Website</label>
+										<Input name="website" defaultValue={editingItem.website || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
 								<div className="grid grid-cols-2 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Industry / Job Role</label>
-										<Input name="industry" defaultValue={editingItem.industry || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Industry / Job Role</label>
+										<Input name="industry" defaultValue={editingItem.industry || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Location</label>
-										<Input name="location" defaultValue={editingItem.location || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Location</label>
+										<Input name="location" defaultValue={editingItem.location || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
-								<div className="border-t border-zinc-800 pt-2">
-									<h4 className="text-[10px] text-brand-400 font-bold uppercase tracking-wider mb-2">HR Contact</h4>
+								<div className="border-t border-slate-100 pt-2">
+									<h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-2">HR Contact</h4>
 								</div>
 								<div className="grid grid-cols-3 gap-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">HR Name</label>
-										<Input name="hrName" defaultValue={editingItem.hrName} required className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HR Name</label>
+										<Input name="hrName" defaultValue={editingItem.hrName} required className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">HR Email</label>
-										<Input name="hrEmail" type="email" defaultValue={editingItem.hrEmail || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HR Email</label>
+										<Input name="hrEmail" type="email" defaultValue={editingItem.hrEmail || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">HR Phone</label>
-										<Input name="hrPhone" defaultValue={editingItem.hrPhone || ''} className="bg-zinc-950 border-zinc-800 text-xs text-white rounded-none h-9 focus-visible:ring-0" />
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HR Phone</label>
+										<Input name="hrPhone" defaultValue={editingItem.hrPhone || ''} className="bg-slate-50 border-slate-200 text-xs text-slate-800 rounded-xl h-9 focus-visible:ring-0 focus-visible:border-slate-400" />
 									</div>
 								</div>
 								<div className="grid grid-cols-2 gap-2 pt-2">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Allocate Agent</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Allocate Agent</label>
 										<select
 											name="assignedEmployeeId"
 											defaultValue={editingItem.assignedEmployeeId || ''}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none font-mono"
+											className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs p-2 rounded-xl focus:outline-none cursor-pointer"
 										>
 											<option value="">Unassigned</option>
 											{employeesList.map(emp => (
@@ -7091,11 +7237,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
+										<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Status</label>
 										<select
 											name="status"
 											defaultValue={editingItem.status}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs p-2 focus:outline-none focus:ring-1 focus:ring-brand-600 rounded-none font-mono"
+											className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs p-2 rounded-xl focus:outline-none cursor-pointer"
 										>
 											<option value="New">New</option>
 											<option value="Contacted">Contacted</option>
@@ -7105,12 +7251,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 									</div>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Notes / Logs</label>
-									<textarea name="notes" defaultValue={editingItem.notes || ''} rows={2} className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white p-2 outline-none focus:border-zinc-700 rounded-none" />
+									<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Notes / Logs</label>
+									<textarea name="notes" defaultValue={editingItem.notes || ''} rows={2} className="w-full bg-slate-50 border border-slate-200 text-xs text-slate-800 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-[#E61E32]/20 resize-none" />
 								</div>
-								<div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
-									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-none h-9 cursor-pointer border-zinc-800 text-zinc-300">Cancel</Button>
-									<Button type="submit" className="bg-brand-600 hover:bg-brand-500 text-xs rounded-none h-9 text-white cursor-pointer">Save Changes</Button>
+								<div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+									<Button type="button" variant="outline" onClick={() => { setEditModalType(null); setEditingItem(null); }} className="text-xs rounded-xl h-9 cursor-pointer border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
+									<Button type="submit" className="bg-[#E61E32] hover:bg-[#c9182a] text-xs rounded-xl h-9 text-white cursor-pointer shadow-xs">Save Changes</Button>
 								</div>
 							</form>
 						)}
@@ -7118,17 +7264,16 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				</div>
 			)}
 
-			{}
 			{showEditLeadModal && editingLead && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4">
-					<div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 p-6 space-y-4 shadow-2xl relative">
-						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
-							<h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+					<div className="w-full max-w-lg bg-white border border-slate-200/90 rounded-2xl p-6 space-y-4 shadow-2xl relative">
+						<div className="flex justify-between items-center border-b border-slate-100 pb-3">
+							<h3 className="text-sm font-semibold text-slate-900">
 								Edit Team Lead Permission
 							</h3>
 							<button 
 								onClick={() => { setShowEditLeadModal(false); setEditingLead(null); }}
-								className="text-zinc-400 hover:text-white font-semibold text-sm cursor-pointer"
+								className="text-slate-400 hover:text-slate-700 font-semibold text-sm cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-colors"
 							>
 								✕
 							</button>
@@ -7136,29 +7281,29 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 						<form onSubmit={handleSaveTeamLeadEdit} className="space-y-4">
 							<div className="space-y-1">
-								<label className="text-[10px] text-zinc-400 uppercase font-medium">Login Email</label>
+								<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Login Email</label>
 								<Input
 									type="text"
 									disabled
-									className="bg-zinc-950 border-zinc-800 text-zinc-550 text-xs rounded-none h-10 opacity-70"
+									className="bg-slate-100 border-slate-200 text-slate-500 text-xs rounded-xl h-10 opacity-70"
 									value={editingLead.email}
 								/>
 							</div>
 
 							<div className="space-y-1">
-								<label className="text-[10px] text-zinc-400 uppercase font-medium">Update Login Password (optional)</label>
+								<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Update Login Password (optional)</label>
 								<Input
 									type="password"
 									placeholder="Leave blank to keep current password"
-									className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 rounded-none h-10 transition-colors"
+									className="bg-slate-50 border-slate-200 text-slate-800 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#E61E32]/20 rounded-xl h-10 transition-colors"
 									value={editLeadPassword}
 									onChange={e => setEditLeadPassword(e.target.value)}
 								/>
 							</div>
 
 							<div className="space-y-2">
-								<label className="text-[10px] text-zinc-400 uppercase tracking-wider font-semibold block font-mono">DEDICATE ALLOWED PAGES *</label>
-								<div className="grid grid-cols-2 gap-3 border border-zinc-850 p-4 bg-zinc-950/40">
+								<label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider block">DEDICATE ALLOWED PAGES *</label>
+								<div className="grid grid-cols-2 gap-3 border border-slate-200 rounded-xl p-4 bg-slate-50/70">
 									{[
 										{ id: 'overview', name: 'Overview' },
 										{ id: 'employees', name: 'Employees' },
@@ -7174,12 +7319,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										{ id: 'hr_companies', name: 'HR & Companies' },
 										{ id: 'form', name: 'Unanimous Form' }
 									].map(item => (
-										<label key={item.id} className="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer hover:text-white select-none">
+										<label key={item.id} className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
 											<input
 												type="checkbox"
 												checked={editLeadAllowedPages.includes(item.id)}
 												onChange={() => toggleEditLeadPagePermission(item.id)}
-												className="rounded bg-zinc-950 border-zinc-800 text-brand-600 focus:ring-brand-600"
+												className="rounded border-slate-300 text-[#E61E32] focus:ring-[#E61E32]"
 											/>
 											<span>{item.name}</span>
 										</label>
@@ -7191,13 +7336,13 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<button
 									type="button"
 									onClick={() => { setShowEditLeadModal(false); setEditingLead(null); }}
-									className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors"
+									className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2.5 rounded-xl cursor-pointer transition-colors"
 								>
 									Cancel
 								</button>
 								<button
 									type="submit"
-									className="flex-1 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2.5 cursor-pointer transition-colors"
+									className="flex-1 bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold py-2.5 rounded-xl cursor-pointer transition-colors shadow-xs"
 								>
 									Save Changes
 								</button>
