@@ -2466,95 +2466,103 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						</form>
 					</div>
 				)}
+
+				{/* Overview */}
 				{activeTab === 'overview' && (
 					<div className="space-y-6">
-						{}
-						<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Employees</span>
-									<UsersIcon className="size-3.5 text-brand-400" />
+						{/* Stats grid */}
+						<div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Employees</span>
+									<UsersIcon className="size-4.5 text-brand-500" />
 								</div>
-								<p className="text-xl font-bold text-white">{employeesList.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Active members</p>
+								<p className="text-2xl font-bold text-slate-800">{employeesList.length}</p>
+								<p className="text-[10px] text-slate-400">Active members</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Allocated Tasks</span>
-									<FileTextIcon className="size-3.5 text-emerald-400" />
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Allocated Tasks</span>
+									<FileTextIcon className="size-4.5 text-emerald-500" />
 								</div>
-								<p className="text-xl font-bold text-white">{tasksList.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">{tasksList.filter(t => t.status === 'Pending').length} Pending</p>
+								<p className="text-2xl font-bold text-slate-800">{tasksList.length}</p>
+								<p className="text-[10px] text-slate-400 font-medium text-emerald-600">
+									{tasksList.filter(t => t.status === 'Pending').length} Pending
+								</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Attendance Registry</span>
-									<ClockIcon className="size-3.5 text-amber-400" />
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Attendance Registry</span>
+									<ClockIcon className="size-4.5 text-amber-500" />
 								</div>
-								<p className="text-xl font-bold text-white">{attendanceList.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Total logged entries</p>
+								<p className="text-2xl font-bold text-slate-800">{attendanceList.length}</p>
+								<p className="text-[10px] text-slate-400">Total logged entries</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Pending Leaves</span>
-									<CalendarIcon className="size-3.5 text-red-400" />
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Pending Leaves</span>
+									<CalendarIcon className="size-4.5 text-red-500" />
 								</div>
-								<p className="text-xl font-bold text-white">
+								<p className="text-2xl font-bold text-slate-800">
 									{leavesList.filter(l => l.status === 'Pending').length}
 								</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Out of {leavesList.length} total</p>
+								<p className="text-[10px] text-slate-400">Out of {leavesList.length} total</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Work Submissions</span>
-									<CheckCircleIcon className="size-3.5 text-brand-400" />
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Work Submissions</span>
+									<CheckCircleIcon className="size-4.5 text-brand-500" />
 								</div>
-								<p className="text-xl font-bold text-white">{submissionsList.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">{submissionsList.filter(s => s.status === 'Submitted').length} Pending Review</p>
+								<p className="text-2xl font-bold text-slate-800">{submissionsList.length}</p>
+								<p className="text-[10px] text-slate-400 font-medium text-brand-600">
+									{submissionsList.filter(s => s.status === 'Submitted').length} Pending Review
+								</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Leads Pipeline</span>
-									<BarChart2Icon className="size-3.5 text-sky-400" />
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Leads Pipeline</span>
+									<BarChart2Icon className="size-4.5 text-sky-500" />
 								</div>
-								<p className="text-xl font-bold text-white">{leadsList.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">{leadsList.filter(l => l.status === 'New').length} New Leads</p>
+								<p className="text-2xl font-bold text-slate-800">{leadsList.length}</p>
+								<p className="text-[10px] text-slate-400 font-medium text-sky-600">
+									{leadsList.filter(l => l.status === 'New').length} New Leads
+								</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Events</span>
-									<MapPinIcon className="size-3.5 text-yellow-400" />
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Events</span>
+									<MapPinIcon className="size-4.5 text-yellow-500" />
 								</div>
-								<p className="text-xl font-bold text-white">{eventsList.length}</p>
-								<p className="text-[10px] text-zinc-550 font-mono">Total planned events</p>
+								<p className="text-2xl font-bold text-slate-800">{eventsList.length}</p>
+								<p className="text-[10px] text-slate-400">Total planned events</p>
 							</div>
 
-							<div className="bg-zinc-900/30 border border-zinc-800/80 p-4 space-y-1 rounded-none">
-								<div className="flex items-center justify-between text-zinc-400">
-									<span className="text-[10px] font-semibold uppercase tracking-wider">Server Status</span>
-									<ServerIcon className="size-3.5 text-emerald-400 animate-pulse" />
+							<div className="bg-white border-transparent p-5 space-y-2 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer">
+								<div className="flex items-center justify-between text-slate-500">
+									<span className="text-[10px] font-bold uppercase tracking-wider">Server Status</span>
+									<ServerIcon className="size-4.5 text-emerald-500 animate-pulse" />
 								</div>
-								<p className="text-xl font-bold text-white">{stats.serverStatus}</p>
-								<p className="text-[10px] text-emerald-400 font-medium">Uptime: {stats.uptime}</p>
+								<p className="text-2xl font-bold text-slate-800">{stats.serverStatus}</p>
+								<p className="text-[10px] text-emerald-600 font-semibold">Uptime: {stats.uptime}</p>
 							</div>
 						</div>
 
 						{/* Quick Alert Sender widget down the stats */}
-						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 rounded-none mt-6 space-y-4">
-							<div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+						<div className="bg-white border-transparent p-6 rounded-2xl shadow-md mt-6 space-y-4">
+							<div className="flex items-center justify-between border-b border-slate-100 pb-3">
 								<div className="flex items-center gap-2">
-									<MailIcon className="size-4 text-brand-400" />
+									<MailIcon className="size-4.5 text-brand-500" />
 									<div>
-										<h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+										<h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
 											Quick Alert Broadcast
 										</h3>
-										<p className="text-[10px] text-zinc-500 mt-0.5">
+										<p className="text-[10px] text-slate-500 mt-0.5 font-medium">
 											Compose and dispatch email notices to all active employees instantly.
 										</p>
 									</div>
@@ -2562,7 +2570,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								<button
 									type="button"
 									onClick={() => setActiveTab('alert_sender')}
-									className="text-[11px] text-brand-400 hover:text-brand-300 font-semibold transition-colors cursor-pointer hover:underline"
+									className="text-[11px] text-brand-600 hover:text-brand-500 font-semibold transition-colors cursor-pointer hover:underline"
 								>
 									Advanced Panel →
 								</button>
@@ -2571,7 +2579,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<div className="space-y-4">
 									<div className="space-y-1.5">
-										<label className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block font-mono">
+										<label className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">
 											Alert Subject
 										</label>
 										<input
@@ -2579,11 +2587,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											placeholder="e.g. Critical Update Required"
 											value={quickSubject}
 											onChange={(e) => setQuickSubject(e.target.value)}
-											className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-zinc-700 transition-colors"
+											className="w-full bg-slate-50 border-transparent rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-400 transition-colors"
 										/>
 									</div>
 									<div className="space-y-1.5">
-										<label className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block font-mono">
+										<label className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">
 											Alert Message Body
 										</label>
 										<textarea
@@ -2591,15 +2599,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											placeholder="Compose email body message here... Markdown tags (**bold**, *italic*, _underline_, and links) are supported."
 											value={quickBody}
 											onChange={(e) => setQuickBody(e.target.value)}
-											className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-zinc-700 transition-colors font-sans resize-y leading-relaxed"
+											className="w-full bg-slate-50 border-transparent rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-400 transition-colors font-sans resize-y leading-relaxed"
 										/>
 									</div>
 
 									{quickMsg && (
-										<div className={`p-2 rounded text-xs border font-mono ${
+										<div className={`p-2.5 rounded-lg text-xs border ${
 											quickMsg.type === 'success'
-												? 'bg-emerald-950/20 border-emerald-800/60 text-emerald-400'
-												: 'bg-rose-950/20 border-rose-800/60 text-rose-400'
+												? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+												: 'bg-rose-50 border-rose-200 text-rose-700'
 										}`}>
 											{quickMsg.text}
 										</div>
@@ -2609,7 +2617,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										type="button"
 										onClick={handleSendQuickAlert}
 										disabled={quickSending}
-										className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:from-zinc-850 disabled:to-zinc-850 text-white text-xs font-semibold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed"
+										className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 text-white text-xs font-semibold py-2.5 px-4 rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed active:scale-[0.98]"
 									>
 										<SendIcon className="size-3.5" />
 										{quickSending ? 'Sending Quick Alerts...' : 'Broadcast Alert to All Employees'}
@@ -2617,9 +2625,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								{/* Live Preview pane */}
-								<div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800/60 flex flex-col justify-between max-h-[340px] overflow-y-auto">
+								<div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-between max-h-[340px] overflow-y-auto">
 									<div>
-										<span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block mb-3 text-center border-b border-zinc-900 pb-1.5">
+										<span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-3 text-center border-b border-slate-200/50 pb-1.5">
 											Live Email Preview
 										</span>
 										<div 
