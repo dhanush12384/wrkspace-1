@@ -584,3 +584,14 @@ body {
   box-shadow: none !important;
 }
 
+/* ── Messaging panel: all structural borders must be light grey ── */
+.admin-portal .border-slate-100,
+.admin-portal .border-slate-200 {
+  border-color: #f1f5f9 !important;
+}
+/* Sidebar divider between list and footer */
+.admin-portal .border-t.border-slate-100,
+.admin-portal .border-b.border-slate-100,
+.admin-portal .border-r.border-slate-100 {
+  border-color: #e9ecf0 !important;
+}

@@ -540,11 +540,11 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 
 			{/* ── SIDEBAR ── */}
 			<div className={cn(
-				"w-full md:w-72 border-r border-slate-150 flex flex-col bg-slate-50 shrink-0",
+				"w-full md:w-72 border-r border-slate-100 flex flex-col bg-slate-50 shrink-0",
 				mobileView === 'chat' ? "hidden md:flex" : "flex"
 			)}>
 				{/* Search */}
-				<div className="p-3 border-b border-slate-150 bg-white">
+				<div className="p-3 border-b border-slate-100 bg-white">
 					<div className="relative">
 						<SearchIcon className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
 						<input
@@ -649,7 +649,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				</div>
 
 				{/* Current user footer */}
-				<div className="p-3 border-t border-slate-150 bg-white flex items-center justify-between">
+				<div className="p-3 border-t border-slate-100 bg-white flex items-center justify-between">
 					<div className="flex items-center gap-2.5 overflow-hidden">
 						{currentUser.role === 'Admin' && !currentUser.photoUrl ? (
 							<span className="size-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#E61E32] text-white shrink-0">
@@ -682,7 +682,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				mobileView === 'sidebar' ? "hidden md:flex" : "flex"
 			)}>
 				{/* Chat Header */}
-				<div className="px-5 py-3 border-b border-slate-150 flex items-center gap-3 bg-white shadow-xs">
+				<div className="px-5 py-3 border-b border-slate-100 flex items-center gap-3 bg-white shadow-xs">
 					<button
 						type="button"
 						onClick={() => setMobileView('sidebar')}
@@ -1084,7 +1084,7 @@ export function MessagesView({ currentUser, adminEmail }: MessagesViewProps) {
 				{accessStatus === 'Approved' && (
 					<form
 						onSubmit={handleSendMessage}
-						className="p-4 border-t border-slate-150 bg-white flex items-center gap-3"
+						className="p-4 border-t border-slate-100 bg-white flex items-center gap-3"
 					>
 						<button
 							type="button"
