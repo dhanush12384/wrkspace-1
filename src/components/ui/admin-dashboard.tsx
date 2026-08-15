@@ -1816,26 +1816,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					>
 						Live tracking
 					</button>
-					<a
-						href="/employee-verification"
-						className="py-3 border-b-2 border-transparent text-brand-300/60 hover:text-white transition-all cursor-pointer whitespace-nowrap"
-					>
-						Employee verification ↗
-					</a>
 					{(isSuperAdmin || allowedTabs.includes('employees')) && (
 						<button
 							onClick={() => setActiveTab('employees')}
 							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'employees' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
 						>
 							Employees
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('add_remarks')) && (
-						<button
-							onClick={() => setActiveTab('add_remarks')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'add_remarks' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Add Remarks
 						</button>
 					)}
 					{(isSuperAdmin || allowedTabs.includes('task_allocation')) && (
@@ -1846,146 +1832,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							Tasks
 						</button>
 					)}
-					{(isSuperAdmin || allowedTabs.includes('attendance')) && (
-						<button
-							onClick={() => {
-								setActiveTab('attendance');
-								fetchAttendance();
-							}}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'attendance' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Attendance
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('shift_timings')) && (
-						<button
-							onClick={() => setActiveTab('shift_timings')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'shift_timings' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Shift timings
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('late_checkins')) && (
-						<button
-							onClick={() => setActiveTab('late_checkins')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'late_checkins' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Late check-ins
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('payouts')) && (
-						<button
-							onClick={() => setActiveTab('payouts')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'payouts' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Payouts
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('offices')) && (
-						<button
-							onClick={() => setActiveTab('offices')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'offices' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Offices & QR
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('leaves')) && (
-						<button
-							onClick={() => {
-								setActiveTab('leaves');
-								fetchLeaves();
-							}}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'leaves' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Leaves
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('clients')) && (
-						<button
-							onClick={() => setActiveTab('clients')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'clients' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Clients
-						</button>
-					)}
 					{(isSuperAdmin || allowedTabs.includes('messages')) && (
 						<button
 							onClick={() => setActiveTab('messages')}
 							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'messages' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
 						>
 							Messages
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('alert_sender')) && (
-						<button
-							onClick={() => setActiveTab('alert_sender')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'alert_sender' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Alert Sender
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('system_status')) && (
-						<button
-							onClick={() => setActiveTab('system_status')}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'system_status' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							System
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('events')) && (
-						<button
-							onClick={() => { setActiveTab('events'); fetchEvents(); }}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'events' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Events
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('work_submissions')) && (
-						<button
-							onClick={() => { setActiveTab('work_submissions'); fetchSubmissions(); }}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'work_submissions' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Submissions
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('leads')) && (
-						<button
-							onClick={() => { setActiveTab('leads'); fetchLeads(); }}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'leads' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Leads
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('hr_companies')) && (
-						<button
-							onClick={() => { setActiveTab('hr_companies'); fetchHrCompaniesList(); }}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'hr_companies' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Companies
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('form')) && (
-						<button
-							onClick={() => { setActiveTab('form'); fetchFeedbackSubmissions(); }}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'form' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Unanimous Form
-						</button>
-					)}
-					{isSuperAdmin && (
-						<button
-							onClick={() => { setActiveTab('super_admin'); fetchAdmins(); }}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'super_admin' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Admins
-						</button>
-					)}
-					{(isSuperAdmin || allowedTabs.includes('team_leads')) && (
-						<button
-							onClick={() => { setActiveTab('team_leads'); fetchTeamLeads(); }}
-							className={`py-3 border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'team_leads' ? 'border-brand-400 text-white font-semibold' : 'border-transparent text-brand-300/60 hover:text-white'}`}
-						>
-							Team Leads
 						</button>
 					)}
 				</div>
@@ -2555,105 +2407,386 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</div>
 						</div>
 
-						{/* Quick Alert Sender widget down the stats */}
-						<div className="bg-white border-transparent p-6 rounded-2xl shadow-md mt-6 space-y-4">
-							<div className="flex items-center justify-between border-b border-slate-100 pb-3">
-								<div className="flex items-center gap-2">
-									<MailIcon className="size-4.5 text-brand-500" />
-									<div>
-										<h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-											Quick Alert Broadcast
-										</h3>
-										<p className="text-[10px] text-slate-500 mt-0.5 font-medium">
-											Compose and dispatch email notices to all active employees instantly.
-										</p>
-									</div>
-								</div>
-								<button
-									type="button"
-									onClick={() => setActiveTab('alert_sender')}
-									className="text-[11px] text-brand-600 hover:text-brand-500 font-semibold transition-colors cursor-pointer hover:underline"
-								>
-									Advanced Panel →
-								</button>
+						{/* Management Tools & Directories section */}
+						<div className="space-y-4 mt-8 pt-4 border-t border-slate-100">
+							<div>
+								<h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">
+									Management Portal Directory
+								</h3>
+								<p className="text-xs text-slate-500 mt-1 font-sans">
+									Quick access to all background tools, system logs, shift registries, and administrative settings.
+								</p>
 							</div>
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div className="space-y-4">
-									<div className="space-y-1.5">
-										<label className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">
-											Alert Subject
-										</label>
-										<input
-											type="text"
-											placeholder="e.g. Critical Update Required"
-											value={quickSubject}
-											onChange={(e) => setQuickSubject(e.target.value)}
-											className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-450 transition-colors"
-										/>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+								<a
+									href="/employee-verification"
+									target="_blank"
+									rel="noreferrer"
+									className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+								>
+									<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+										<CheckCircleIcon className="size-5 text-[#E61E32]" />
 									</div>
-									<div className="space-y-1.5">
-										<label className="text-[9px] text-slate-500 uppercase font-bold tracking-wider block">
-											Alert Message Body
-										</label>
-										<textarea
-											rows={5}
-											placeholder="Compose email body message here... Markdown tags (**bold**, *italic*, _underline_, and links) are supported."
-											value={quickBody}
-											onChange={(e) => setQuickBody(e.target.value)}
-											className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder-slate-450 transition-colors font-sans resize-y leading-relaxed"
-										/>
+									<div className="min-w-0">
+										<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors flex items-center gap-1">
+											Onboarding Verification <span className="text-[9px] lowercase font-normal text-slate-400 shrink-0">↗</span>
+										</h4>
+										<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+											Review candidate credential registrations, background checks, and verification.
+										</p>
 									</div>
+								</a>
 
-									{quickMsg && (
-										<div className={`p-2.5 rounded-lg text-xs border ${
-											quickMsg.type === 'success'
-												? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-												: 'bg-rose-50 border-rose-200 text-rose-700'
-										}`}>
-											{quickMsg.text}
-										</div>
-									)}
-
-									<button
-										type="button"
-										onClick={handleSendQuickAlert}
-										disabled={quickSending}
-										className="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 disabled:from-slate-200 disabled:to-slate-200 disabled:text-slate-400 text-white text-xs font-light py-2.5 px-4 rounded-lg shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed active:scale-[0.98]"
+								{(isSuperAdmin || allowedTabs.includes('add_remarks')) && (
+									<div
+										onClick={() => setActiveTab('add_remarks')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
 									>
-										<SendIcon className="size-3.5" />
-										{quickSending ? 'Sending Quick Alerts...' : 'Broadcast Alert to All Employees'}
-									</button>
-								</div>
-
-								{/* Live Preview pane */}
-								<div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-between max-h-[340px] overflow-y-auto">
-									<div>
-										<span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-3 text-center border-b border-slate-200/50 pb-1.5">
-											Live Email Preview
-										</span>
-										<div 
-											style={{
-												fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-												fontSize: "12px",
-												lineHeight: "1.5",
-												color: "#475569",
-												background: "#ffffff",
-												padding: "16px",
-												borderRadius: "8px",
-												border: "1px solid #e2e8f0"
-											}}
-										>
-											<div style={{ textAlign: "center", marginBottom: "12px", borderBottom: "1px solid #f1f5f9", paddingBottom: "8px" }}>
-												<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew?updatedAt=1786471821009" alt="WrkSpace" style={{ height: "24px", width: "auto" }} />
-											</div>
-											<h4 style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b", margin: "0 0 10px" }}>
-												{quickSubject || 'No Subject'}
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<FileTextIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Remarks & Dossier
 											</h4>
-											<div dangerouslySetInnerHTML={{ __html: getQuickPreviewHtml() }} />
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Record employee performance scores, conduct assessments, and dossier remarks.
+											</p>
 										</div>
 									</div>
-								</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('attendance')) && (
+									<div
+										onClick={() => {
+											setActiveTab('attendance');
+											fetchAttendance();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<ClockIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Attendance Logs
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Track clock-in/out timestamps, geofence validations, and active daily entries.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('shift_timings')) && (
+									<div
+										onClick={() => setActiveTab('shift_timings')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<HistoryIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Shift & Hours Config
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Define corporate shift hours, grace period buffers, and attendance policies.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('late_checkins')) && (
+									<div
+										onClick={() => setActiveTab('late_checkins')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<AlertCircleIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Late check-ins
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Audit excuse explanations and approve/decline late check-in requests.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('payouts')) && (
+									<div
+										onClick={() => setActiveTab('payouts')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<LineChartIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Payouts & Salaries
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Verify and process salary disbursements and keep track of payment receipts.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('offices')) && (
+									<div
+										onClick={() => setActiveTab('offices')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<MapPinIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Offices & Geofencing
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Manage physical branch locations, coordinates, and check-in QR codes.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('leaves')) && (
+									<div
+										onClick={() => {
+											setActiveTab('leaves');
+											fetchLeaves();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<CalendarIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Leave Applications
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Review employee sick, paid, and casual leave rosters to approve time-off requests.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('clients')) && (
+									<div
+										onClick={() => setActiveTab('clients')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<UsersIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Clients Registry
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Maintain active corporate accounts, profiles, project allocations, and billings.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('alert_sender')) && (
+									<div
+										onClick={() => setActiveTab('alert_sender')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<SendIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Emergency Alert Sender
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Draft and dispatch urgent broadcast alerts, system emails, and mobile notifications.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('system_status')) && (
+									<div
+										onClick={() => setActiveTab('system_status')}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<ServerIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Server Health & Redis
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Check redis memory stats, server uptime counters, and background worker queues.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('events')) && (
+									<div
+										onClick={() => {
+											setActiveTab('events');
+											fetchEvents();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<PlusIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Events Calendar
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Schedule organization-wide tech talks, hackathons, and training webinars.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('work_submissions')) && (
+									<div
+										onClick={() => {
+											setActiveTab('work_submissions');
+											fetchSubmissions();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<CheckCircleIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Work Submissions
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Assess project deliverables, code repositories, and work logs submitted by developers.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('leads')) && (
+									<div
+										onClick={() => {
+											setActiveTab('leads');
+											fetchLeads();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<BarChart2Icon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Leads Pipeline
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Verify sales pipelines, import new business contacts, and review customer pipelines.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('hr_companies')) && (
+									<div
+										onClick={() => {
+											setActiveTab('hr_companies');
+											fetchHrCompaniesList();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<PackageIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												HR Recruitment Firms
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Configure external human resource firms and recruitment agency integrations.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('form')) && (
+									<div
+										onClick={() => {
+											setActiveTab('form');
+											fetchFeedbackSubmissions();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<FileTextIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Feedback & Forms
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												View anonymous feedback, employee surveys, suggestions, and form settings.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{isSuperAdmin && (
+									<div
+										onClick={() => {
+											setActiveTab('super_admin');
+											fetchAdmins();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<UserCheckIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												System Admins Panel
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Register additional admin users, set workspace permissions, and audit activity.
+											</p>
+										</div>
+									</div>
+								)}
+
+								{(isSuperAdmin || allowedTabs.includes('team_leads')) && (
+									<div
+										onClick={() => {
+											setActiveTab('team_leads');
+											fetchTeamLeads();
+										}}
+										className="bg-white border border-slate-200 p-5 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex gap-4 items-start group"
+									>
+										<div className="p-3 bg-brand-50 border border-brand-100 rounded-xl text-brand-600 group-hover:scale-105 transition-transform shrink-0">
+											<UserPlusIcon className="size-5 text-[#E61E32]" />
+										</div>
+										<div className="min-w-0">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide group-hover:text-[#E61E32] transition-colors">
+												Team Leads Registry
+											</h4>
+											<p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
+												Assign wing managers, define lead roles, and audit wing report statuses.
+											</p>
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
