@@ -314,24 +314,24 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 	}, [histDate, histEmployeeId, adminEmail]);
 
 	return (
-		<div className="space-y-8 text-white">
+		<div className="space-y-8 text-slate-800">
 			<div className="flex items-center justify-between gap-3 flex-wrap">
 				<div>
-					<h2 className="text-xl font-bold">Live safety</h2>
-					<p className="text-xs text-zinc-400 mt-1">
+					<h2 className="text-xl font-bold text-slate-900">Live safety</h2>
+					<p className="text-xs text-slate-500 mt-1">
 						Open SOS + girls going home. Live via Socket.IO + poll. Tracking stops when they reach home.
 						{lastAt ? ` · Last refresh ${lastAt}` : ''}
 					</p>
-					{error ? <p className="text-xs text-rose-400 mt-1">{error}</p> : null}
+					{error ? <p className="text-xs text-rose-600 mt-1 font-semibold">{error}</p> : null}
 					{fcm ? (
 						<div
-							className={`mt-3 rounded-lg border px-3 py-2 text-xs ${
+							className={`mt-3 rounded-xl border px-4 py-3 text-xs shadow-sm ${
 								fcm.ready
-									? 'border-emerald-700/60 bg-emerald-950/40 text-emerald-300'
-									: 'border-amber-600/70 bg-amber-950/50 text-amber-200'
+									? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+									: 'border-amber-200 bg-amber-50 text-amber-800'
 							}`}
 						>
-							<p className="font-semibold">
+							<p className="font-bold">
 								FCM status: {fcm.tokens} device token{fcm.tokens === 1 ? '' : 's'} · Firebase send:{' '}
 								{fcm.firebaseConfigured ? 'ON' : 'OFF'}
 								{typeof fcm.vapidConfigured === 'boolean'
@@ -339,26 +339,26 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 									: ''}
 							</p>
 							{!fcm.firebaseConfigured ? (
-								<p className="mt-1 opacity-90">
+								<p className="mt-1 opacity-90 leading-relaxed">
 									SOS will show in-app but <strong>no phone alarm</strong> until you add{' '}
-									<code className="text-[10px]">FIREBASE_SERVICE_ACCOUNT_JSON</code> on Vercel
+									<code className="text-[10px] bg-amber-100/50 px-1 rounded text-amber-900">FIREBASE_SERVICE_ACCOUNT_JSON</code> on Vercel
 									(Firebase → Project settings → Service accounts → Generate key → paste full JSON).
 								</p>
 							) : null}
 							{fcm.vapidConfigured === false ? (
-								<p className="mt-1 opacity-90">
+								<p className="mt-1 opacity-90 leading-relaxed">
 									Web / PWA push will not register until{' '}
-									<code className="text-[10px]">NEXT_PUBLIC_FIREBASE_VAPID_KEY</code> is set on
+									<code className="text-[10px] bg-amber-100/50 px-1 rounded text-amber-900">NEXT_PUBLIC_FIREBASE_VAPID_KEY</code> is set on
 									Vercel (Firebase → Project settings → Cloud Messaging → Web Push certificates).
 								</p>
 							) : null}
 							{fcm.firebaseConfigured && fcm.tokens === 0 ? (
-								<p className="mt-1 opacity-90">
+								<p className="mt-1 opacity-90 leading-relaxed">
 									No device tokens yet — employees must open the app or website, log in, and allow
 									Notifications.
 								</p>
 							) : null}
-							{fcm.ready ? <p className="mt-1 opacity-90">SOS alarms can fan out to registered devices.</p> : null}
+							{fcm.ready ? <p className="mt-1 opacity-90 font-medium">SOS alarms can fan out to registered devices.</p> : null}
 						</div>
 					) : null}
 				</div>
@@ -366,44 +366,44 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 					type="button"
 					onClick={() => void load()}
 					disabled={refreshing}
-					className="shrink-0 rounded-lg border border-brand-500 bg-brand-900/50 px-4 py-2 text-sm font-medium text-brand-100 hover:bg-brand-800/60 disabled:opacity-50"
+					className="shrink-0 rounded-lg bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 text-xs font-light shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
 				>
 					{refreshing ? 'Refreshing…' : 'Refresh now'}
 				</button>
 			</div>
 
 			<section className="space-y-3">
-				<h3 className="text-sm font-bold uppercase tracking-wider text-rose-300">
+				<h3 className="text-sm font-bold uppercase tracking-wider text-rose-700">
 					Open SOS ({incidents.length})
 				</h3>
 				{incidents.length === 0 ? (
-					<p className="text-sm text-zinc-400">None — SOS alerts from female employees appear here live.</p>
+					<p className="text-xs text-slate-500 italic">None — SOS alerts from female employees appear here live.</p>
 				) : (
 					incidents.map((inc) => (
-						<div key={inc.id} className="border border-rose-800/60 bg-rose-950/40 p-4 space-y-2 rounded">
-							<p className="font-semibold text-white">
+						<div key={inc.id} className="border border-rose-200 bg-rose-50 p-5 space-y-3 rounded-xl shadow-xs">
+							<p className="font-bold text-rose-900 text-sm">
 								{inc.employee?.firstName} {inc.employee?.lastName}
 							</p>
 							{inc.employee?.phone ? (
-								<p className="text-sm text-rose-200 font-semibold">
+								<p className="text-xs text-rose-800 font-semibold">
 									Phone:{' '}
-									<a href={`tel:${inc.employee.phone}`} className="underline text-brand-300">
+									<a href={`tel:${inc.employee.phone}`} className="underline text-brand-650">
 										{inc.employee.phone}
 									</a>
 								</p>
 							) : (
-								<p className="text-xs text-zinc-500">No phone on file</p>
+								<p className="text-xs text-slate-400">No phone on file</p>
 							)}
-							<p className="text-xs text-zinc-400">
+							<p className="text-xs text-slate-500">
 								Started {new Date(inc.createdAt).toLocaleString()}
 								{inc.updatedAt ? ` · Updated ${new Date(inc.updatedAt).toLocaleString()}` : ''}
 							</p>
-							<p className="text-xs text-zinc-300 font-mono">
+							<p className="text-xs text-slate-500 font-mono">
 								{Number(inc.lat).toFixed(5)}, {Number(inc.lng).toFixed(5)}
 							</p>
 							<div className="flex flex-wrap gap-2 pt-2">
 								<a
-									className="inline-flex items-center justify-center rounded-lg bg-brand-500 hover:bg-brand-400 px-4 py-2.5 text-sm font-semibold text-white no-underline"
+									className="inline-flex items-center justify-center rounded-lg bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-light text-white no-underline shadow-xs cursor-pointer transition-colors"
 									href={`https://www.google.com/maps?q=${inc.lat},${inc.lng}`}
 									target="_blank"
 									rel="noreferrer"
@@ -413,7 +413,7 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 								<button
 									type="button"
 									disabled={resolvingId === inc.id}
-									className="inline-flex items-center justify-center rounded-lg border border-emerald-500/60 bg-emerald-900/50 hover:bg-emerald-800/70 px-4 py-2.5 text-sm font-semibold text-emerald-100 disabled:opacity-50"
+									className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-light text-slate-700 shadow-xs cursor-pointer transition-colors disabled:opacity-50"
 									onClick={async () => {
 										if (!confirm('Mark this SOS as resolved? It will disappear for all employees on website and mobile.')) {
 											return;
@@ -454,11 +454,11 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 			</section>
 
 			<section className="space-y-3">
-				<h3 className="text-sm font-bold uppercase tracking-wider text-sky-300">
+				<h3 className="text-sm font-bold uppercase tracking-wider text-sky-700">
 					Girls going home — live ({trips.length})
 				</h3>
 				{trips.length === 0 ? (
-					<p className="text-sm text-zinc-400">
+					<p className="text-xs text-slate-500 italic">
 						No active home trips. Appears when a female employee taps “Going home” on mobile (GPS every ~10s).
 					</p>
 				) : (
@@ -466,30 +466,30 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 						const liveLat = t.lat ?? t.points?.[0]?.lat;
 						const liveLng = t.lng ?? t.points?.[0]?.lng;
 						return (
-							<div key={t.id} className="border border-sky-800/50 bg-sky-950/30 p-4 space-y-2 rounded">
-								<p className="font-semibold">
+							<div key={t.id} className="border border-sky-200 bg-sky-50 p-5 space-y-3 rounded-xl shadow-xs">
+								<p className="font-bold text-sky-900">
 									{t.employee?.firstName} {t.employee?.lastName}
 									{t.employee?.phone ? (
-										<span className="ml-2 text-xs font-normal text-sky-200">
+										<span className="ml-2 text-xs font-normal text-sky-700">
 											<a href={`tel:${t.employee.phone}`} className="underline">
 												{t.employee.phone}
 											</a>
 										</span>
 									) : null}
 								</p>
-								<p className="text-xs text-zinc-400">
+								<p className="text-xs text-slate-500">
 									Started {new Date(t.startedAt).toLocaleString()}
 									{t.updatedAt ? ` · Last ping ${new Date(t.updatedAt).toLocaleString()}` : ''}
 									{t._count?.points != null ? ` · ${t._count.points} GPS points` : ''}
 								</p>
 								{liveLat != null && liveLng != null ? (
 									<>
-										<p className="text-xs text-zinc-300 font-mono">
+										<p className="text-xs text-slate-500 font-mono">
 											{Number(liveLat).toFixed(5)}, {Number(liveLng).toFixed(5)}
 										</p>
 										<div className="flex flex-wrap gap-2 pt-1">
 											<a
-												className="inline-flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white no-underline"
+												className="inline-flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 px-4 py-2 text-xs font-light text-white no-underline shadow-xs cursor-pointer transition-colors"
 												href={`https://www.google.com/maps?q=${liveLat},${liveLng}`}
 												target="_blank"
 												rel="noreferrer"
@@ -498,7 +498,7 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 											</a>
 											<button
 												type="button"
-												className="inline-flex items-center justify-center rounded-lg border border-sky-500/50 px-4 py-2.5 text-sm font-semibold text-sky-100"
+												className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-light text-slate-700 shadow-xs cursor-pointer transition-colors"
 												onClick={() => void openTripTrail(t.id)}
 											>
 												View trail
@@ -506,7 +506,7 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 										</div>
 									</>
 								) : (
-									<p className="text-xs text-zinc-500">Waiting for first GPS ping…</p>
+									<p className="text-xs text-slate-400">Waiting for first GPS ping…</p>
 								)}
 							</div>
 						);
@@ -514,29 +514,29 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 				)}
 			</section>
 
-			<section className="space-y-3 border-t border-zinc-800 pt-6">
-				<h3 className="text-sm font-bold uppercase tracking-wider text-violet-300">
+			<section className="space-y-3 border-t border-slate-200 pt-6">
+				<h3 className="text-sm font-bold uppercase tracking-wider text-violet-750">
 					Travel history (date-wise)
 				</h3>
-				<p className="text-xs text-zinc-400">
+				<p className="text-xs text-slate-500">
 					Filter by IST date and girl to see where they travelled. Path is stored from mobile GPS pings.
 				</p>
 				<div className="flex flex-wrap gap-3 items-end">
-					<label className="text-xs text-zinc-400 space-y-1">
-						<span className="block">Date (IST)</span>
+					<label className="text-xs text-slate-500 space-y-1">
+						<span className="block font-medium">Date (IST)</span>
 						<input
 							type="date"
 							value={histDate}
 							onChange={(e) => setHistDate(e.target.value)}
-							className="bg-zinc-900 border border-zinc-700 text-white text-sm px-3 py-2 rounded"
+							className="bg-white border border-slate-200 text-slate-900 text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
 						/>
 					</label>
-					<label className="text-xs text-zinc-400 space-y-1">
-						<span className="block">Employee</span>
+					<label className="text-xs text-slate-500 space-y-1">
+						<span className="block font-medium">Employee</span>
 						<select
 							value={histEmployeeId}
 							onChange={(e) => setHistEmployeeId(e.target.value)}
-							className="bg-zinc-900 border border-zinc-700 text-white text-sm px-3 py-2 rounded min-w-[200px]"
+							className="bg-white border border-slate-200 text-slate-900 text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 min-w-[200px]"
 						>
 							<option value="">All girls</option>
 							{females.map((f) => (
@@ -550,28 +550,28 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 						type="button"
 						onClick={() => void loadHistory()}
 						disabled={histLoading}
-						className="rounded-lg border border-violet-500/50 bg-violet-950/40 px-4 py-2 text-sm text-violet-100 disabled:opacity-50"
+						className="rounded-lg bg-violet-650 hover:bg-violet-550 text-white px-4 py-2 text-xs font-light shadow-sm transition-colors cursor-pointer disabled:opacity-50 active:scale-[0.98]"
 					>
 						{histLoading ? 'Loading…' : 'Apply filters'}
 					</button>
 				</div>
 				{histTrips.length === 0 ? (
-					<p className="text-sm text-zinc-500">No trips for this date / filter.</p>
+					<p className="text-xs text-slate-500 italic py-2">No trips for this date / filter.</p>
 				) : (
 					histTrips.map((t) => (
-						<div key={t.id} className="border border-violet-900/40 bg-violet-950/20 p-4 space-y-2 rounded">
-							<p className="font-semibold">
+						<div key={t.id} className="border border-violet-200 bg-violet-50 p-5 space-y-3 rounded-xl shadow-xs">
+							<p className="font-bold text-violet-900">
 								{t.employee?.firstName} {t.employee?.lastName}{' '}
-								<span className="text-xs font-normal text-zinc-400">· {t.status}</span>
+								<span className="text-xs font-normal text-slate-500">· {t.status}</span>
 							</p>
-							<p className="text-xs text-zinc-400">
+							<p className="text-xs text-slate-500">
 								{new Date(t.startedAt).toLocaleString()}
 								{t.endedAt ? ` → ${new Date(t.endedAt).toLocaleString()}` : ' → in progress'}
 								{t._count?.points != null ? ` · ${t._count.points} points` : ''}
 							</p>
 							<button
 								type="button"
-								className="inline-flex items-center justify-center rounded-lg bg-violet-600 hover:bg-violet-500 px-4 py-2 text-sm font-semibold text-white"
+								className="inline-flex items-center justify-center rounded-lg bg-violet-650 hover:bg-violet-550 px-4 py-2 text-xs font-light text-white shadow-xs cursor-pointer transition-colors"
 								onClick={() => void openTripTrail(t.id)}
 							>
 								View travel path
@@ -582,20 +582,20 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 			</section>
 
 			{selectedTrip && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-					<div className="w-full max-w-lg max-h-[85vh] overflow-auto border border-zinc-700 bg-zinc-950 p-5 space-y-3 rounded">
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+					<div className="w-full max-w-lg max-h-[85vh] overflow-auto border border-transparent bg-white p-6 space-y-4 rounded-xl shadow-xl">
 						<div className="flex items-start justify-between gap-3">
 							<div>
-								<h4 className="font-semibold text-white">
+								<h4 className="font-bold text-slate-900">
 									{selectedTrip.employee?.firstName} {selectedTrip.employee?.lastName}
 								</h4>
-								<p className="text-xs text-zinc-400">
+								<p className="text-xs text-slate-500 mt-0.5">
 									{selectedTrip.status} · {(selectedTrip.points || []).length} GPS points
 								</p>
 							</div>
 							<button
 								type="button"
-								className="text-zinc-400 hover:text-white text-sm"
+								className="text-slate-500 hover:text-slate-800 text-xs font-medium cursor-pointer"
 								onClick={() => setSelectedTrip(null)}
 							>
 								Close
@@ -612,15 +612,15 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 									href={url}
 									target="_blank"
 									rel="noreferrer"
-									className="inline-flex w-full items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white no-underline"
+									className="inline-flex w-full items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 px-4 py-2.5 text-sm font-light text-white shadow-xs transition-colors no-underline cursor-pointer"
 								>
 									Open full path in Google Maps
 								</a>
 							) : (
-								<p className="text-sm text-zinc-500">No GPS points stored for this trip.</p>
+								<p className="text-sm text-slate-400 text-center py-2">No GPS points stored for this trip.</p>
 							);
 						})()}
-						<ul className="space-y-1 text-xs font-mono text-zinc-300 max-h-60 overflow-auto">
+						<ul className="space-y-1 text-xs font-mono text-slate-650 max-h-60 overflow-auto">
 							{(selectedTrip.points || []).map((p: any) => (
 								<li key={p.id}>
 									{new Date(p.recordedAt).toLocaleTimeString()} · {Number(p.lat).toFixed(5)},{' '}
