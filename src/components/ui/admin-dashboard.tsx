@@ -1719,7 +1719,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 	if (loadingProfile || hasSubmittedFeedback === null || !stats) {
 		return (
-			<main className="dark min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center space-y-4">
+			<main className="admin-portal min-h-screen bg-[#e8edf5] text-slate-900 flex flex-col items-center justify-center space-y-4">
 				<RefreshCwIcon className="size-8 text-brand-500 animate-spin" />
 				<p className="text-zinc-400 text-xs font-mono">Initializing live environment console...</p>
 			</main>
@@ -1739,7 +1739,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 	}
 
 	return (
-		<main className="dark bg-zinc-950 text-white relative flex flex-col font-sans h-screen overflow-hidden">
+		<main className="admin-portal bg-[#e8edf5] text-slate-900 relative flex flex-col font-sans h-screen overflow-hidden">
 			{}
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.03),transparent_70%)] z-0 pointer-events-none" />
 
@@ -1794,7 +1794,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			</header>
 
 			{}
-			<div className="w-full border-b-2 border-brand-700 bg-brand-950 z-40 sticky top-20 shadow-lg shadow-brand-950/60" style={{backgroundImage: 'linear-gradient(180deg, #1a1040 0%, #0f0824 100%)'}}>
+			<div className="w-full border-b border-zinc-800 bg-zinc-950 z-40 sticky top-20 shadow-sm">
 				<div className="w-full px-6 md:px-10 flex gap-6 text-xs md:text-sm font-medium tracking-wide overflow-x-auto">
 					{(isSuperAdmin || allowedTabs.includes('overview')) && (
 						<button
@@ -1994,7 +1994,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			{}
 			<div className={cn(
 				"flex-1 w-full relative z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800",
-				activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col overflow-hidden" : "max-w-[90rem] mx-auto p-6 md:p-10 space-y-8"
+				activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col overflow-hidden" : activeTab === 'task_allocation' ? "max-w-[98rem] mx-auto p-6 md:p-10 space-y-8 w-full" : "max-w-[90rem] mx-auto p-6 md:p-10 space-y-8"
 			)}>
 
 				{}
@@ -3228,20 +3228,20 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					/>
 				)}
 
-				{}
+				{/* Task Allocation */}
 				{activeTab === 'task_allocation' && (
 					<div className="space-y-6">
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div className="flex items-center gap-2">
 								<TerminalIcon className="size-5 text-brand-400" />
-								<h2 className="text-lg font-bold text-white">Task/Work Allocation</h2>
+								<h2 className="text-lg font-bold text-slate-800 dark:text-white">Task/Work Allocation</h2>
 							</div>
 							<Button
 								onClick={() => {
 									setShowTaskForm(!showTaskForm);
 									setTaskMessage(null);
 								}}
-								className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-auto cursor-pointer"
+								className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-lg h-auto cursor-pointer shadow-sm active:scale-[0.98] transition-all animate-none"
 							>
 								{showTaskForm ? 'Cancel Allocation' : (
 									<>
@@ -3252,41 +3252,41 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</Button>
 						</div>
 
-						{}
+						{/* Task creation status message */}
 						{taskMessage && (
 							<div className={cn(
-								"p-3 rounded-none text-xs border font-mono",
+								"p-3 rounded-lg text-xs border",
 								taskMessage.type === 'success'
-									? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
-									: "bg-red-950/30 border-red-800 text-red-400"
+									? "bg-emerald-50 border-emerald-250 text-emerald-700"
+									: "bg-red-50 border-red-200 text-red-700"
 							)}>
 								{taskMessage.text}
 							</div>
 						)}
 
-						{}
+						{/* Create Task Form */}
 						{showTaskForm && (
-							<form onSubmit={handleCreateTask} className="bg-zinc-900/40 border border-zinc-800 p-6 space-y-4 rounded-none">
-								<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
+							<form onSubmit={handleCreateTask} className="bg-white border-transparent p-6 space-y-4 rounded-xl shadow-md">
+								<h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
 									Create & Allocate New Task
 								</h3>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Task Title</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Task Title</label>
 										<Input
 											placeholder="Implement Login Auth Flow"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-slate-50 border-transparent text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
 											value={taskTitle}
 											onChange={e => setTaskTitle(e.target.value)}
 										/>
 									</div>
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Report To</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Report To</label>
 										<Input
 											placeholder="Admin / Team Lead Name"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-655 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-slate-50 border-transparent text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
 											value={taskReportTo}
 											onChange={e => setTaskReportTo(e.target.value)}
 										/>
@@ -3294,31 +3294,29 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Task Description</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Task Description</label>
 									<textarea
 										placeholder="Describe the tasks, objectives, and deliverables..."
 										required
 										rows={3}
-										className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs placeholder:text-zinc-660 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none p-3 outline-none transition-colors"
+										className="w-full bg-slate-50 border-transparent text-slate-900 text-xs placeholder:text-slate-450 focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg p-3 outline-none transition-colors"
 										value={taskDescription}
 										onChange={e => setTaskDescription(e.target.value)}
 									/>
 								</div>
 
 								<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-									{}
 									<div className="space-y-1 md:col-span-2">
 										<div className="flex items-center justify-between">
-											<label className="text-[10px] text-zinc-400 uppercase font-medium">Whom you want to send</label>
-											{}
+											<label className="text-[10px] text-slate-500 uppercase font-medium">Whom you want to send</label>
 											<button
 												type="button"
 												onClick={() => setAssignToAll(!assignToAll)}
 												className={cn(
-													"text-[10px] px-2 py-0.5 border font-mono uppercase transition-all cursor-pointer",
+													"text-[10px] px-2.5 py-1 rounded-full transition-all cursor-pointer border",
 													assignToAll 
-														? "bg-brand-600/20 border-brand-500 text-brand-300"
-														: "border-zinc-800 text-zinc-500 hover:text-zinc-300"
+														? "bg-brand-50 border-brand-300 text-brand-700 font-semibold"
+														: "bg-slate-50 border-transparent text-slate-600 hover:bg-slate-100"
 												)}
 											>
 												{assignToAll ? '✓ Assigning All' : 'Assign to All'}
@@ -3328,7 +3326,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											disabled={assignToAll}
 											value={taskAssigneeId}
 											onChange={e => setTaskAssigneeId(e.target.value)}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none focus:border-zinc-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+											className="w-full bg-slate-50 border-transparent text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
 										>
 											<option value="">-- Select Employee --</option>
 											{employeesList.map((emp) => (
@@ -3339,25 +3337,23 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 
-									{}
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Deadline Date</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Deadline Date</label>
 										<Input
 											type="date"
 											required
-											className="bg-zinc-950 border-zinc-800 text-white text-xs focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:ring-offset-0 focus-visible:border-zinc-700 rounded-none h-9 transition-colors"
+											className="bg-slate-50 border-transparent text-slate-900 text-xs focus-visible:ring-1 focus-visible:ring-brand-500 focus-visible:ring-offset-0 focus-visible:border-brand-500 rounded-lg h-9 transition-colors"
 											value={taskDeadline}
 											onChange={e => setTaskDeadline(e.target.value)}
 										/>
 									</div>
 
-									{}
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Mode</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Mode</label>
 										<select
 											value={taskMode}
 											onChange={e => setTaskMode(e.target.value)}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none focus:border-zinc-700 transition-colors"
+											className="w-full bg-slate-50 border-transparent text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors"
 										>
 											<option value="Onsite">Onsite</option>
 											<option value="Remote">Remote</option>
@@ -3367,13 +3363,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-									{}
 									<div className="space-y-1">
-										<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
+										<label className="text-[10px] text-slate-500 uppercase font-medium">Status</label>
 										<select
 											value={taskStatus}
 											onChange={e => setTaskStatus(e.target.value)}
-											className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 outline-none focus:border-zinc-700 transition-colors"
+											className="w-full bg-slate-50 border-transparent text-slate-900 text-xs rounded-lg h-9 px-2 outline-none focus:border-brand-500 transition-colors"
 										>
 											<option value="Pending">Pending</option>
 											<option value="In Progress">In Progress</option>
@@ -3381,12 +3376,11 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</select>
 									</div>
 
-									{}
 									<div className="flex items-end">
 										<Button
 											type="submit"
 											disabled={isAddingTask}
-											className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-none h-9 cursor-pointer transition-colors"
+											className="w-full bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold py-2 px-4 rounded-lg h-9 cursor-pointer transition-colors shadow-sm active:scale-[0.98] animate-none"
 										>
 											{isAddingTask ? 'Allocating...' : 'Submit Allocation'}
 										</Button>
@@ -3395,19 +3389,19 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>
 						)}
 
-						{}
-						<div className="bg-zinc-900/30 border border-zinc-800/80 p-6 space-y-4 rounded-none">
-							<h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-zinc-800 pb-2">
+						{/* Directory Card */}
+						<div className="bg-white border-transparent p-6 space-y-4 rounded-xl shadow-md">
+							<h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
 								Allocated Tasks Directory
 							</h3>
 							
 							{tasksList.length === 0 ? (
-								<p className="text-zinc-500 text-xs italic py-4 text-center">No tasks allocated yet.</p>
+								<p className="text-slate-500 text-xs italic py-4 text-center">No tasks allocated yet.</p>
 							) : (
-								<div className="overflow-x-auto">
+								<div className="overflow-x-auto rounded-lg border-0 bg-transparent">
 									<table className="w-full text-left text-xs border-collapse">
 										<thead>
-											<tr className="border-b border-zinc-800 text-zinc-400 uppercase font-mono text-[10px] tracking-wider bg-zinc-950/40">
+											<tr className="border-b border-slate-100 text-slate-500 uppercase text-[10px] tracking-wider bg-slate-50">
 												<th className="p-3">Title</th>
 												<th className="p-3">Assignee</th>
 												<th className="p-3">Report To</th>
@@ -3418,58 +3412,58 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												<th className="p-3 text-right">Actions</th>
 											</tr>
 										</thead>
-										<tbody className="divide-y divide-zinc-800/50 font-sans text-zinc-300">
+										<tbody className="divide-y divide-slate-100 font-sans text-slate-600">
 											{tasksList.map((task: any) => (
 												<tr 
 													key={task.id} 
 													className={cn(
 														"transition-colors duration-150",
 														task.status === 'Completed' 
-															? "bg-emerald-600/15 hover:bg-emerald-600/25" 
+															? "bg-emerald-50/50 hover:bg-emerald-50" 
 															: task.status === 'In Progress'
-																? "bg-blue-600/15 hover:bg-blue-600/25"
-																: "hover:bg-zinc-900/20"
+																? "bg-blue-50/50 hover:bg-blue-50"
+																: "hover:bg-slate-50/50"
 													)}
 												>
 													<td className="p-3">
-														<div className="font-bold text-white">{task.title}</div>
-														<div className="text-[10px] text-zinc-550 line-clamp-1 mt-0.5">{task.description}</div>
+														<div className="font-bold text-slate-900">{task.title}</div>
+														<div className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{task.description}</div>
 													</td>
 													<td className="p-3 whitespace-nowrap">
 														<span className={cn(
-															"px-2 py-0.5 font-mono text-[10px] border",
+															"px-2 py-0.5 text-[10px] rounded border border-transparent",
 															task.assigneeId === 'ALL'
-																? "bg-brand-950/30 border-brand-850 text-brand-400 font-bold"
-																: "bg-zinc-900 border-zinc-800 text-zinc-300"
+																? "bg-brand-50 text-brand-700 font-bold"
+																: "bg-slate-100 text-slate-700"
 														)}>
 															{task.assigneeName} {task.assigneeId !== 'ALL' && `(${task.assigneeId})`}
 														</span>
 													</td>
-													<td className="p-3 text-zinc-400 whitespace-nowrap">{task.reportTo}</td>
-													<td className="p-3 text-zinc-400 whitespace-nowrap font-mono">
+													<td className="p-3 text-slate-600 whitespace-nowrap">{task.reportTo}</td>
+													<td className="p-3 text-slate-600 whitespace-nowrap">
 														{new Date(task.deadline).toLocaleDateString()}
 													</td>
 													<td className="p-3 whitespace-nowrap">
 														<span className={cn(
-															"px-2 py-0.5 text-[10px] uppercase font-bold border",
-															task.mode === 'Remote' && "bg-cyan-950/20 text-cyan-455 border-cyan-900/50",
-															task.mode === 'Onsite' && "bg-amber-950/20 text-amber-455 border-amber-900/50",
-															task.mode === 'Hybrid' && "bg-purple-950/20 text-purple-455 border-purple-900/50"
+															"px-2 py-0.5 text-[10px] uppercase font-bold rounded-full",
+															task.mode === 'Remote' && "bg-cyan-50 text-cyan-700",
+															task.mode === 'Onsite' && "bg-amber-50 text-amber-700",
+															task.mode === 'Hybrid' && "bg-purple-50 text-purple-700"
 														)}>
 															{task.mode}
 														</span>
 													</td>
 													<td className="p-3 whitespace-nowrap">
 														<span className={cn(
-															"px-2 py-0.5 text-[10px] uppercase font-mono font-bold border",
-															task.status === 'Completed' && "bg-emerald-950/30 text-emerald-400 border-emerald-900/50",
-															task.status === 'In Progress' && "bg-blue-950/30 text-blue-400 border-blue-900/50",
-															task.status === 'Pending' && "bg-yellow-950/30 text-yellow-400 border-yellow-900/50"
+															"px-2 py-0.5 text-[10px] uppercase font-bold rounded-full",
+															task.status === 'Completed' && "bg-emerald-100 text-emerald-700",
+															task.status === 'In Progress' && "bg-blue-100 text-blue-700",
+															task.status === 'Pending' && "bg-yellow-100 text-yellow-700"
 														)}>
 															{task.status}
 														</span>
 													</td>
-													<td className="p-3 text-zinc-500 font-mono text-[10px] whitespace-nowrap">
+													<td className="p-3 text-slate-500 text-[10px] whitespace-nowrap">
 														{new Date(task.createdAt).toLocaleString()}
 													</td>
 													<td className="p-3 text-right whitespace-nowrap">
@@ -3479,14 +3473,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	setEditingItem(task);
 																	setEditModalType('task');
 																}}
-																className="p-1.5 bg-zinc-900 border border-zinc-800 text-brand-400 hover:text-brand-300 hover:border-zinc-700 transition-all cursor-pointer"
+																className="p-1.5 rounded-lg border border-transparent bg-slate-50 text-brand-600 hover:bg-slate-100 transition-all cursor-pointer shadow-xs"
 																title="Edit Task"
 															>
 																<PencilIcon className="size-3.5" />
 															</button>
 															<button
 																onClick={() => handleDeleteTask(task.id)}
-																className="p-1.5 bg-zinc-900 border border-zinc-800 text-red-400 hover:text-red-300 hover:border-zinc-700 transition-all cursor-pointer"
+																className="p-1.5 rounded-lg border border-transparent bg-red-50 text-red-650 hover:bg-red-100 transition-all cursor-pointer shadow-xs"
 																title="Delete Task"
 															>
 																<Trash2Icon className="size-3.5" />
