@@ -172,7 +172,7 @@ export function UnanimousFormGate({
 		return (
 			<div className={cn(
 				"fixed inset-0 flex flex-col items-center justify-center z-50 transition-colors duration-300",
-				isDark ? "bg-zinc-950 text-zinc-100" : "bg-[#e8edf5] text-slate-900"
+				isDark ? "bg-zinc-950 text-zinc-200" : "bg-[#e8edf5] text-slate-800"
 			)}>
 				<div className="relative">
 					<div className={cn(
@@ -182,7 +182,7 @@ export function UnanimousFormGate({
 					<div className="relative flex flex-col items-center gap-4">
 						<Loader2 className="size-10 text-brand-500 animate-spin" />
 						<p className={cn(
-							"text-xs font-mono tracking-widest uppercase",
+							"text-xs tracking-widest uppercase",
 							isDark ? "text-zinc-400" : "text-slate-500"
 						)}>Loading Portal...</p>
 					</div>
@@ -194,9 +194,9 @@ export function UnanimousFormGate({
 	return (
 		<div className={cn(
 			"fixed inset-0 overflow-y-auto z-50 flex justify-center p-4 md:p-8 selection:bg-brand-500/35 selection:text-white transition-colors duration-300",
-			isDark ? "bg-zinc-950 text-zinc-100" : "bg-[#e8edf5] text-slate-900"
+			isDark ? "bg-zinc-950 text-zinc-200" : "bg-[#e8edf5] text-slate-800"
 		)}>
-			{/* Cosmic/Nebula Premium Background */}
+			{/* Background gradients */}
 			<div className={cn(
 				"fixed inset-0 pointer-events-none transition-opacity duration-300",
 				isDark 
@@ -208,7 +208,7 @@ export function UnanimousFormGate({
 				{/* Top Premium Badge & Title */}
 				<div className="text-center space-y-4 max-w-xl mx-auto">
 					<div className={cn(
-						"inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] font-mono tracking-widest uppercase shadow-sm transition-all duration-300",
+						"inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] tracking-widest uppercase shadow-sm transition-all duration-300",
 						isDark 
 							? "border-zinc-800/80 bg-zinc-900/50 text-zinc-400" 
 							: "border-slate-250 bg-white text-slate-500"
@@ -216,7 +216,7 @@ export function UnanimousFormGate({
 						<Lock className="size-3 text-brand-500" /> Secure Verification System
 					</div>
 					<h1 className={cn(
-						"text-3xl md:text-4xl font-bold tracking-tight font-heading transition-colors duration-300",
+						"text-3xl md:text-4xl tracking-tight transition-colors duration-300",
 						isDark ? "text-white" : "text-slate-900"
 					)}>
 						Feedback Portal
@@ -234,7 +234,7 @@ export function UnanimousFormGate({
 					className={cn(
 						"border rounded-2xl p-6 md:p-10 backdrop-blur-xl shadow-2xl relative overflow-hidden transition-all duration-300",
 						isDark 
-							? "bg-zinc-900/40 border-zinc-800/80 text-zinc-100" 
+							? "bg-zinc-900/40 border-zinc-800/80 text-zinc-200" 
 							: "bg-white border-slate-200/80 text-slate-800"
 					)}
 				>
@@ -246,7 +246,7 @@ export function UnanimousFormGate({
 							"mb-6 p-4 rounded-xl border text-xs flex items-center gap-3",
 							isDark 
 								? "border-red-900/50 bg-red-950/20 text-red-400" 
-								: "border-red-200 bg-red-50 text-red-650"
+								: "border-red-200 bg-red-50 text-red-605"
 						)}>
 							<AlertCircle className="size-4 shrink-0" />
 							<span>{error}</span>
@@ -257,7 +257,7 @@ export function UnanimousFormGate({
 						{/* Gate Question */}
 						<div className="space-y-4">
 							<label className={cn(
-								"block text-sm md:text-base font-semibold transition-colors duration-300",
+								"block text-sm md:text-base transition-colors duration-300",
 								isDark ? "text-zinc-100" : "text-slate-900"
 							)}>
 								Is there something you have wanted to tell us but haven&apos;t felt comfortable sharing directly?
@@ -267,7 +267,7 @@ export function UnanimousFormGate({
 									type="button"
 									onClick={() => setComfortableSharing('Yes')}
 									className={cn(
-										'relative py-4 px-6 rounded-xl border font-semibold text-sm transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 cursor-pointer',
+										'relative py-4 px-6 rounded-xl border text-sm transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 cursor-pointer',
 										comfortableSharing === 'Yes'
 											? isDark 
 												? 'bg-brand-600/10 border-brand-500 text-white shadow-lg shadow-brand-500/10 scale-[1.02]'
@@ -285,7 +285,7 @@ export function UnanimousFormGate({
 									type="button"
 									onClick={() => setComfortableSharing('No')}
 									className={cn(
-										'relative py-4 px-6 rounded-xl border font-semibold text-sm transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 cursor-pointer',
+										'relative py-4 px-6 rounded-xl border text-sm transition-all duration-300 text-center flex flex-col items-center justify-center gap-2 cursor-pointer',
 										comfortableSharing === 'No'
 											? isDark
 												? 'bg-zinc-800/50 border-zinc-550 text-white shadow-lg shadow-zinc-500/10 scale-[1.02]'
@@ -317,14 +317,14 @@ export function UnanimousFormGate({
 									{/* 1. What would you like to tell us? */}
 									<div className="space-y-2.5">
 										<label className={cn(
-											"flex items-center gap-2 text-sm font-semibold",
+											"flex items-center gap-2 text-sm",
 											isDark ? "text-zinc-200" : "text-slate-800"
 										)}>
 											<MessageSquare className="size-4 text-brand-500" />
 											<span>What would you like to tell us? *</span>
 										</label>
 										<p className={cn(
-											"text-[11px] font-mono italic",
+											"text-[11px] italic",
 											isDark ? "text-zinc-500" : "text-slate-450"
 										)}>
 											Example prompt: “Share anything you feel you cannot openly discuss with your manager or team.”
@@ -347,7 +347,7 @@ export function UnanimousFormGate({
 									{/* 2. What is the concern about? */}
 									<div className="space-y-3">
 										<label className={cn(
-											"flex items-center gap-2 text-sm font-semibold",
+											"flex items-center gap-2 text-sm",
 											isDark ? "text-zinc-200" : "text-slate-800"
 										)}>
 											<ShieldAlert className="size-4 text-brand-500" />
@@ -363,11 +363,11 @@ export function UnanimousFormGate({
 														'flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left text-xs transition-all duration-200 cursor-pointer',
 														selectedConcerns.includes(option)
 															? isDark
-																? 'bg-brand-500/10 border-brand-550 text-white font-medium'
-																: 'bg-brand-50 border-brand-500 text-brand-700 font-semibold'
+																? 'bg-brand-500/10 border-brand-550 text-white'
+																: 'bg-brand-50 border-brand-500 text-brand-700'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
-																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-705'
+																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-700'
 													)}
 												>
 													<div
@@ -391,7 +391,7 @@ export function UnanimousFormGate({
 									{/* 3. How serious do you feel this issue is? */}
 									<div className="space-y-2.5">
 										<label className={cn(
-											"flex items-center gap-2 text-sm font-semibold",
+											"flex items-center gap-2 text-sm",
 											isDark ? "text-zinc-200" : "text-slate-800"
 										)}>
 											<AlertCircle className="size-4 text-brand-500" />
@@ -404,18 +404,18 @@ export function UnanimousFormGate({
 													type="button"
 													onClick={() => setSeverity(opt)}
 													className={cn(
-														'py-2.5 rounded-xl border text-xs font-semibold transition-all duration-250 cursor-pointer',
+														'py-2.5 rounded-xl border text-xs transition-all duration-250 cursor-pointer',
 														severity === opt
 															? opt === 'Urgent'
 																? isDark ? 'bg-red-950/30 border-red-500 text-red-400' : 'bg-red-50 border-red-500 text-red-700'
 																: opt === 'Serious'
 																? isDark ? 'bg-orange-950/30 border-orange-500 text-orange-400' : 'bg-orange-50 border-orange-500 text-orange-700'
 																: opt === 'Moderate'
-																? isDark ? 'bg-yellow-950/30 border-yellow-500 text-yellow-450' : 'bg-yellow-50 border-yellow-500 text-yellow-705'
+																? isDark ? 'bg-yellow-950/30 border-yellow-500 text-yellow-450' : 'bg-yellow-50 border-yellow-500 text-yellow-700'
 																: isDark ? 'bg-green-950/30 border-green-500 text-green-400' : 'bg-green-50 border-green-500 text-green-700'
 															: isDark
-																? 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-300'
-																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-305 hover:text-slate-700'
+																? 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-305'
+																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -427,7 +427,7 @@ export function UnanimousFormGate({
 									{/* 4. How long has this been happening? */}
 									<div className="space-y-2.5">
 										<label className={cn(
-											"flex items-center gap-2 text-sm font-semibold",
+											"flex items-center gap-2 text-sm",
 											isDark ? "text-zinc-200" : "text-slate-800"
 										)}>
 											<Calendar className="size-4 text-brand-500" />
@@ -440,7 +440,7 @@ export function UnanimousFormGate({
 													type="button"
 													onClick={() => setDuration(opt)}
 													className={cn(
-														'py-2 px-1.5 rounded-xl border text-[11px] font-semibold text-center transition-all duration-200 cursor-pointer',
+														'py-2 px-1.5 rounded-xl border text-[11px] text-center transition-all duration-200 cursor-pointer',
 														duration === opt
 															? isDark
 																? 'bg-brand-500/10 border-brand-500 text-white'
@@ -459,7 +459,7 @@ export function UnanimousFormGate({
 									{/* 5. Does this concern involve someone else? */}
 									<div className="space-y-2.5">
 										<label className={cn(
-											"flex items-center gap-2 text-sm font-semibold",
+											"flex items-center gap-2 text-sm",
 											isDark ? "text-zinc-200" : "text-slate-800"
 										)}>
 											<UserCheck className="size-4 text-brand-500" />
@@ -472,14 +472,14 @@ export function UnanimousFormGate({
 													type="button"
 													onClick={() => setInvolvesOthers(opt)}
 													className={cn(
-														'py-2.5 rounded-xl border text-xs font-semibold transition-all duration-200 cursor-pointer',
+														'py-2.5 rounded-xl border text-xs transition-all duration-200 cursor-pointer',
 														involvesOthers === opt
 															? isDark
 																? 'bg-brand-500/10 border-brand-500 text-white shadow-sm'
 																: 'bg-brand-50 border-brand-500 text-brand-700 shadow-sm'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-450 hover:border-zinc-750 hover:text-zinc-300'
-																: 'bg-slate-50/40 border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
+																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-700'
 													)}
 												>
 													{opt}
@@ -491,7 +491,7 @@ export function UnanimousFormGate({
 									{/* 6. What would you like us to do? */}
 									<div className="space-y-3">
 										<label className={cn(
-											"flex items-center gap-2 text-sm font-semibold",
+											"flex items-center gap-2 text-sm",
 											isDark ? "text-zinc-200" : "text-slate-800"
 										)}>
 											<CheckSquare className="size-4 text-brand-500" />
@@ -507,8 +507,8 @@ export function UnanimousFormGate({
 														'flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left text-xs transition-all duration-200 cursor-pointer',
 														selectedActions.includes(option)
 															? isDark
-																? 'bg-brand-500/10 border-brand-550 text-white font-medium'
-																: 'bg-brand-50 border-brand-500 text-brand-700 font-semibold'
+																? 'bg-brand-500/10 border-brand-550 text-white'
+																: 'bg-brand-50 border-brand-500 text-brand-700'
 															: isDark
 																? 'bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:border-zinc-750 hover:text-zinc-350'
 																: 'bg-slate-50/40 border-slate-200 text-slate-550 hover:border-slate-300 hover:text-slate-700'
@@ -534,7 +534,7 @@ export function UnanimousFormGate({
 
 									{/* 7. Anything else you'd like to add? */}
 									<div className="space-y-2.5">
-										<label className="block text-sm font-semibold">
+										<label className="block text-sm">
 											Anything else you&apos;d like to add? (Optional)
 										</label>
 										<textarea
@@ -563,17 +563,17 @@ export function UnanimousFormGate({
 							transition={{ duration: 0.3 }}
 							className={cn(
 								"mt-8 pt-6 border-t flex items-center justify-between",
-								isDark ? "border-zinc-850/60 text-zinc-500" : "border-slate-200 text-slate-500"
+								isDark ? "border-zinc-850/60 text-zinc-550" : "border-slate-200 text-slate-500"
 							)}
 						>
-							<div className="text-[10px] max-w-[60%] leading-relaxed flex items-center gap-2 font-mono">
+							<div className="text-[10px] max-w-[60%] leading-relaxed flex items-center gap-2">
 								<Lock className="size-3 shrink-0" /> Verified Submitter: {userName} ({userEmail})
 							</div>
 
 							<Button
 								type="submit"
 								disabled={submitting}
-								className="bg-brand-600 hover:bg-brand-500 text-white font-semibold text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2 animate-none"
+								className="bg-brand-600 hover:bg-brand-550 text-white text-xs px-6 py-2.5 h-auto transition-all shadow-md shadow-brand-600/10 active:scale-[0.98] cursor-pointer inline-flex items-center gap-2 animate-none"
 							>
 								{submitting ? (
 									<>
