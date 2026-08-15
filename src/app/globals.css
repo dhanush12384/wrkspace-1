@@ -442,6 +442,10 @@ body {
 /* Re-insulate button / white text elements with brand/red/emerald/rose backgrounds or text-white class */
 .admin-portal button.text-white,
 .admin-portal button.text-white *,
+.admin-portal button.bg-amber-500,
+.admin-portal button.bg-amber-500 *,
+.admin-portal button.bg-amber-600,
+.admin-portal button.bg-amber-600 *,
 .admin-portal button.bg-\[\#E61E32\] *,
 .admin-portal button.bg-brand-600 *,
 .admin-portal button.bg-emerald-600 *,

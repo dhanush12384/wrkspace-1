@@ -2003,33 +2003,34 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				{activeTab === 'alert_sender' && <AdminAlertSender />}
 
 				{activeTab === 'add_remarks' && (
-					<div className="bg-zinc-900/30 border border-zinc-800 p-6 space-y-6 rounded-none max-w-4xl mx-auto">
-						<div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+					<div className="bg-white border border-slate-200 p-6 space-y-6 rounded-xl shadow-xs max-w-4xl mx-auto">
+						<div className="flex justify-between items-center border-b border-slate-100 pb-3">
 							<div>
-								<h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+								<h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">
 									Add Employee Remarks & Dossier
 								</h3>
-								<p className="text-xs text-zinc-400 mt-1">
+								<p className="text-xs text-slate-500 mt-1">
 									Register or update an employee with full remarks, conduct history, and performance score.
 								</p>
 							</div>
 						</div>
 
 						{remMessage && (
-							<div className={`p-3 rounded-none text-xs border font-mono ${
+							<div className={cn(
+								"p-3 rounded-lg text-xs border font-sans",
 								remMessage.type === 'success'
-							? "bg-emerald-950/30 border-emerald-800 text-emerald-400"
-									: "bg-red-950/30 border-red-800 text-red-400"
-							}`}>
+									? "bg-emerald-50 border-emerald-250 text-emerald-800"
+									: "bg-red-50 border-red-200 text-red-800"
+							)}>
 								{remMessage.text}
 							</div>
 						)}
 						<form onSubmit={handleRemarksSubmit} className="space-y-6">
 							{/* Employee Search / Select */}
-							<div className="border border-zinc-700 bg-zinc-950/60 p-4 space-y-3">
+							<div className="border border-slate-200 bg-slate-50 p-4 space-y-3 rounded-lg">
 								<div className="flex items-center justify-between">
-									<span className="text-[10px] text-white uppercase font-bold tracking-wider font-mono">
-										Select Existing Employee <span className="text-zinc-500 normal-case font-normal">(optional — auto-fills fields below)</span>
+									<span className="text-[10px] text-slate-700 uppercase font-bold tracking-wider font-sans">
+										Select Existing Employee <span className="text-slate-500 normal-case font-normal">(optional — auto-fills fields below)</span>
 									</span>
 									{remSelectedEmployee && (
 										<button
@@ -2043,7 +2044,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												setRemWingName(''); setRemWingLeadName(''); setRemRole('Employee');
 												setRemGender('UNSPECIFIED'); setRemMonthWorked('');
 											}}
-											className="text-[10px] text-red-400 hover:text-red-300 cursor-pointer transition-colors"
+											className="text-[10px] text-red-600 hover:text-red-700 font-semibold cursor-pointer transition-colors"
 										>
 											✕ Clear selection
 										</button>
@@ -2051,21 +2052,21 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								</div>
 
 								{remSelectedEmployee ? (
-									<div className="flex items-center gap-3 p-2.5 bg-brand-950/30 border border-brand-800/50 rounded-lg">
+									<div className="flex items-center gap-3 p-2.5 bg-brand-50 border border-brand-200 rounded-lg">
 										{remSelectedEmployee.photoUrl && (
-											<img src={remSelectedEmployee.photoUrl} alt="" className="size-8 rounded object-cover border border-zinc-700 shrink-0" />
+											<img src={remSelectedEmployee.photoUrl} alt="" className="size-8 rounded object-cover border border-slate-200 shrink-0" />
 										)}
 										<div className="min-w-0">
-											<p className="text-xs font-bold text-white truncate">{remSelectedEmployee.firstName} {remSelectedEmployee.lastName}</p>
-											<p className="text-[10px] text-zinc-400 truncate">{remSelectedEmployee.email} · ID: {remSelectedEmployee.id}</p>
+											<p className="text-xs font-bold text-slate-800 truncate">{remSelectedEmployee.firstName} {remSelectedEmployee.lastName}</p>
+											<p className="text-[10px] text-slate-500 truncate">{remSelectedEmployee.email} · ID: {remSelectedEmployee.id}</p>
 										</div>
-										<span className="ml-auto shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full bg-brand-900/50 text-brand-300 border border-brand-700/50 uppercase tracking-wider">Update mode</span>
+										<span className="ml-auto shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wider">Update mode</span>
 									</div>
 								) : (
 									<div className="relative">
 										<Input
 											placeholder="Search by name or email..."
-											className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+											className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 											value={remEmpSearch}
 											onChange={e => { setRemEmpSearch(e.target.value); setRemShowEmpDropdown(true); }}
 											onFocus={() => setRemShowEmpDropdown(true)}
@@ -2079,7 +2080,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											).slice(0, 8);
 											if (matches.length === 0) return null;
 											return (
-												<div className="absolute z-50 top-full left-0 right-0 mt-0.5 bg-zinc-900 border border-zinc-700 shadow-xl max-h-52 overflow-y-auto">
+												<div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 shadow-xl max-h-52 overflow-y-auto rounded-lg">
 													{matches.map((emp: any) => (
 														<button
 															key={emp.id}
@@ -2114,15 +2115,15 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	}
 																} catch { setRemCertifications([]); }
 															}}
-															className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-800 text-left transition-colors border-b border-zinc-800 last:border-0 cursor-pointer"
+															className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-50 text-left transition-colors border-b border-slate-100 last:border-0 cursor-pointer"
 														>
 															{emp.photoUrl
-																? <img src={emp.photoUrl} alt="" className="size-7 rounded object-cover border border-zinc-700 shrink-0" />
-																: <div className="size-7 rounded bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400 shrink-0">{emp.firstName?.[0]}{emp.lastName?.[0]}</div>
+																? <img src={emp.photoUrl} alt="" className="size-7 rounded object-cover border border-slate-200 shrink-0" />
+																: <div className="size-7 rounded bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">{emp.firstName?.[0]}{emp.lastName?.[0]}</div>
 															}
 															<div className="min-w-0">
-																<p className="text-xs font-semibold text-white truncate">{emp.firstName} {emp.lastName}</p>
-																<p className="text-[10px] text-zinc-500 truncate">{emp.email} · {emp.id}</p>
+																<p className="text-xs font-semibold text-slate-800 truncate">{emp.firstName} {emp.lastName}</p>
+																<p className="text-[10px] text-slate-500 truncate">{emp.email} · {emp.id}</p>
 															</div>
 														</button>
 													))}
@@ -2135,16 +2136,16 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 							{/* Photo URL & Preview */}
 							<div className="space-y-2">
-								<label className="text-[10px] text-zinc-400 uppercase font-medium">Employee Photo URL</label>
+								<label className="text-[10px] text-slate-500 uppercase font-medium">Employee Photo URL</label>
 								<div className="flex gap-4 items-center">
 									<Input
 										placeholder="https://example.com/photo.jpg"
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9 flex-1"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9 flex-1"
 										value={remPhotoUrl}
 										onChange={e => setRemPhotoUrl(e.target.value)}
 									/>
 									{remPhotoUrl.trim() && (
-										<div className="size-9 rounded-none border border-zinc-850 overflow-hidden bg-zinc-950 shrink-0">
+										<div className="size-9 rounded-lg border border-slate-200 overflow-hidden bg-slate-50 shrink-0">
 											<img src={remPhotoUrl} alt="Preview" className="size-full object-cover" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
 										</div>
 									)}
@@ -2154,30 +2155,30 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							{/* Name Section */}
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">First Name</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">First Name</label>
 									<Input
 										placeholder="First Name"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remFirstName}
 										onChange={e => setRemFirstName(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Middle Name</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Middle Name</label>
 									<Input
 										placeholder="Middle Name (Optional)"
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remMiddleName}
 										onChange={e => setRemMiddleName(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Last Name</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Last Name</label>
 									<Input
 										placeholder="Last Name"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remLastName}
 										onChange={e => setRemLastName(e.target.value)}
 									/>
@@ -2187,23 +2188,23 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							{/* Contact Info */}
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Email ID</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Email ID</label>
 									<Input
 										type="email"
 										placeholder="employee.email@company.com"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remEmail}
 										onChange={e => setRemEmail(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Phone Number</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Phone Number</label>
 									<Input
 										type="tel"
 										placeholder="+1 (555) 000-0000"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remPhone}
 										onChange={e => setRemPhone(e.target.value)}
 									/>
@@ -2213,29 +2214,29 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							{/* Work & Status */}
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Company Worked For</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Company Worked For</label>
 									<Input
 										placeholder="e.g. Google / WrkSpace"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remCompanyWorkedFor}
 										onChange={e => setRemCompanyWorkedFor(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Month(s) Worked For</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Month(s) Worked For</label>
 									<Input
 										placeholder="e.g. October 2026, or 12 Months"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remMonthWorked}
 										onChange={e => setRemMonthWorked(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Status</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Status</label>
 									<select
-										className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+										className="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg h-9 px-2 focus:outline-none focus:border-brand-500"
 										value={remStatus}
 										onChange={e => setRemStatus(e.target.value)}
 									>
@@ -2249,27 +2250,27 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							{/* Department / Wing Info */}
 							<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 								<div className="space-y-1 col-span-2">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Wing Name</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Wing Name</label>
 									<Input
 										placeholder="Engineering / Sales"
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remWingName}
 										onChange={e => setRemWingName(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Role</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Role</label>
 									<Input
 										placeholder="Engineer"
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remRole}
 										onChange={e => setRemRole(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Gender</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Gender</label>
 									<select
-										className="w-full bg-zinc-950 border border-zinc-800 text-white text-xs rounded-none h-9 px-2 focus:outline-none focus:border-zinc-700"
+										className="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-lg h-9 px-2 focus:outline-none focus:border-brand-500"
 										value={remGender}
 										onChange={e => setRemGender(e.target.value)}
 									>
@@ -2283,21 +2284,21 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							{/* Score & Conduct */}
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Overall Score</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Overall Score</label>
 									<Input
 										placeholder="e.g. 9.5/10, A+, Excellent"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remOverallScore}
 										onChange={e => setRemOverallScore(e.target.value)}
 									/>
 								</div>
 								<div className="space-y-1">
-									<label className="text-[10px] text-zinc-400 uppercase font-medium">Conduct Assessment</label>
+									<label className="text-[10px] text-slate-500 uppercase font-medium">Conduct Assessment</label>
 									<Input
 										placeholder="e.g. Exemplary, Punctual, Good team player"
 										required
-										className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-9"
+										className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-9"
 										value={remConduct}
 										onChange={e => setRemConduct(e.target.value)}
 									/>
@@ -2306,22 +2307,22 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 
 							{/* Remarks */}
 							<div className="space-y-1">
-								<label className="text-[10px] text-zinc-400 uppercase font-medium">Remarks</label>
+								<label className="text-[10px] text-slate-500 uppercase font-medium">Remarks</label>
 								<textarea
 									placeholder="Provide complete remarks about the employee..."
 									required
 									rows={4}
-									className="w-full bg-zinc-950 border border-zinc-800 text-xs text-white p-2.5 rounded-none outline-none focus:border-zinc-700 placeholder:text-zinc-650"
+									className="w-full bg-white border border-slate-200 text-xs text-slate-900 p-2.5 rounded-lg outline-none focus:border-brand-500 placeholder:text-slate-400"
 									value={remRemarks}
 									onChange={e => setRemRemarks(e.target.value)}
 								/>
 							</div>
 
 							{/* Badge Picker */}
-							<div className="border border-zinc-800 p-4 space-y-3 bg-zinc-950/30">
+							<div className="border border-slate-200 p-4 space-y-3 bg-slate-50 rounded-lg">
 								<div>
-									<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Assign a Badge <span className="text-zinc-500 normal-case font-normal">(optional)</span></span>
-									<p className="text-[10px] text-zinc-500 mt-0.5">Select one to automatically publish it to this employee when the record is created.</p>
+									<span className="text-[10px] text-slate-750 uppercase font-bold tracking-wider block font-sans">Assign a Badge <span className="text-slate-500 normal-case font-normal">(optional)</span></span>
+									<p className="text-[10px] text-slate-500 mt-0.5">Select one to automatically publish it to this employee when the record is created.</p>
 								</div>
 
 								{(() => {
@@ -2339,19 +2340,19 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 											{PRESET_BADGES.map((badge) => {
 												const isSelected = remBadgeTitle === badge.title;
 												const ringColor =
-													badge.color === 'blue'   ? 'ring-blue-500/70 bg-blue-950/30 border-blue-800/50' :
-													badge.color === 'yellow' ? 'ring-yellow-500/70 bg-yellow-950/30 border-yellow-800/50' :
-													badge.color === 'purple' ? 'ring-purple-500/70 bg-purple-950/30 border-purple-800/50' :
-													badge.color === 'green'  ? 'ring-emerald-500/70 bg-emerald-950/30 border-emerald-800/50' :
-													badge.color === 'orange' ? 'ring-amber-500/70 bg-amber-950/30 border-amber-800/50' :
-													'ring-rose-500/70 bg-rose-950/30 border-rose-800/50';
+													badge.color === 'blue'   ? 'ring-blue-500/70 bg-blue-50 border-blue-300' :
+													badge.color === 'yellow' ? 'ring-yellow-500/70 bg-yellow-50 border-yellow-300' :
+													badge.color === 'purple' ? 'ring-purple-500/70 bg-purple-50 border-purple-300' :
+													badge.color === 'green'  ? 'ring-emerald-500/70 bg-emerald-50 border-emerald-300' :
+													badge.color === 'orange' ? 'ring-amber-500/70 bg-amber-50 border-amber-300' :
+													'ring-rose-500/70 bg-rose-50 border-rose-300';
 												const textColor =
-													badge.color === 'blue'   ? 'text-blue-300' :
-													badge.color === 'yellow' ? 'text-yellow-300' :
-													badge.color === 'purple' ? 'text-purple-300' :
-													badge.color === 'green'  ? 'text-emerald-300' :
-													badge.color === 'orange' ? 'text-amber-300' :
-													'text-rose-300';
+													badge.color === 'blue'   ? 'text-blue-700' :
+													badge.color === 'yellow' ? 'text-yellow-700' :
+													badge.color === 'purple' ? 'text-purple-700' :
+													badge.color === 'green'  ? 'text-emerald-700' :
+													badge.color === 'orange' ? 'text-amber-700' :
+													'text-rose-700';
 												return (
 													<button
 														key={badge.title}
@@ -2367,9 +2368,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																setRemBadgeColor(badge.color);
 															}
 														}}
-														className={`flex flex-col items-center gap-1.5 p-2 rounded-lg border text-center cursor-pointer transition-all duration-150 ${
-															isSelected ? `ring-2 ${ringColor}` : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-600'
-														}`}
+														className={cn(
+															"flex flex-col items-center gap-1.5 p-2 rounded-lg border text-center cursor-pointer transition-all duration-150",
+															isSelected ? `ring-2 ${ringColor}` : 'bg-white border-slate-200 hover:border-slate-400'
+														)}
 													>
 														<span className="text-xl leading-none flex items-center justify-center h-8">
 															{badge.image ? (
@@ -2378,7 +2380,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																badge.emoji
 															)}
 														</span>
-														<span className={`text-[10px] font-bold leading-tight ${isSelected ? textColor : 'text-zinc-400'}`}>
+														<span className={cn("text-[10px] font-bold leading-tight", isSelected ? textColor : 'text-slate-500')}>
 															{badge.title}
 														</span>
 													</button>
@@ -2389,38 +2391,38 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 								})()}
 
 								{remBadgeTitle && (
-									<div className="flex items-center justify-between p-2 bg-zinc-900 border border-zinc-800 rounded-lg">
-										<span className="text-[10px] text-zinc-400">Badge selected: <strong className="text-white">{remBadgeTitle}</strong></span>
-										<button type="button" onClick={() => setRemBadgeTitle('')} className="text-[10px] text-zinc-500 hover:text-red-400 cursor-pointer transition-colors">✕ Clear</button>
+									<div className="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-lg">
+										<span className="text-[10px] text-slate-600">Badge selected: <strong className="text-slate-800">{remBadgeTitle}</strong></span>
+										<button type="button" onClick={() => setRemBadgeTitle('')} className="text-[10px] text-slate-500 hover:text-red-650 cursor-pointer transition-colors font-medium">✕ Clear</button>
 									</div>
 								)}
 							</div>
 
 							{/* Certifications */}
-							<div className="border border-zinc-800 p-4 space-y-3 bg-zinc-950/30">
+							<div className="border border-slate-200 p-4 space-y-3 bg-slate-50 rounded-lg">
 								<div className="flex items-center justify-between">
 									<div>
-										<span className="text-[10px] text-white uppercase font-bold tracking-wider block font-mono">Certifications <span className="text-zinc-500 normal-case font-normal">(optional)</span></span>
-										<p className="text-[10px] text-zinc-500 mt-0.5">Add certificate links (e.g. completion, achievement, course certificates).</p>
+										<span className="text-[10px] text-slate-750 uppercase font-bold tracking-wider block font-sans">Certifications <span className="text-slate-500 normal-case font-normal">(optional)</span></span>
+										<p className="text-[10px] text-slate-500 mt-0.5">Add certificate links (e.g. completion, achievement, course certificates).</p>
 									</div>
 									<button
 										type="button"
 										onClick={() => setRemCertifications(prev => [...prev, { title: '', url: '' }])}
-										className="text-[10px] font-bold text-brand-400 hover:text-brand-300 border border-brand-800/50 bg-brand-950/30 px-2.5 py-1 rounded cursor-pointer transition-colors"
+										className="text-[10px] font-bold text-brand-600 hover:text-brand-700 border border-brand-200 bg-brand-50 px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
 									>
 										+ Add Certificate
 									</button>
 								</div>
 
 								{remCertifications.length === 0 ? (
-									<p className="text-[10px] text-zinc-600 italic">No certifications added yet.</p>
+									<p className="text-[10px] text-slate-500 italic">No certifications added yet.</p>
 								) : (
 									<div className="space-y-2">
 										{remCertifications.map((cert, i) => (
 											<div key={i} className="grid grid-cols-[1fr_2fr_auto] gap-2 items-center">
 												<Input
 													placeholder="Certificate title"
-													className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-8"
+													className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-8"
 													value={cert.title}
 													onChange={e => {
 														const updated = [...remCertifications];
@@ -2430,7 +2432,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												/>
 												<Input
 													placeholder="https://certificate-link.com/..."
-													className="bg-zinc-950 border-zinc-800 text-white text-xs placeholder:text-zinc-650 focus:outline-none focus:border-zinc-700 focus-visible:ring-0 rounded-none h-8"
+													className="bg-white border border-slate-200 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none focus:border-brand-500 rounded-lg h-8"
 													value={cert.url}
 													onChange={e => {
 														const updated = [...remCertifications];
@@ -2441,7 +2443,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 												<button
 													type="button"
 													onClick={() => setRemCertifications(prev => prev.filter((_, idx) => idx !== i))}
-													className="text-zinc-600 hover:text-red-400 transition-colors cursor-pointer text-xs px-1"
+													className="text-slate-500 hover:text-red-500 transition-colors cursor-pointer text-xs px-1"
 												>
 													✕
 												</button>
@@ -2454,7 +2456,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							<Button
 								type="submit"
 								disabled={remBusy}
-								className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-none h-10 w-full cursor-pointer transition-all duration-200"
+								className="bg-[#E61E32] hover:bg-[#c9182a] disabled:opacity-50 text-white text-xs font-semibold py-2 px-4 rounded-lg h-10 w-full cursor-pointer transition-all duration-200 shadow-sm active:scale-[0.98]"
 							>
 								{remBusy
 									? (remSelectedEmployee ? 'Updating...' : 'Saving Remarks...')
@@ -3481,14 +3483,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 																	setEditingItem(task);
 																	setEditModalType('task');
 																}}
-																className="p-1.5 rounded-lg border border-transparent bg-slate-50 text-brand-600 hover:bg-slate-100 transition-all cursor-pointer shadow-xs"
+																className="p-1.5 rounded-lg border border-slate-350 bg-slate-100 text-slate-800 hover:bg-slate-200 transition-all cursor-pointer shadow-xs"
 																title="Edit Task"
 															>
 																<PencilIcon className="size-3.5" />
 															</button>
 															<button
 																onClick={() => handleDeleteTask(task.id)}
-																className="p-1.5 rounded-lg border border-transparent bg-red-50 text-red-650 hover:bg-red-100 transition-all cursor-pointer shadow-xs"
+																className="p-1.5 rounded-lg border border-red-600 bg-red-600 text-white hover:bg-red-700 transition-all cursor-pointer shadow-xs"
 																title="Delete Task"
 															>
 																<Trash2Icon className="size-3.5" />
