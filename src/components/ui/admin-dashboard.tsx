@@ -1855,6 +1855,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 				{activeTab === 'live_safety' && <AdminLiveSafetyPanel adminEmail={email} />}
 				{activeTab === 'live_tracking' && <AdminLiveTrackingPanel adminEmail={email} />}
 				{activeTab === 'alert_sender' && <AdminAlertSender />}
+				{activeTab === 'shift_timings' && <AdminShiftTimingsPanel adminEmail={email} />}
+				{activeTab === 'late_checkins' && <AdminLateCheckinsPanel adminEmail={email} />}
+				{activeTab === 'payouts' && <AdminPayoutsPanel adminEmail={email} />}
 
 				{activeTab === 'add_remarks' && (
 					<div className="bg-white border border-slate-200 p-6 space-y-6 rounded-xl shadow-xs max-w-4xl mx-auto">

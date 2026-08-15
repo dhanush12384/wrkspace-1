@@ -27,10 +27,10 @@ export function readAdminToken(): string {
 	}
 }
 
-export async function ensureAdminToken(): Promise<string> {
+export async function ensureAdminToken(emailFallback?: string): Promise<string> {
 	const existing = readAdminToken();
 	if (existing) return existing;
-	const email = adminSessionEmail();
+	const email = (emailFallback || adminSessionEmail()).trim().toLowerCase();
 	if (!email) return '';
 	const res = await fetch('/api/admin/realtime-token', {
 		method: 'POST',
