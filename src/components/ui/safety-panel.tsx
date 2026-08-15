@@ -315,7 +315,7 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 
 	return (
 		<div className="space-y-8 text-slate-800">
-			<div className="flex items-center justify-between gap-3 flex-wrap">
+			<div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-200 pb-5">
 				<div>
 					<h2 className="text-xl font-bold text-slate-900">Live safety</h2>
 					<p className="text-xs text-slate-500 mt-1">
@@ -323,9 +323,23 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 						{lastAt ? ` · Last refresh ${lastAt}` : ''}
 					</p>
 					{error ? <p className="text-xs text-rose-600 mt-1 font-semibold">{error}</p> : null}
+				</div>
+				<button
+					type="button"
+					onClick={() => void load()}
+					disabled={refreshing}
+					className="shrink-0 rounded-lg bg-brand-600 hover:bg-brand-500 text-white px-4 py-2.5 text-xs font-light shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+				>
+					{refreshing ? 'Refreshing…' : 'Refresh now'}
+				</button>
+			</div>
+
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+				{/* Left Columns (Live feeds) */}
+				<div className="lg:col-span-2 space-y-8">
 					{fcm ? (
 						<div
-							className={`mt-3 rounded-xl border px-4 py-3 text-xs shadow-sm ${
+							className={`rounded-xl border px-4 py-3 text-xs shadow-sm ${
 								fcm.ready
 									? 'border-emerald-200 bg-emerald-50 text-emerald-800'
 									: 'border-amber-200 bg-amber-50 text-amber-800'
@@ -361,225 +375,229 @@ export function AdminLiveSafetyPanel({ adminEmail }: { adminEmail: string }) {
 							{fcm.ready ? <p className="mt-1 opacity-90 font-medium">SOS alarms can fan out to registered devices.</p> : null}
 						</div>
 					) : null}
-				</div>
-				<button
-					type="button"
-					onClick={() => void load()}
-					disabled={refreshing}
-					className="shrink-0 rounded-lg bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 text-xs font-light shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
-				>
-					{refreshing ? 'Refreshing…' : 'Refresh now'}
-				</button>
-			</div>
 
-			<section className="space-y-3">
-				<h3 className="text-sm font-bold uppercase tracking-wider text-rose-700">
-					Open SOS ({incidents.length})
-				</h3>
-				{incidents.length === 0 ? (
-					<p className="text-xs text-slate-500 italic">None — SOS alerts from female employees appear here live.</p>
-				) : (
-					incidents.map((inc) => (
-						<div key={inc.id} className="border border-rose-200 bg-rose-50 p-5 space-y-3 rounded-xl shadow-xs">
-							<p className="font-bold text-rose-900 text-sm">
-								{inc.employee?.firstName} {inc.employee?.lastName}
-							</p>
-							{inc.employee?.phone ? (
-								<p className="text-xs text-rose-800 font-semibold">
-									Phone:{' '}
-									<a href={`tel:${inc.employee.phone}`} className="underline text-brand-650">
-										{inc.employee.phone}
-									</a>
-								</p>
-							) : (
-								<p className="text-xs text-slate-400">No phone on file</p>
-							)}
-							<p className="text-xs text-slate-500">
-								Started {new Date(inc.createdAt).toLocaleString()}
-								{inc.updatedAt ? ` · Updated ${new Date(inc.updatedAt).toLocaleString()}` : ''}
-							</p>
-							<p className="text-xs text-slate-500 font-mono">
-								{Number(inc.lat).toFixed(5)}, {Number(inc.lng).toFixed(5)}
-							</p>
-							<div className="flex flex-wrap gap-2 pt-2">
-								<a
-									className="inline-flex items-center justify-center rounded-lg bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-light text-white no-underline shadow-xs cursor-pointer transition-colors"
-									href={`https://www.google.com/maps?q=${inc.lat},${inc.lng}`}
-									target="_blank"
-									rel="noreferrer"
-								>
-									Open live map
-								</a>
-								<button
-									type="button"
-									disabled={resolvingId === inc.id}
-									className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-light text-slate-700 shadow-xs cursor-pointer transition-colors disabled:opacity-50"
-									onClick={async () => {
-										if (!confirm('Mark this SOS as resolved? It will disappear for all employees on website and mobile.')) {
-											return;
-										}
-										setResolvingId(inc.id);
-										setError('');
-										setIncidents((prev) => prev.filter((x) => x.id !== inc.id));
-										try {
-											const res = await fetch('/api/admin/safety/resolve', {
-												method: 'POST',
-												headers: {
-													'Content-Type': 'application/json',
-													'x-admin-email': adminEmail || '',
-												},
-												body: JSON.stringify({ email: adminEmail, incidentId: inc.id }),
-											});
-											const data = await res.json().catch(() => ({}));
-											if (!res.ok || !data?.success) {
-												setError(data?.error || 'Could not resolve — refreshing…');
-												await load();
-											} else {
-												await load();
-											}
-										} catch (e: any) {
-											setError(e?.message || 'Could not resolve');
-											await load();
-										} finally {
-											setResolvingId(null);
-										}
-									}}
-								>
-									{resolvingId === inc.id ? 'Closing…' : 'Mark resolved'}
-								</button>
-							</div>
-						</div>
-					))
-				)}
-			</section>
-
-			<section className="space-y-3">
-				<h3 className="text-sm font-bold uppercase tracking-wider text-sky-700">
-					Girls going home — live ({trips.length})
-				</h3>
-				{trips.length === 0 ? (
-					<p className="text-xs text-slate-500 italic">
-						No active home trips. Appears when a female employee taps “Going home” on mobile (GPS every ~10s).
-					</p>
-				) : (
-					trips.map((t) => {
-						const liveLat = t.lat ?? t.points?.[0]?.lat;
-						const liveLng = t.lng ?? t.points?.[0]?.lng;
-						return (
-							<div key={t.id} className="border border-sky-200 bg-sky-50 p-5 space-y-3 rounded-xl shadow-xs">
-								<p className="font-bold text-sky-900">
-									{t.employee?.firstName} {t.employee?.lastName}
-									{t.employee?.phone ? (
-										<span className="ml-2 text-xs font-normal text-sky-700">
-											<a href={`tel:${t.employee.phone}`} className="underline">
-												{t.employee.phone}
-											</a>
-										</span>
-									) : null}
-								</p>
-								<p className="text-xs text-slate-500">
-									Started {new Date(t.startedAt).toLocaleString()}
-									{t.updatedAt ? ` · Last ping ${new Date(t.updatedAt).toLocaleString()}` : ''}
-									{t._count?.points != null ? ` · ${t._count.points} GPS points` : ''}
-								</p>
-								{liveLat != null && liveLng != null ? (
-									<>
-										<p className="text-xs text-slate-500 font-mono">
-											{Number(liveLat).toFixed(5)}, {Number(liveLng).toFixed(5)}
+					<div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+						<h3 className="text-sm font-bold uppercase tracking-wider text-rose-700 border-b border-slate-100 pb-2">
+							Open SOS ({incidents.length})
+						</h3>
+						{incidents.length === 0 ? (
+							<p className="text-xs text-slate-500 italic py-2">None — SOS alerts from female employees appear here live.</p>
+						) : (
+							<div className="space-y-4">
+								{incidents.map((inc) => (
+									<div key={inc.id} className="border border-rose-200 bg-rose-50 p-5 space-y-3 rounded-xl shadow-xs">
+										<p className="font-bold text-rose-900 text-sm">
+											{inc.employee?.firstName} {inc.employee?.lastName}
 										</p>
-										<div className="flex flex-wrap gap-2 pt-1">
+										{inc.employee?.phone ? (
+											<p className="text-xs text-rose-800 font-semibold">
+												Phone:{' '}
+												<a href={`tel:${inc.employee.phone}`} className="underline text-brand-650">
+													{inc.employee.phone}
+												</a>
+											</p>
+										) : (
+											<p className="text-xs text-slate-400">No phone on file</p>
+										)}
+										<p className="text-xs text-slate-500">
+											Started {new Date(inc.createdAt).toLocaleString()}
+											{inc.updatedAt ? ` · Updated ${new Date(inc.updatedAt).toLocaleString()}` : ''}
+										</p>
+										<p className="text-xs text-slate-500 font-mono">
+											{Number(inc.lat).toFixed(5)}, {Number(inc.lng).toFixed(5)}
+										</p>
+										<div className="flex flex-wrap gap-2 pt-2">
 											<a
-												className="inline-flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 px-4 py-2 text-xs font-light text-white no-underline shadow-xs cursor-pointer transition-colors"
-												href={`https://www.google.com/maps?q=${liveLat},${liveLng}`}
+												className="inline-flex items-center justify-center rounded-lg bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-light text-white no-underline shadow-xs cursor-pointer transition-colors"
+												href={`https://www.google.com/maps?q=${inc.lat},${inc.lng}`}
 												target="_blank"
 												rel="noreferrer"
 											>
-												Open live location
+												Open live map
 											</a>
 											<button
 												type="button"
-												className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-light text-slate-700 shadow-xs cursor-pointer transition-colors"
-												onClick={() => void openTripTrail(t.id)}
+												disabled={resolvingId === inc.id}
+												className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-light text-slate-700 shadow-xs cursor-pointer transition-colors disabled:opacity-50"
+												onClick={async () => {
+													if (!confirm('Mark this SOS as resolved? It will disappear for all employees on website and mobile.')) {
+														return;
+													}
+													setResolvingId(inc.id);
+													setError('');
+													setIncidents((prev) => prev.filter((x) => x.id !== inc.id));
+													try {
+														const res = await fetch('/api/admin/safety/resolve', {
+															method: 'POST',
+															headers: {
+																'Content-Type': 'application/json',
+																'x-admin-email': adminEmail || '',
+															},
+															body: JSON.stringify({ email: adminEmail, incidentId: inc.id }),
+														});
+														const data = await res.json().catch(() => ({}));
+														if (!res.ok || !data?.success) {
+															setError(data?.error || 'Could not resolve — refreshing…');
+															await load();
+														} else {
+															await load();
+														}
+													} catch (e: any) {
+														setError(e?.message || 'Could not resolve');
+														await load();
+													} finally {
+														setResolvingId(null);
+													}
+												}}
 											>
-												View trail
+												{resolvingId === inc.id ? 'Closing…' : 'Mark resolved'}
 											</button>
 										</div>
-									</>
-								) : (
-									<p className="text-xs text-slate-400">Waiting for first GPS ping…</p>
-								)}
+									</div>
+								))}
 							</div>
-						);
-					})
-				)}
-			</section>
+						)}
+					</div>
 
-			<section className="space-y-3 border-t border-slate-200 pt-6">
-				<h3 className="text-sm font-bold uppercase tracking-wider text-violet-750">
-					Travel history (date-wise)
-				</h3>
-				<p className="text-xs text-slate-500">
-					Filter by IST date and girl to see where they travelled. Path is stored from mobile GPS pings.
-				</p>
-				<div className="flex flex-wrap gap-3 items-end">
-					<label className="text-xs text-slate-500 space-y-1">
-						<span className="block font-medium">Date (IST)</span>
-						<input
-							type="date"
-							value={histDate}
-							onChange={(e) => setHistDate(e.target.value)}
-							className="bg-white border border-slate-200 text-slate-900 text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
-						/>
-					</label>
-					<label className="text-xs text-slate-500 space-y-1">
-						<span className="block font-medium">Employee</span>
-						<select
-							value={histEmployeeId}
-							onChange={(e) => setHistEmployeeId(e.target.value)}
-							className="bg-white border border-slate-200 text-slate-900 text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 min-w-[200px]"
-						>
-							<option value="">All girls</option>
-							{females.map((f) => (
-								<option key={f.id} value={f.id}>
-									{f.firstName} {f.lastName}
-								</option>
-							))}
-						</select>
-					</label>
-					<button
-						type="button"
-						onClick={() => void loadHistory()}
-						disabled={histLoading}
-						className="rounded-lg bg-violet-650 hover:bg-violet-550 text-white px-4 py-2 text-xs font-light shadow-sm transition-colors cursor-pointer disabled:opacity-50 active:scale-[0.98]"
-					>
-						{histLoading ? 'Loading…' : 'Apply filters'}
-					</button>
+					<div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+						<h3 className="text-sm font-bold uppercase tracking-wider text-sky-750 border-b border-slate-100 pb-2">
+							Girls going home — live ({trips.length})
+						</h3>
+						{trips.length === 0 ? (
+							<p className="text-xs text-slate-500 italic py-2">
+								No active home trips. Appears when a female employee taps “Going home” on mobile (GPS every ~10s).
+							</p>
+						) : (
+							<div className="space-y-4">
+								{trips.map((t) => {
+									const liveLat = t.lat ?? t.points?.[0]?.lat;
+									const liveLng = t.lng ?? t.points?.[0]?.lng;
+									return (
+										<div key={t.id} className="border border-sky-200 bg-sky-50 p-5 space-y-3 rounded-xl shadow-xs">
+											<p className="font-bold text-sky-900">
+												{t.employee?.firstName} {t.employee?.lastName}
+												{t.employee?.phone ? (
+													<span className="ml-2 text-xs font-normal text-sky-700">
+														<a href={`tel:${t.employee.phone}`} className="underline">
+															{t.employee.phone}
+														</a>
+													</span>
+												) : null}
+											</p>
+											<p className="text-xs text-slate-500">
+												Started {new Date(t.startedAt).toLocaleString()}
+												{t.updatedAt ? ` · Last ping ${new Date(t.updatedAt).toLocaleString()}` : ''}
+												{t._count?.points != null ? ` · ${t._count.points} GPS points` : ''}
+											</p>
+											{liveLat != null && liveLng != null ? (
+												<>
+													<p className="text-xs text-slate-500 font-mono">
+														{Number(liveLat).toFixed(5)}, {Number(liveLng).toFixed(5)}
+													</p>
+													<div className="flex flex-wrap gap-2 pt-1">
+														<a
+															className="inline-flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 px-4 py-2 text-xs font-light text-white no-underline shadow-xs cursor-pointer transition-colors"
+															href={`https://www.google.com/maps?q=${liveLat},${liveLng}`}
+															target="_blank"
+															rel="noreferrer"
+														>
+															Open live location
+														</a>
+														<button
+															type="button"
+															className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-light text-slate-700 shadow-xs cursor-pointer transition-colors"
+															onClick={() => void openTripTrail(t.id)}
+														>
+															View trail
+														</button>
+													</div>
+												</>
+											) : (
+												<p className="text-xs text-slate-400">Waiting for first GPS ping…</p>
+											)}
+										</div>
+									);
+								})}
+							</div>
+						)}
+					</div>
 				</div>
-				{histTrips.length === 0 ? (
-					<p className="text-xs text-slate-500 italic py-2">No trips for this date / filter.</p>
-				) : (
-					histTrips.map((t) => (
-						<div key={t.id} className="border border-violet-200 bg-violet-50 p-5 space-y-3 rounded-xl shadow-xs">
-							<p className="font-bold text-violet-900">
-								{t.employee?.firstName} {t.employee?.lastName}{' '}
-								<span className="text-xs font-normal text-slate-500">· {t.status}</span>
-							</p>
-							<p className="text-xs text-slate-500">
-								{new Date(t.startedAt).toLocaleString()}
-								{t.endedAt ? ` → ${new Date(t.endedAt).toLocaleString()}` : ' → in progress'}
-								{t._count?.points != null ? ` · ${t._count.points} points` : ''}
-							</p>
+
+				{/* Right Column (Travel history filters and results) */}
+				<div className="space-y-6">
+					<div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+						<h3 className="text-sm font-bold uppercase tracking-wider text-violet-750 border-b border-slate-100 pb-2">
+							Travel history
+						</h3>
+						<p className="text-xs text-slate-500 leading-relaxed">
+							Filter by IST date and employee to view commute trails.
+						</p>
+						<div className="space-y-4 pt-2">
+							<label className="block text-xs text-slate-500 space-y-1">
+								<span className="block font-medium">Date (IST)</span>
+								<input
+									type="date"
+									value={histDate}
+									onChange={(e) => setHistDate(e.target.value)}
+									className="w-full bg-white border border-slate-200 text-slate-900 text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
+								/>
+							</label>
+							<label className="block text-xs text-slate-500 space-y-1">
+								<span className="block font-medium">Employee</span>
+								<select
+									value={histEmployeeId}
+									onChange={(e) => setHistEmployeeId(e.target.value)}
+									className="w-full bg-white border border-slate-200 text-slate-900 text-sm px-3 py-2 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
+								>
+									<option value="">All girls</option>
+									{females.map((f) => (
+										<option key={f.id} value={f.id}>
+											{f.firstName} {f.lastName}
+										</option>
+									))}
+								</select>
+							</label>
 							<button
 								type="button"
-								className="inline-flex items-center justify-center rounded-lg bg-violet-650 hover:bg-violet-550 px-4 py-2 text-xs font-light text-white shadow-xs cursor-pointer transition-colors"
-								onClick={() => void openTripTrail(t.id)}
+								onClick={() => void loadHistory()}
+								disabled={histLoading}
+								className="w-full rounded-lg bg-violet-650 hover:bg-violet-550 text-white py-2.5 text-xs font-light shadow-sm transition-colors cursor-pointer disabled:opacity-50 active:scale-[0.98]"
 							>
-								View travel path
+								{histLoading ? 'Loading…' : 'Apply filters'}
 							</button>
 						</div>
-					))
-				)}
-			</section>
+					</div>
+
+					<div className="space-y-4">
+						{histTrips.length === 0 ? (
+							<p className="text-xs text-slate-500 italic py-4 text-center bg-white border border-slate-200 rounded-xl">
+								No trips for this selection.
+							</p>
+						) : (
+							histTrips.map((t) => (
+								<div key={t.id} className="border border-violet-200 bg-violet-50 p-5 space-y-3 rounded-xl shadow-xs">
+									<p className="font-bold text-violet-900">
+										{t.employee?.firstName} {t.employee?.lastName}{' '}
+										<span className="text-xs font-normal text-slate-500">· {t.status}</span>
+									</p>
+									<p className="text-xs text-slate-500">
+										{new Date(t.startedAt).toLocaleString()}
+										{t.endedAt ? ` → ${new Date(t.endedAt).toLocaleString()}` : ' → in progress'}
+										{t._count?.points != null ? ` · ${t._count.points} points` : ''}
+									</p>
+									<button
+										type="button"
+										className="w-full inline-flex items-center justify-center rounded-lg bg-violet-650 hover:bg-violet-550 py-2.5 text-xs font-light text-white shadow-xs cursor-pointer transition-colors"
+										onClick={() => void openTripTrail(t.id)}
+									>
+										View travel path
+									</button>
+								</div>
+							))
+						)}
+					</div>
+				</div>
+			</div>
 
 			{selectedTrip && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
