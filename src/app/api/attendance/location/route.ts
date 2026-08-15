@@ -27,10 +27,19 @@ export async function POST(req: NextRequest) {
 		});
 
 		
+		let officeArrive = false;
 		let autoCheckedOut: unknown = null;
 		try {
 			const todayStr = todayKeyIST();
-			const nowMins = nowMinutesIST();
+			const offices = await db.office.findMany({ where: { active: true } });
+			let inside = false;
+			for (const off of offices) {
+				const check = isInsideRadius(lat, lng, off.lat, off.lng, off.radiusMeters || 300);
+				if (check.within) {
+					inside = true;
+					break;
+				}
+			}
 			const open = await db.attendance.findFirst({
 				where: { employeeId: user.sub, date: todayStr },
 				orderBy: { createdAt: 'desc' },

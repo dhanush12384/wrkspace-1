@@ -5,6 +5,23 @@ import { getApps, getApp, initializeApp } from 'firebase/app';
 import { employeeToken } from '@/lib/mobile-api';
 import { getFirebasePublicConfig } from '@/lib/firebase-public-config';
 
+export function isIosSafari() {
+	if (typeof window === 'undefined') return false;
+	const ua = window.navigator.userAgent.toLowerCase();
+	const isIpad = ua.includes('ipad');
+	const isIphone = ua.includes('iphone');
+	const isWebkit = ua.includes('applewebkit') && !ua.includes('chrome') && !ua.includes('crios') && !ua.includes('fxios');
+	return (isIpad || isIphone) && isWebkit;
+}
+
+export function isStandalonePwa() {
+	if (typeof window === 'undefined') return false;
+	return (
+		window.matchMedia('(display-mode: standalone)').matches ||
+		(window.navigator as any).standalone === true
+	);
+}
+
 let officeExitUnsub: (() => void) | null = null;
 
 

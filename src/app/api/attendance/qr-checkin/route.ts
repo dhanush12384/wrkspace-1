@@ -59,20 +59,25 @@ export async function POST(req: NextRequest) {
 		}
 
     
-    await db.employee.update({
-      where: { id: emp.id },
-      data: { lastLat: lat, lastLng: lng, lastLocationAt: new Date() },
-    });
-
-    
-    await db.safetyTrip.updateMany({
-      where: { employeeId: emp.id, status: 'IN_TRANSIT' },
-      data: { status: 'CANCELLED', endedAt: new Date() },
-    });
+		await db.employee.update({
+			where: { id: emp.id },
+			data: { lastLat: lat, lastLng: lng, lastLocationAt: new Date() },
+		});
 
 		await db.safetyTrip.updateMany({
 			where: { employeeId: emp.id, status: 'IN_TRANSIT' },
 			data: { status: 'CANCELLED', endedAt: new Date() },
+		});
+
+		const timeLabel = nowTimeLabelIST();
+		const row = await db.attendance.create({
+			data: {
+				employeeId: emp.id,
+				employeeName: employeeDisplayName(emp),
+				date,
+				checkIn: timeLabel,
+				status: 'Present',
+			},
 		});
 
 		void emitAttendanceUpdate(emp.id, row, 'check-in');

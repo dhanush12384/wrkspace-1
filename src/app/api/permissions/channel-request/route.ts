@@ -21,9 +21,14 @@ export async function POST(req: NextRequest) {
 			return Response.json({ ok: true, status: existing.status, request: existing });
 		}
 
+		const emp = await db.employee.findUnique({ where: { id: user.sub } });
+		if (!emp) return jsonError('Employee not found', 404);
+		const employeeName = [emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(' ');
+
 		const row = await db.channelAccessRequest.create({
 			data: {
 				employeeId: user.sub,
+				employeeName,
 				channel,
 				status: 'Pending',
 			},

@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
 	try {
 		requireEmployee(req);
 		const body = await req.json().catch(() => ({}));
-		const ids = Array.isArray(body?.ids)
-			? [...new Set(body.ids.map((x: unknown) => String(x || '').trim()).filter(Boolean))].slice(0, 60)
+		const ids: string[] = Array.isArray(body?.ids)
+			? ([...new Set(body.ids.map((x: unknown) => String(x || '').trim()).filter(Boolean))].slice(0, 60) as string[])
 			: [];
 		if (!ids.length) return Response.json({ photos: {} });
 

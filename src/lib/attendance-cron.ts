@@ -1,5 +1,14 @@
 import { processShiftCheckoutJobs } from '@/lib/shift-jobs';
 import { checkoutDue, getShiftPolicy } from '@/lib/shift-policy';
+import { db } from '@/lib/db';
+import { emitAttendanceUpdate } from '@/lib/realtime-emit';
+import { notifyPush } from '@/lib/push-notify';
+
+function isOpenSession(row: { checkIn?: string | null; checkOut?: string | null; status?: string | null } | null) {
+	if (!row?.checkIn) return false;
+	const out = row.checkOut;
+	return out == null || String(out).trim() === '' || String(row.status || '') === 'Checked In';
+}
 
 const DAY_CHECKOUT_LABEL = '07:00 PM';
 const DAY_CHECKOUT_MINUTES = 19 * 60; 
@@ -144,7 +153,7 @@ export async function processAttendanceCheckoutJobs(opts?: { notify?: boolean })
 						checkOut: decision.label,
 						reason: decision.reason,
 					},
-				}).catch((e) => console.error('[attendance] auto-checkout push', e));
+				}).catch((e: any) => console.error('[attendance] auto-checkout push', e));
 			}
 			continue;
 		}
@@ -178,7 +187,7 @@ export async function processAttendanceCheckoutJobs(opts?: { notify?: boolean })
 					date: log.date,
 					checkOutDue: DAY_CHECKOUT_LABEL,
 				},
-			}).catch((e) => console.error('[attendance] reminder push', e));
+			}).catch((e: any) => console.error('[attendance] reminder push', e));
 		}
 	}
 

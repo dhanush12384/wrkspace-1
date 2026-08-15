@@ -21,7 +21,7 @@ export async function purgeBrokenServiceWorkers() {
 			await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
 		}
 		
-		if (window.caches?.keys) {
+		if (window.caches) {
 			const keys = await caches.keys();
 			await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
 		}

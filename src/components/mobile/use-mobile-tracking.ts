@@ -319,7 +319,7 @@ export function useMobileTracking({
 			void tickHome();
 		});
 		// Schedule poll: only runs GPS when pre-check-in window / policy allows.
-		officeTimer = window.setInterval(() => void tickOffice(), SCHEDULE_POLL_MS);
+		officeTimer = window.setInterval(() => void tickOffice(), OFFICE_WATCH_MS);
 		homeTimer = window.setInterval(() => void tickHome(), HOME_WATCH_MS);
 
 		return () => {

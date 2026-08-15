@@ -1457,19 +1457,22 @@ export async function clockOut(employeeId: string, reason?: string) {
   try {
     const { todayStr, timeStr } = getISTDateAndTime();
 
+    const startOfDay = new Date(`${todayStr}T00:00:00.000+05:30`);
+    const endOfDay = new Date(`${todayStr}T23:59:59.999+05:30`);
+
     const pendingTasks = await db.task.findMany({
       where: {
         assigneeId: employeeId,
-        date: todayStr,
+        deadline: {
+          gte: startOfDay,
+          lte: endOfDay
+        },
         status: { not: 'Completed' }
       }
     });
     if (pendingTasks.length > 0) {
       return { success: false, error: 'You have incomplete tasks assigned for today. Please mark them as Completed before checking out.' };
     }
-
-    const startOfDay = new Date(`${todayStr}T00:00:00.000+05:30`);
-    const endOfDay = new Date(`${todayStr}T23:59:59.999+05:30`);
     const submissions = await db.workSubmission.findFirst({
       where: {
         employeeId,
