@@ -386,3 +386,161 @@ body {
   color: #ffffff;
   font-weight: 600;
 }
+
+/* =========================================================================
+   ─── Admin Portal Light Theme Overrides ───────────────────────────
+   ========================================================================= */
+.admin-portal {
+  color-scheme: light;
+  --background: #e8edf5;
+  --foreground: #0f172a;
+  --zinc-950: #ffffff;
+  --zinc-900: #f8fafc;
+  --zinc-850: #f1f5f9;
+  --zinc-800: #cbd5e1;
+  --zinc-750: #cbd5e1;
+  --zinc-700: #94a3b8;
+  --zinc-600: #1e293b;
+  --zinc-550: #1e293b;
+  --zinc-500: #0f172a;
+  --zinc-400: #0f172a;
+  --zinc-300: #020617;
+  background: #e8edf5 !important;
+  color: #0f172a !important;
+}
+
+/* Background mappings */
+.admin-portal .bg-zinc-950,
+.admin-portal .bg-zinc-950\/90,
+.admin-portal .bg-zinc-900,
+.admin-portal .bg-zinc-900\/50,
+.admin-portal .bg-zinc-900\/40,
+.admin-portal .bg-zinc-900\/30,
+.admin-portal .bg-zinc-900\/20,
+.admin-portal .bg-zinc-950\/40,
+.admin-portal .bg-zinc-950\/30 {
+  background-color: #ffffff !important;
+}
+
+.admin-portal .bg-zinc-950\/20,
+.admin-portal .bg-zinc-950\/60,
+.admin-portal .bg-zinc-900\/60 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Text overrides to dark slate */
+.admin-portal .text-zinc-400,
+.admin-portal .text-zinc-500,
+.admin-portal .text-zinc-600,
+.admin-portal .text-zinc-300,
+.admin-portal .text-zinc-200,
+.admin-portal .text-zinc-100,
+.admin-portal .text-white {
+  color: #1e293b !important;
+}
+
+/* Re-insulate button / white text elements with brand/red/emerald/rose backgrounds or text-white class */
+.admin-portal button.text-white,
+.admin-portal button.text-white *,
+.admin-portal button.bg-\[\#E61E32\] *,
+.admin-portal button.bg-brand-600 *,
+.admin-portal button.bg-emerald-600 *,
+.admin-portal button.bg-green-600 *,
+.admin-portal button.bg-red-600 *,
+.admin-portal button.bg-\[\#E61E32\],
+.admin-portal button.bg-brand-600,
+.admin-portal button.bg-emerald-600,
+.admin-portal button.bg-green-600,
+.admin-portal button.bg-red-600,
+.admin-portal .bg-\[\#E61E32\],
+.admin-portal .bg-brand-600,
+.admin-portal .bg-emerald-600,
+.admin-portal [class*="from-red"] *,
+.admin-portal [class*="from-red"],
+.admin-portal [class*="bg-red"] *,
+.admin-portal [class*="bg-red"] {
+  color: #ffffff !important;
+}
+
+/* Border overrides */
+.admin-portal .border-zinc-800,
+.admin-portal .border-zinc-800\/80,
+.admin-portal .border-zinc-800\/60,
+.admin-portal .border-zinc-700,
+.admin-portal .border-zinc-850,
+.admin-portal .border-white\/\[0\.08\],
+.admin-portal .border-white\/10 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Header special light mode rules */
+.admin-portal > header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+.admin-portal .bg-white\/15 {
+  background-color: #cbd5e1 !important;
+}
+.admin-portal .bg-white\/5 {
+  background-color: #f1f5f9 !important;
+}
+.admin-portal .hover\:bg-white\/10:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Inline gradient override for the tabs bar subnav */
+.admin-portal div[style*="linear-gradient"] {
+  background-image: none !important;
+  background-color: #ffffff !important;
+  border-bottom-color: #cbd5e1 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Tab active and inactive states overrides */
+.admin-portal .border-brand-400.text-white {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+.admin-portal .text-brand-300\/60 {
+  color: #475569 !important;
+}
+.admin-portal .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+/* Form fields input/select/textarea overrides */
+.admin-portal input,
+.admin-portal select,
+.admin-portal textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+.admin-portal input::placeholder,
+.admin-portal textarea::placeholder {
+  color: #94a3b8 !important;
+}
+.admin-portal .placeholder-zinc-700::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* General texts */
+.admin-portal h1,
+.admin-portal h2,
+.admin-portal h3,
+.admin-portal h4,
+.admin-portal p,
+.admin-portal td,
+.admin-portal th,
+.admin-portal label,
+.admin-portal li,
+.admin-portal table {
+  color: #0f172a !important;
+}
+
+/* Radial gradient background */
+.admin-portal > .absolute.inset-0 {
+  background: radial-gradient(circle at top, rgba(99, 102, 241, 0.04), transparent 60%) !important;
+}
+
