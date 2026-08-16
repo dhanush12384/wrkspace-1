@@ -707,162 +707,156 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
             : activeTab === 'messages' ? "h-[calc(100vh-128px)] flex flex-col" : "max-w-[90rem] mx-auto px-6 md:px-10 py-5 space-y-5")}>
 
 				
-				{activeTab === 'overview' && (<div className="space-y-5" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
-						
-						<div className="bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] p-5 md:p-6 rounded-xl shadow-xs space-y-4 relative overflow-hidden">
-							<div>
-								<h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-									Welcome back, <span className="text-[#E61E32] font-extrabold">{employee.firstName}</span>!
-								</h2>
-								<p className="text-slate-500 dark:text-zinc-400 text-xs md:text-sm max-w-2xl leading-relaxed mt-1">
-									Access your personal workspace telemetry dashboard console. Below is your directory profile classification registry and active lead status assignment.
-								</p>
+				{activeTab === 'overview' && (<div className="grid grid-cols-1 md:grid-cols-6 gap-6" style={{ fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui' }}>
+						{/* Left Column: Greeting & Main Cards */}
+						<div className="col-span-1 md:col-span-4 space-y-6">
+							{/* Minimal Greeting Header */}
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-black/5 dark:border-white/5 pb-4">
+								<div>
+									<h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+										Welcome back, <span className="text-[#E61E32] font-extrabold">{employee.firstName}</span>.
+									</h2>
+									<p className="text-slate-550 dark:text-zinc-400 text-xs md:text-sm mt-1">
+										Access your personal telemetry dashboard.
+									</p>
+								</div>
+								<div className="text-left sm:text-right">
+									<p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">Registry Date</p>
+									<p className="text-xs font-mono font-bold text-slate-700 dark:text-zinc-300 mt-0.5">
+										{new Date(employee.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+									</p>
+								</div>
 							</div>
-							
-							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
-								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
-									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Registered ID</span>
-									<p className="font-mono text-[#E61E32] text-xs font-bold truncate">{employee.id}</p>
+
+							{/* Minimal Grid Cards */}
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								{/* Tasks Card */}
+								<div onClick={() => {
+                        setActiveTab('tasks');
+                        loadEmployeeTasks(employee.id);
+                    }} className="group bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 hover:border-[#E61E32]/40 p-5 rounded-xl shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between h-32">
+									<div className="flex items-start justify-between">
+										<span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">allocated tasks</span>
+										<span className="text-[10px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/5 px-2 py-0.5 rounded-full border border-[#E61E32]/10">Active</span>
+									</div>
+									<div>
+										<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{empTasks.length}</p>
+										<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-2 flex items-center gap-1.5 font-medium">
+											<span className="inline-block size-1.5 rounded-full bg-[#E61E32]/85"/>
+											{empTasks.filter(t => t.status === 'Pending').length} Pending Tasks
+										</p>
+									</div>
 								</div>
-								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
-									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Allocated Wing</span>
-									<p className="text-slate-800 dark:text-zinc-200 text-xs font-semibold truncate">{employee.wingName}</p>
+
+								{/* Attendance Card */}
+								<div onClick={() => {
+                        setActiveTab('attendance');
+                        loadEmployeeAttendance(employee.id);
+                        loadEmployeeAttendanceStatus(employee.id);
+                    }} className="group bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 hover:border-emerald-550/40 p-5 rounded-xl shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between h-32">
+									<div className="flex items-start justify-between">
+										<span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">attendance logs</span>
+										<span className={cn("text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border", attendanceStatus === 'checked_in' ? 'text-emerald-600 bg-emerald-50 border-emerald-200/60' : 'text-slate-500 bg-slate-50 border-slate-200')}>
+											{attendanceStatus === 'checked_in' ? 'Active' : 'Offline'}
+										</span>
+									</div>
+									<div>
+										<p className={cn("text-2xl font-bold leading-none tracking-tight truncate", attendanceStatus === 'checked_in' ? 'text-emerald-500' : 'text-slate-900 dark:text-white')}>
+											{attendanceStatus === 'checked_in' ? 'Clocked In' : 'Clocked Out'}
+										</p>
+										<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-2 flex items-center gap-1.5 font-medium">
+											<span className={cn("inline-block size-1.5 rounded-full", attendanceStatus === 'checked_in' ? 'bg-emerald-500' : 'bg-slate-400')}/>
+											Today's status
+										</p>
+									</div>
 								</div>
-								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
-									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Wing Lead</span>
-									<p className="text-slate-800 dark:text-zinc-200 text-xs font-medium truncate">{employee.wingLeadName}</p>
+
+								{/* Leaves Card */}
+								<div onClick={() => {
+                        setActiveTab('leaves');
+                        loadEmployeeLeaves(employee.id);
+                    }} className="group bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 hover:border-amber-550/40 p-5 rounded-xl shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between h-32">
+									<div className="flex items-start justify-between">
+										<span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">leaves</span>
+										<span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">Time off</span>
+									</div>
+									<div>
+										<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">
+											{leaveRequests.filter(req => req.status === 'Pending').length}
+										</p>
+										<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-2 flex items-center gap-1.5 font-medium">
+											<span className="inline-block size-1.5 rounded-full bg-amber-500/80"/>
+											Pending Requests
+										</p>
+									</div>
 								</div>
-								<div className="bg-slate-50 dark:bg-zinc-950/50 p-3 rounded-lg border border-black/[0.03] dark:border-white/[0.03] space-y-0.5">
-									<span className="text-[10px] text-slate-500 dark:text-zinc-500 uppercase tracking-wider font-bold">Registry Date</span>
-									<p className="text-slate-800 dark:text-zinc-200 font-mono text-xs truncate">{new Date(employee.createdAt).toLocaleDateString()}</p>
+
+								{/* Submissions Card */}
+								<div onClick={() => {
+                        setActiveTab('work_submission');
+                        loadMySubmissions();
+                    }} className="group bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 hover:border-sky-550/40 p-5 rounded-xl shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between h-32">
+									<div className="flex items-start justify-between">
+										<span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">submissions</span>
+										<span className="text-[10px] font-bold uppercase tracking-wider text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/60">Delivery</span>
+									</div>
+									<div>
+										<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{mySubmissions.length}</p>
+										<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-2 flex items-center gap-1.5 font-medium">
+											<span className="inline-block size-1.5 rounded-full bg-sky-500/80"/>
+											{mySubmissions.filter(s => s.status === 'Submitted').length} Pending
+										</p>
+									</div>
+								</div>
+
+								{/* Events Card */}
+								<div onClick={() => {
+                        setActiveTab('events');
+                        loadEvents();
+                    }} className="group bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 hover:border-violet-550/40 p-5 rounded-xl shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer flex flex-col justify-between h-32 sm:col-span-2">
+									<div className="flex items-start justify-between">
+										<span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">events</span>
+										<span className="text-[10px] font-bold uppercase tracking-wider text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200/60">Meetings</span>
+									</div>
+									<div>
+										<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{eventsList.length}</p>
+										<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-2 flex items-center gap-1.5 font-medium">
+											<span className="inline-block size-1.5 rounded-full bg-violet-550/80"/>
+											Total Planned
+										</p>
+									</div>
 								</div>
 							</div>
 						</div>
 
-						
-						<div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-							
-							<div onClick={() => {
-                setActiveTab('tasks');
-                loadEmployeeTasks(employee.id);
-            }} className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-[#E61E32]/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]">
-								<div className="flex items-start justify-between">
-									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">My Tasks</span>
-									<div className="size-8 rounded-lg bg-[#E61E32]/10 flex items-center justify-center text-[#E61E32] group-hover:bg-[#E61E32] group-hover:text-white transition-all duration-200">
-										<BriefcaseIcon className="size-4"/>
-									</div>
+						{/* Right Column: Telemetry Profile Sidebar */}
+						<div className="col-span-1 md:col-span-2 space-y-6">
+							<div className="bg-white dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 p-5 rounded-xl shadow-2xs space-y-5">
+								<div>
+									<h3 className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">allocated telemetry</h3>
+									<div className="h-px bg-slate-100 dark:bg-zinc-800 mt-2"/>
 								</div>
-								<div className="mt-2">
-									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{empTasks.length}</p>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
-										<span className="inline-block size-1.5 rounded-full bg-[#E61E32]/80"/>
-										{empTasks.filter(t => t.status === 'Pending').length} Pending
-									</p>
-								</div>
-							</div>
 
-							
-							<div onClick={() => {
-                setActiveTab('attendance');
-                loadEmployeeAttendance(employee.id);
-                loadEmployeeAttendanceStatus(employee.id);
-            }} className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-emerald-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]">
-								<div className="flex items-start justify-between">
-									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Attendance</span>
-									<div className="size-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-200">
-										<ClockIcon className="size-4"/>
+								<div className="space-y-4">
+									<div>
+										<span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-bold tracking-wider">Employee ID</span>
+										<p className="font-mono text-slate-900 dark:text-zinc-300 text-xs font-bold bg-slate-50 dark:bg-zinc-950 p-2 rounded-lg border border-slate-100 dark:border-zinc-800/40 mt-1 select-all truncate">{employee.id}</p>
 									</div>
-								</div>
-								<div className="mt-2">
-									<p className={cn("text-lg font-bold leading-none tracking-tight truncate", attendanceStatus === 'checked_in' ? 'text-emerald-500' : 'text-slate-900 dark:text-white')}>
-										{attendanceStatus === 'checked_in' ? 'Clocked In' : 'Clocked Out'}
-									</p>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
-										<span className={cn("inline-block size-1.5 rounded-full", attendanceStatus === 'checked_in' ? 'bg-emerald-500' : 'bg-slate-400')}/>
-										Today's status
-									</p>
-								</div>
-							</div>
 
-							
-							<div onClick={() => {
-                setActiveTab('leaves');
-                loadEmployeeLeaves(employee.id);
-            }} className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-amber-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]">
-								<div className="flex items-start justify-between">
-									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Leaves</span>
-									<div className="size-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all duration-200">
-										<CalendarIcon className="size-4"/>
+									<div>
+										<span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-bold tracking-wider">Operational Wing</span>
+										<p className="text-slate-800 dark:text-zinc-200 text-xs font-semibold mt-1 truncate">{employee.wingName}</p>
 									</div>
-								</div>
-								<div className="mt-2">
-									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">
-										{leaveRequests.filter(req => req.status === 'Pending').length}
-									</p>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
-										<span className="inline-block size-1.5 rounded-full bg-amber-500/80"/>
-										Pending Requests
-									</p>
-								</div>
-							</div>
 
-							
-							<div onClick={() => {
-                setActiveTab('work_submission');
-                loadMySubmissions();
-            }} className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-sky-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]">
-								<div className="flex items-start justify-between">
-									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Submissions</span>
-									<div className="size-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-500 group-hover:bg-sky-500 group-hover:text-white transition-all duration-200">
-										<RefreshCwIcon className="size-4"/>
+									<div>
+										<span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-bold tracking-wider">Reporting Wing Lead</span>
+										<p className="text-slate-800 dark:text-zinc-200 text-xs font-semibold mt-1 truncate">{employee.wingLeadName || 'Not Assigned'}</p>
 									</div>
-								</div>
-								<div className="mt-2">
-									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{mySubmissions.length}</p>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
-										<span className="inline-block size-1.5 rounded-full bg-sky-500/80"/>
-										{mySubmissions.filter(s => s.status === 'Submitted').length} Pending
-									</p>
-								</div>
-							</div>
 
-							
-							<div onClick={() => {
-                setActiveTab('leads');
-                loadLeads();
-            }} className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-rose-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]">
-								<div className="flex items-start justify-between">
-									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">My Leads</span>
-									<div className="size-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all duration-200">
-										<BarChart2Icon className="size-4"/>
+									<div>
+										<span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-bold tracking-wider">Contact Email</span>
+										<p className="text-slate-600 dark:text-zinc-400 text-xs mt-1 truncate select-all">{employee.email}</p>
 									</div>
-								</div>
-								<div className="mt-2">
-									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{leadsList.filter(l => l.assignedTo === employee.id).length}</p>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
-										<span className="inline-block size-1.5 rounded-full bg-rose-500/80"/>
-										Active pipeline
-									</p>
-								</div>
-							</div>
-
-							
-							<div onClick={() => {
-                setActiveTab('events');
-                loadEvents();
-            }} className="group bg-white dark:bg-zinc-900 border border-black/[0.06] dark:border-white/[0.08] hover:border-brand-500/40 p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[110px]">
-								<div className="flex items-start justify-between">
-									<span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Events</span>
-									<div className="size-8 rounded-lg bg-brand-500/10 flex items-center justify-center text-brand-500 group-hover:bg-brand-500 group-hover:text-white transition-all duration-200">
-										<Grid2x2PlusIcon className="size-4"/>
-									</div>
-								</div>
-								<div className="mt-2">
-									<p className="text-2xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">{eventsList.length}</p>
-									<p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1.5 flex items-center gap-1.5 font-medium">
-										<span className="inline-block size-1.5 rounded-full bg-brand-500/80"/>
-										Total Planned
-									</p>
 								</div>
 							</div>
 						</div>
