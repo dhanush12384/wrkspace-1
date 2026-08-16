@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from './button';
 import { Input } from './input';
 import { Grid2x2PlusIcon, LogOutIcon, ServerIcon, LineChartIcon, UsersIcon, TerminalIcon, RefreshCwIcon, PackageIcon, CpuIcon, HistoryIcon, UserPlusIcon, PlusIcon, } from 'lucide-react';
-import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee, sendBulkAlerts, getUnanimousFeedbackSubmissions, checkHasSubmittedFeedback } from '@/app/admin/actions';
+import { getLiveSystemStats, addEmployee, getEmployees, createTask, getTasks, getAllLeaves, updateLeaveStatus, getAllAttendance, createEvent, getEvents, getWorkSubmissions, updateSubmissionStatus, getLeads, updateLeadStatus, assignLead, deleteLead, bulkImportLeads, allowLead, triggerCrawl, allowAllLeads, deleteAllLeads, createManualLead, getAdminProfile, allocateAdmin, getAllAdmins, deleteAdmin, deleteEmployee, updateEmployee, updateEmployeeIdCard, deleteTask, updateTask, deleteLeave, createLeave, deleteAttendance, createAttendance, updateAttendance, deleteEvent, updateEvent, deleteWorkSubmission, triggerEventsCrawl, allowEvent, allowAllEvents, deleteAllCrawledEvents, getHrCompanies, createHrCompany, updateHrCompany, deleteHrCompany, triggerHrCompaniesCrawl, allowHrCompany, allowAllHrCompanies, deleteAllCrawledHrCompanies, bulkImportEmployees, getTeamLeads, allocateTeamLead, updateTeamLead, deleteTeamLead, getEmployeeByEmail, allowEmployeeHomeSetup, giveBadgeToEmployee, deleteBadgeFromEmployee, sendBulkAlerts, getUnanimousFeedbackSubmissions, checkHasSubmittedFeedback, allocateAbsentEmployeesForToday } from '@/app/admin/actions';
 import { AdminLiveSafetyPanel } from './safety-panel';
 import { AdminLiveTrackingPanel } from './live-tracking-panel';
 import { AdminShiftTimingsPanel } from './admin-shift-timings-panel';
@@ -1673,7 +1673,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
         const onLeaveList: any[] = [];
         employeesList.forEach(emp => {
             const log = presentMap.get(emp.id);
-            if (log) {
+            if (log && log.status !== 'Absent') {
                 presentList.push({ employee: emp, log });
             }
             else {
@@ -2833,9 +2833,24 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										
 										<div className="border border-slate-200/90 bg-white p-5 space-y-4 rounded-2xl shadow-2xs">
 											<div className="flex justify-between items-center pb-3 border-b border-slate-100">
-												<h4 className="text-xs font-semibold text-rose-700 uppercase tracking-wider">
-													Absent Employees
-												</h4>
+												<div className="space-y-0.5">
+													<h4 className="text-xs font-semibold text-rose-700 uppercase tracking-wider">
+														Absent Employees
+													</h4>
+													<button onClick={async () => {
+                                if (confirm('Are you sure you want to mark all currently unchecked-in employees as Absent for today?')) {
+                                    const res = await allocateAbsentEmployeesForToday();
+                                    if (res.success) {
+                                        alert(`Successfully allocated ${res.count} employees as Absent today.`);
+                                        fetchAttendance();
+                                    } else {
+                                        alert(`Error: ${res.error}`);
+                                    }
+                                }
+                            }} className="text-[10px] text-slate-500 hover:text-rose-600 transition-colors cursor-pointer block text-left">
+														Sync Daily Absentees
+													</button>
+												</div>
 												<span className="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 text-[11px] rounded-full font-semibold">{absentList.length}</span>
 											</div>
 											{absentList.length === 0 ? (<p className="text-slate-400 text-xs italic py-4 text-center">Everyone is accounted for today!</p>) : (<div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">

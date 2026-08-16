@@ -1327,6 +1327,18 @@ export async function clockIn(employeeId: string, employeeName: string) {
             };
         }
         const { todayStr, timeStr } = getISTDateAndTime();
+        const existingAbsent = await db.attendance.findFirst({
+            where: {
+                employeeId,
+                date: todayStr,
+                status: 'Absent'
+            }
+        });
+        if (existingAbsent) {
+            await db.attendance.delete({
+                where: { id: existingAbsent.id }
+            });
+        }
         const existing = await db.attendance.findFirst({
             where: {
                 employeeId,
@@ -3557,6 +3569,56 @@ export async function submitUnanimousFeedback(data: {
     }
     catch (error: any) {
         console.error('Error submitting unanimous feedback:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function allocateAbsentEmployeesForToday() {
+    try {
+        const { todayStr } = getISTDateAndTime();
+        const employees = await db.employee.findMany({
+            where: {
+                employmentStatus: { not: 'Inactive' }
+            }
+        });
+        
+        let count = 0;
+        for (const emp of employees) {
+            const todayAtt = await db.attendance.findFirst({
+                where: { employeeId: emp.id, date: todayStr },
+            });
+            if (todayAtt) {
+                continue;
+            }
+            
+            const leave = await db.leave.findFirst({
+                where: {
+                    employeeId: emp.id,
+                    status: 'Approved',
+                    startDate: { lte: todayStr },
+                    endDate: { gte: todayStr }
+                }
+            });
+            if (leave) {
+                continue;
+            }
+            
+            await db.attendance.create({
+                data: {
+                    employeeId: emp.id,
+                    employeeName: `${emp.firstName} ${emp.lastName || ''}`.trim(),
+                    date: todayStr,
+                    checkIn: 'Absent',
+                    checkOut: 'Absent',
+                    status: 'Absent'
+                }
+            });
+            count++;
+        }
+        return { success: true, count };
+    }
+    catch (error: any) {
+        console.error('Error in allocateAbsentEmployeesForToday:', error);
         return { success: false, error: error.message };
     }
 }

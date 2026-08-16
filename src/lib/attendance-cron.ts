@@ -1,4 +1,4 @@
-import { processShiftCheckoutJobs } from '@/lib/shift-jobs';
+import { processShiftCheckoutJobs, hasApprovedLatePermission } from '@/lib/shift-jobs';
 import { checkoutDue, getShiftPolicy } from '@/lib/shift-policy';
 import { db } from '@/lib/db';
 import { emitAttendanceUpdate } from '@/lib/realtime-emit';
@@ -177,5 +177,71 @@ export async function processAttendanceCheckoutJobs(opts?: {
             }).catch((e: any) => console.error('[attendance] reminder push', e));
         }
     }
+
+    try {
+        const employees = await db.employee.findMany({
+            where: {
+                employmentStatus: { not: 'Inactive' }
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                shiftCheckIn: true,
+                shiftCheckOut: true,
+            }
+        });
+
+        for (const emp of employees) {
+            const todayAtt = await db.attendance.findFirst({
+                where: { employeeId: emp.id, date: todayStr }
+            });
+            if (todayAtt) {
+                continue;
+            }
+
+            const leave = await db.leave.findFirst({
+                where: {
+                    employeeId: emp.id,
+                    status: 'Approved',
+                    startDate: { lte: todayStr },
+                    endDate: { gte: todayStr }
+                }
+            });
+            if (leave) {
+                continue;
+            }
+
+            const policy = getShiftPolicy(emp);
+            let checkInPassed = false;
+            if (policy.kind === 'timed' && policy.checkInMins != null) {
+                if (nowMins > policy.checkInMins) {
+                    const approvedLate = await hasApprovedLatePermission(emp.id, todayStr);
+                    if (!approvedLate) {
+                        checkInPassed = true;
+                    }
+                }
+            } else {
+                checkInPassed = nowMins > policy.checkOutMins;
+            }
+
+            if (checkInPassed) {
+                const row = await db.attendance.create({
+                    data: {
+                        employeeId: emp.id,
+                        employeeName: `${emp.firstName} ${emp.lastName || ''}`.trim(),
+                        date: todayStr,
+                        checkIn: 'Absent',
+                        checkOut: 'Absent',
+                        status: 'Absent'
+                    }
+                });
+                void emitAttendanceUpdate(emp.id, row, 'absent-allocated');
+            }
+        }
+    } catch (e) {
+        console.error('[attendance-cron] Error auto-allocating absents:', e);
+    }
+
     return result;
 }
