@@ -551,8 +551,8 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
     const getTabStyle = (tabName: string) => {
         const isActive = activeTab === tabName;
         return {
-            color: isActive ? '#dc2626' : '#64748b',
-            borderBottomColor: isActive ? '#dc2626' : 'transparent',
+            color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+            borderBottomColor: isActive ? '#ffffff' : 'transparent',
             fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
         };
     };
@@ -592,9 +592,9 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 			{(() => {
                 const isServicesActive = ['leaves', 'events', 'work_submission'].includes(activeTab);
                 const isAccountActive = ['profile', 'id_card'].includes(activeTab);
-                return (<div className="w-full bg-white dark:bg-zinc-950 z-40 sticky top-16 sm:top-20 shadow-xs border-b border-slate-200/90 dark:border-zinc-800/80">
+                return (<div className="w-full bg-[#E61E32] z-40 sticky top-16 sm:top-20 shadow-xs border-b border-red-700/20" style={{ backgroundColor: '#E61E32' }}>
 						<div className="w-full px-6 md:px-10 flex items-center justify-between overflow-visible relative">
-							<div className="flex gap-5 md:gap-6 text-sm font-semibold tracking-wide overflow-x-auto no-scrollbar">
+							<div className="flex gap-5 md:gap-6 text-xs font-bold tracking-wide overflow-x-auto no-scrollbar">
 								<button onClick={() => setActiveTab('overview')} className="py-2.5 border-b-2 transition-all cursor-pointer font-bold whitespace-nowrap" style={getTabStyle('overview')}>
 									Overview
 								</button>
@@ -621,16 +621,16 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								</button>
 							</div>
 
-							<div className="flex gap-5 md:gap-6 items-center">
+							<div className="flex gap-5 md:gap-6 items-center text-xs">
 								{/* Services Dropdown */}
 								<div className="relative z-50">
 									<button onClick={() => { setServicesMenuOpen(!servicesMenuOpen); setAccountMenuOpen(false); }} className="py-2.5 border-b-2 transition-all cursor-pointer font-bold flex items-center gap-1 whitespace-nowrap select-none" style={{
-										color: isServicesActive ? '#dc2626' : '#64748b',
-										borderBottomColor: isServicesActive ? '#dc2626' : 'transparent',
+										color: isServicesActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+										borderBottomColor: isServicesActive ? '#ffffff' : 'transparent',
 										fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
 									}}>
 										<span>Services</span>
-										<svg viewBox="0 0 20 20" fill="currentColor" className="size-4 opacity-80 mt-0.5" style={{ color: isServicesActive ? '#dc2626' : '#64748b' }}>
+										<svg viewBox="0 0 20 20" fill="currentColor" className="size-4 opacity-80 mt-0.5" style={{ color: isServicesActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)' }}>
 											<path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd"/>
 										</svg>
 									</button>
@@ -647,11 +647,11 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 													item.onClick?.();
 													setServicesMenuOpen(false);
 												}} className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer flex items-center justify-between text-slate-700 dark:text-zinc-300" style={{
-													color: activeTab === item.id ? '#dc2626' : undefined,
+													color: activeTab === item.id ? '#E61E32' : undefined,
 													fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
 												}}>
 														<span>{item.label}</span>
-														{activeTab === item.id && (<span className="size-1.5 rounded-full bg-[#dc2626]"/>)}
+														{activeTab === item.id && (<span className="size-1.5 rounded-full bg-[#E61E32]"/>)}
 													</button>))}
 										</div>
 									</>)}
@@ -660,12 +660,12 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 								{/* Account Dropdown */}
 								<div className="relative z-50">
 									<button onClick={() => { setAccountMenuOpen(!accountMenuOpen); setServicesMenuOpen(false); }} className="py-2.5 border-b-2 transition-all cursor-pointer font-bold flex items-center gap-1 whitespace-nowrap select-none" style={{
-										color: isAccountActive ? '#dc2626' : '#64748b',
-										borderBottomColor: isAccountActive ? '#dc2626' : 'transparent',
+										color: isAccountActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+										borderBottomColor: isAccountActive ? '#ffffff' : 'transparent',
 										fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
 									}}>
 										<span>Account</span>
-										<svg viewBox="0 0 20 20" fill="currentColor" className="size-4 opacity-80 mt-0.5" style={{ color: isAccountActive ? '#dc2626' : '#64748b' }}>
+										<svg viewBox="0 0 20 20" fill="currentColor" className="size-4 opacity-80 mt-0.5" style={{ color: isAccountActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)' }}>
 											<path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd"/>
 										</svg>
 									</button>
@@ -680,11 +680,11 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 													setActiveTab(item.id);
 													setAccountMenuOpen(false);
 												}} className="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-colors cursor-pointer flex items-center justify-between text-slate-700 dark:text-zinc-300" style={{
-													color: activeTab === item.id ? '#dc2626' : undefined,
+													color: activeTab === item.id ? '#E61E32' : undefined,
 													fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
 												}}>
 														<span>{item.label}</span>
-														{activeTab === item.id && (<span className="size-1.5 rounded-full bg-[#dc2626]"/>)}
+														{activeTab === item.id && (<span className="size-1.5 rounded-full bg-[#E61E32]"/>)}
 													</button>))}
 										</div>
 									</>)}
