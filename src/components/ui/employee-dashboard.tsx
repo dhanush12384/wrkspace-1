@@ -659,13 +659,16 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 
 								{/* Account Dropdown */}
 								<div className="relative z-50">
-									<button onClick={() => { setAccountMenuOpen(!accountMenuOpen); setServicesMenuOpen(false); }} className="py-2.5 border-b-2 transition-all cursor-pointer font-bold flex items-center gap-1 whitespace-nowrap select-none" style={{
+									<button onClick={() => { setAccountMenuOpen(!accountMenuOpen); setServicesMenuOpen(false); }} className="py-2.5 border-b-2 transition-all cursor-pointer font-bold flex items-center gap-1.5 whitespace-nowrap select-none" style={{
 										color: isAccountActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
 										borderBottomColor: isAccountActive ? '#ffffff' : 'transparent',
 										fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
 									}}>
+										<span className="material-symbols-outlined !text-[15px] leading-none" style={{ fontSize: '15px', lineHeight: 1 }}>
+											account_circle
+										</span>
 										<span>Account</span>
-										<svg viewBox="0 0 20 20" fill="currentColor" className="size-4 opacity-80 mt-0.5" style={{ color: isAccountActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)' }}>
+										<svg viewBox="0 0 20 20" fill="currentColor" className="size-3.5 opacity-80 mt-0.5" style={{ color: isAccountActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)' }}>
 											<path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd"/>
 										</svg>
 									</button>
