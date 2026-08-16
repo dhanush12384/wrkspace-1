@@ -566,20 +566,20 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 					<div className="flex items-center gap-3">
 						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="wrkspace" className="h-8 sm:h-9 w-auto object-contain"/>
 						<div className="w-px h-5 bg-black/15 dark:bg-white/15"/>
-						<span className="text-[11px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/10 dark:bg-[#E61E32]/20 px-2.5 py-1 rounded-md border border-[#E61E32]/20">
+						<span className="text-[10px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/5 px-2.5 py-1 rounded-full border border-[#E61E32]/15">
 							Employee
 						</span>
 					</div>
 					<div className="flex items-center gap-3">
-						<ProfilePhotoEditor employeeId={employee.id} photoUrl={employee.photoUrl} initials={`${(employee.firstName?.[0] || '').toUpperCase()}${(employee.lastName?.[0] || '').toUpperCase()}` || 'U'} size="md" className="!size-10 !text-xs border-0 rounded-full shadow-none bg-transparent" onUpdated={(photoUrl) => onEmployeeUpdate?.({ ...employee, photoUrl })}/>
-						{employee.role === 'Team Lead' && (<button type="button" className="border border-slate-200 dark:border-zinc-800 bg-slate-100/80 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-800 cursor-pointer rounded-md transition-all text-xs py-2 px-3 h-9 font-medium flex items-center gap-2 shadow-xs" onClick={() => {
+						<ProfilePhotoEditor employeeId={employee.id} photoUrl={employee.photoUrl} initials={`${(employee.firstName?.[0] || '').toUpperCase()}${(employee.lastName?.[0] || '').toUpperCase()}` || 'U'} size="md" className="!size-10 !text-xs border-0 rounded-full shadow-none bg-transparent" hideEditIcon={true} onUpdated={(photoUrl) => onEmployeeUpdate?.({ ...employee, photoUrl })}/>
+						{employee.role === 'Team Lead' && (<button type="button" className="border border-slate-200/90 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer rounded-xl transition-all text-xs py-2 px-3.5 h-9 font-semibold flex items-center gap-2 shadow-2xs" onClick={() => {
                     localStorage.setItem('wrkspace_admin_session', JSON.stringify({ email: employee.email }));
                     window.location.href = '/admin';
                 }}>
 								<UserCheckIcon className="size-3.5"/>
 								Switch to Lead Portal
 							</button>)}
-						<button type="button" className="bg-[#E61E32] hover:bg-[#c9182a] border-0 cursor-pointer rounded-md transition-all text-xs font-bold py-2 px-4 h-9 flex items-center gap-2 shadow-xs" style={{ color: '#ffffff' }} onClick={onLogout}>
+						<button type="button" className="bg-[#dc2626] hover:bg-red-700 border-0 cursor-pointer rounded-xl transition-all text-xs font-semibold py-2 px-4 h-9 flex items-center gap-2 shadow-2xs" style={{ color: '#ffffff' }} onClick={onLogout}>
 							<LogOutIcon className="size-3.5" style={{ color: '#ffffff' }}/>
 							<span style={{ color: '#ffffff' }}>Logout</span>
 						</button>

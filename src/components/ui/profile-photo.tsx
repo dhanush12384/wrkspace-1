@@ -12,8 +12,9 @@ type Props = {
     size?: 'md' | 'lg';
     onUpdated?: (photoUrl: string | null) => void;
     className?: string;
+    hideEditIcon?: boolean;
 };
-export function ProfilePhotoEditor({ employeeId, photoUrl, initials, size = 'lg', onUpdated, className, }: Props) {
+export function ProfilePhotoEditor({ employeeId, photoUrl, initials, size = 'lg', onUpdated, className, hideEditIcon = false, }: Props) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [busy, setBusy] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -74,12 +75,14 @@ export function ProfilePhotoEditor({ employeeId, photoUrl, initials, size = 'lg'
             else
                 openPicker();
         }} className={cn('relative shrink-0 text-[#E61E32] font-bold tracking-wider rounded-full bg-transparent border-0 p-0 shadow-xs outline-none', 'cursor-pointer hover:opacity-95 transition-all disabled:opacity-60', box, className)} style={{ background: 'transparent', borderRadius: '9999px', border: 'none', outline: 'none', boxShadow: 'none' }} aria-label={hasPhoto ? 'View profile photo' : 'Upload profile photo'}>
-				<div className="absolute inset-0 rounded-full overflow-hidden border border-[#E61E32]/20 bg-[#E61E32]/10 flex items-center justify-center shadow-xs">
-					{hasPhoto ? (<img src={safePhotoUrl!} alt="" className="size-full object-cover"/>) : (<span className={size === 'lg' ? 'text-xl font-bold' : 'text-xs font-bold'}>{initials}</span>)}
+				<div className="absolute inset-0 rounded-full overflow-hidden border border-slate-200 dark:border-zinc-800 bg-slate-100 dark:bg-zinc-900 flex items-center justify-center shadow-xs">
+					{hasPhoto ? (<img src={safePhotoUrl!} alt="" className="size-full object-cover"/>) : (<span className={cn('font-semibold text-slate-700 dark:text-zinc-300 font-sans tracking-tight', size === 'lg' ? 'text-lg' : 'text-xs')}>{initials}</span>)}
 				</div>
-				<span className="absolute -bottom-0.5 -right-0.5 z-10 flex size-4.5 items-center justify-center rounded-full bg-[#E61E32] text-white shadow-xs border-1.5 border-white dark:border-zinc-950">
-					<PencilIcon className="size-2.5"/>
-				</span>
+				{!hideEditIcon && (
+					<span className="absolute -bottom-0.5 -right-0.5 z-10 flex size-4.5 items-center justify-center rounded-full bg-[#E61E32] text-white shadow-xs border-1.5 border-white dark:border-zinc-950">
+						<PencilIcon className="size-2.5"/>
+					</span>
+				)}
 				{busy && (<span className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 rounded-full">
 						<span className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin"/>
 					</span>)}
