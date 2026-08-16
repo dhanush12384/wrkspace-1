@@ -25,8 +25,6 @@ export function MobileMoreTab({ employee, onOpenPanel, onLogout, onProfile }: Pr
         { key: 'submissions', label: 'Submissions', icon: FileText, color: '#4F46E5' },
     ];
     const business: Item[] = [
-        { key: 'leads', label: 'Leads', icon: TrendingUp, color: '#EA580C' },
-        { key: 'companies', label: 'Companies', icon: Building2, color: '#0D9488' },
         { key: 'profile', label: 'Profile', icon: UserRound, color: '#0047FF' },
         { key: 'id_card', label: 'ID card', icon: IdCard, color: '#0F766E' },
     ];

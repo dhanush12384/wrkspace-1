@@ -37,8 +37,6 @@ const WORK_PANEL_TAB: Record<string, string> = {
     leaves: 'leaves',
     events: 'events',
     submissions: 'work_submission',
-    leads: 'leads',
-    companies: 'hr_companies',
     profile: 'profile',
     id_card: 'id_card',
 };
@@ -47,8 +45,6 @@ const PANEL_TITLES: Record<string, string> = {
     leaves: 'Leaves',
     events: 'All events',
     submissions: 'Submissions',
-    leads: 'Leads',
-    companies: 'Companies',
     profile: 'Profile',
     id_card: 'ID card',
     safety: 'Girl Safety',

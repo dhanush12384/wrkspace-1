@@ -175,12 +175,6 @@ export function MobileHomeTab({ employee, refreshToken, onOpenScanner, onOpenPro
             sub: `${o.submissionsPending ?? 0} pending`,
         },
         {
-            icon: TrendingUp,
-            label: 'Leads',
-            value: String(o.leadsActive ?? 0),
-            sub: 'active',
-        },
-        {
             icon: CalendarDays,
             label: 'Events',
             value: String(o.eventsCount ?? events.length),
@@ -279,11 +273,9 @@ export function MobileHomeTab({ employee, refreshToken, onOpenScanner, onOpenPro
                             ? 'leaves'
                             : m.label === 'Events'
                                 ? 'events'
-                                : m.label === 'Leads'
-                                    ? 'leads'
-                                    : m.label === 'Submissions'
-                                        ? 'submissions'
-                                        : 'attendance')} className="rounded-[10px] bg-[#F0F3FF] px-2.5 py-2.5 text-left">
+                                : m.label === 'Submissions'
+                                    ? 'submissions'
+                                    : 'attendance')} className="rounded-[10px] bg-[#F0F3FF] px-2.5 py-2.5 text-left">
 										<Icon className="size-[18px] text-[#0047FF]" strokeWidth={2}/>
 										<p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.4px] text-[#64748B]">
 											{m.label}
