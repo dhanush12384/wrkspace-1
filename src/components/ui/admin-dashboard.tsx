@@ -1705,7 +1705,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 			<header className="w-full border-b border-white/[0.08] bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
 				<div className="w-full px-6 md:px-10 h-16 sm:h-20 flex items-center justify-between">
 					<div className="flex items-center gap-3">
-						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="wrkspace" className="h-8 sm:h-9 w-auto object-contain"/>
+						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="wrkspace" className="h-11 sm:h-13 w-auto object-contain"/>
 						<div className="w-px h-5 bg-white/15"/>
 						<span className="text-[11px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/20 px-2.5 py-1 rounded-md border border-[#E61E32]/30">
 							Admin
