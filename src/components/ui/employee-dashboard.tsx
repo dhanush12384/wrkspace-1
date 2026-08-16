@@ -565,7 +565,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 			<header className="w-full border-b border-black/[0.06] dark:border-white/[0.08] bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md sticky top-0 z-50 shadow-xs">
 				<div className="w-full px-6 md:px-10 h-16 sm:h-20 flex items-center justify-between">
 					<div className="flex items-center gap-3">
-						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="wrkspace" className="h-11 sm:h-13 w-auto object-contain"/>
+						<img src="https://ik.imagekit.io/dypkhqxip/wrkspacenew" alt="wrkspace" className="h-10 sm:h-12 w-auto object-contain"/>
 						<div className="w-px h-5 bg-black/15 dark:bg-white/15"/>
 						<span className="text-[10px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/5 px-2.5 py-1 rounded-full border border-[#E61E32]/15">
 							Employee
@@ -664,7 +664,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 										borderBottomColor: isAccountActive ? '#ffffff' : 'transparent',
 										fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
 									}}>
-										<span className="material-symbols-outlined !text-[15px] leading-none" style={{ fontSize: '15px', lineHeight: 1 }}>
+										<span className="material-symbols-outlined !text-[18px] leading-none" style={{ fontSize: '18px', lineHeight: 1 }}>
 											account_circle
 										</span>
 										<span>Account</span>
