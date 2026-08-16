@@ -2460,6 +2460,15 @@ export async function deleteEmployee(id: string) {
         await db.leave.deleteMany({ where: { employeeId: id } });
         await db.channelAccessRequest.deleteMany({ where: { employeeId: id } });
         await db.workSubmission.deleteMany({ where: { employeeId: id } });
+        await db.lateCheckInRequest.deleteMany({ where: { employeeId: id } });
+        await db.sosIncident.deleteMany({ where: { employeeId: id } });
+        await db.safetyTrip.deleteMany({ where: { employeeId: id } });
+        await db.task.deleteMany({ where: { assigneeId: id } });
+        await db.shiftReminderLog.deleteMany({ where: { employeeId: id } });
+        await db.unanimousFeedback.updateMany({
+            where: { userId: id },
+            data: { userId: null }
+        });
         await db.lead.updateMany({
             where: { assignedTo: id },
             data: { assignedTo: null }

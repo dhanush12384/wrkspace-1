@@ -1457,14 +1457,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
             day: 'numeric'
         });
         const headersHtml = headers.map(h => `
-			<th style="padding: 12px 10px; text-align: left; font-size: 11px; font-weight: 600; color: #ffffff; background-color: #4f46e5; border-bottom: 2px solid #3730a3;">
+			<th style="padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #ffffff; background-color: #E61E32; border-bottom: 2px solid #b91c1c;">
 				${h}
 			</th>
 		`).join('');
         const rowsHtml = rows.map(row => `
 			<tr style="page-break-inside: avoid;">
 				${row.map(val => `
-					<td style="padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; color: #334155; font-family: system-ui, sans-serif;">
+					<td style="padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 11px; color: #334155; font-family: system-ui, sans-serif;">
 						${val}
 					</td>
 				`).join('')}
@@ -1492,14 +1492,14 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							display: flex;
 							justify-content: space-between;
 							align-items: flex-end;
-							border-bottom: 2px solid #4f46e5;
+							border-bottom: 2px solid #E61E32;
 							padding-bottom: 15px;
 							margin-bottom: 30px;
 						}
 						.logo-area h1 {
 							font-size: 24px;
 							font-weight: 800;
-							color: #4f46e5;
+							color: #E61E32;
 							margin: 0;
 							letter-spacing: -0.5px;
 						}
@@ -1528,6 +1528,9 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							margin-top: 10px;
 						}
 						tr:nth-child(even) {
+							background-color: rgba(230, 30, 50, 0.02);
+						}
+						tr:hover {
 							background-color: #f8fafc;
 						}
 						.footer {
