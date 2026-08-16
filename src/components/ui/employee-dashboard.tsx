@@ -629,7 +629,7 @@ export function EmployeeDashboard({ employee, onLogout, onEmployeeUpdate, mobile
 										borderBottomColor: isServicesActive ? '#ffffff' : 'transparent',
 										fontFamily: 'var(--font-geist-sans), ui-sans-serif, system-ui',
 									}}>
-										<span className="material-symbols-outlined !text-[18px] leading-none" style={{ fontSize: '18px', lineHeight: 1 }}>
+										<span className="material-symbols-outlined !text-[20px] leading-none" style={{ fontSize: '20px', lineHeight: 1 }}>
 											contact_support
 										</span>
 										<span>Services</span>
