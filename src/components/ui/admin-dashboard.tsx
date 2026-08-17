@@ -10,12 +10,35 @@ import { AdminShiftTimingsPanel } from './admin-shift-timings-panel';
 import { AdminLateCheckinsPanel } from './admin-late-checkins-panel';
 import { AdminPayoutsPanel } from './admin-payouts-panel';
 import OfficesPanel from '@/components/ui/offices-panel';
-import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon, SendIcon, MailIcon, SearchIcon } from 'lucide-react';
+import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, ClockIcon, AlertCircleIcon, BarChart2Icon, UploadIcon, Trash2Icon, UserCheckIcon, PencilIcon, CheckIcon, XIcon, EyeIcon, CopyIcon, SendIcon, MailIcon, SearchIcon, Trophy, Zap, Heart, Flame, Shield, Sparkles, Award } from 'lucide-react';
+import { profileFromEmployee } from '@/lib/employee-professional-profile';
 import { cn } from '@/lib/utils';
 import { UnanimousFormGate } from './unanimous-form-gate';
 import { MessagesView } from './messages-view';
 import { ChatAvatar } from './chat-avatar';
 import { AdminAlertSender } from './admin-alert-sender';
+const BadgeIcon = ({ name, className }: { name: string; className?: string }) => {
+    switch (name) {
+        case 'Trophy':
+            return <Trophy className={className} />;
+        case 'Zap':
+            return <Zap className={className} />;
+        case 'Heart':
+            return <Heart className={className} />;
+        case 'Flame':
+            return <Flame className={className} />;
+        case 'Shield':
+            return <Shield className={className} />;
+        case 'Sparkles':
+            return <Sparkles className={className} />;
+        case 'CheckCircle':
+            return <CheckCircleIcon className={className} />;
+        case 'Award':
+        default:
+            return <Award className={className} />;
+    }
+};
+
 interface AdminDashboardProps {
     email: string;
     onLogout: () => void;
@@ -446,6 +469,8 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
     };
     const [editModalType, setEditModalType] = useState<'employee' | 'task' | 'leave' | 'attendance' | 'event' | 'submission' | 'hr_company' | null>(null);
     const [editingItem, setEditingItem] = useState<any>(null);
+    const [viewingEmployee, setViewingEmployee] = useState<any | null>(null);
+    const [viewingTab, setViewingTab] = useState<'personal' | 'verification' | 'attendance'>('personal');
     const [badgeTitle, setBadgeTitle] = useState('');
     const [badgeIcon, setBadgeIcon] = useState('Award');
     const [badgeColor, setBadgeColor] = useState('blue');
@@ -3451,6 +3476,12 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										<div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 mt-auto">
 											<div className="flex items-center gap-1.5">
 												<button onClick={() => {
+                        setViewingEmployee(emp);
+                        setViewingTab('personal');
+                    }} className="p-2 border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-850 rounded-lg shadow-xs transition-all cursor-pointer font-semibold" title="View Employee Details">
+													<EyeIcon className="size-3.5"/>
+												</button>
+												<button onClick={() => {
                         setEditingItem(emp);
                         setEditModalType('employee');
                     }} className="p-2 border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-850 rounded-lg shadow-xs transition-all cursor-pointer font-semibold" title="Edit Employee">
@@ -4889,6 +4920,528 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 							</form>)}
 					</div>
 				</div>)}
+
+			{viewingEmployee && (() => {
+				const emp = viewingEmployee;
+				const parsedProfile = profileFromEmployee(emp);
+				
+				// Calculate attendance statistics
+				const empLogs = attendanceList.filter((log: any) => log.employeeId === emp.id);
+				const presentCount = empLogs.filter((log: any) => log.status === 'Present' || log.status === 'Checked In').length;
+				const absentCount = empLogs.filter((log: any) => log.status === 'Absent').length;
+				const totalLogsCount = empLogs.length;
+				const attendanceRate = totalLogsCount > 0 ? ((presentCount / totalLogsCount) * 100).toFixed(1) : '100.0';
+
+				// Parse badges
+				let badgesList: any[] = [];
+				try {
+					if (emp.badges) {
+						badgesList = JSON.parse(emp.badges);
+					}
+				} catch (e) {}
+
+				const initials = (first: string, last: string) => {
+					return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+				};
+
+				return (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-sans">
+						<div className="w-full max-w-4xl bg-white border border-slate-200/90 rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+							{/* Header Banner */}
+							<div className="bg-slate-50 border-b border-slate-100 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+								<div className="flex items-center gap-4">
+									<div className="size-16 rounded-2xl bg-brand-50 border border-brand-100 flex items-center justify-center font-bold text-brand-600 text-xl uppercase shrink-0 shadow-sm">
+										{initials(emp.firstName, emp.lastName)}
+									</div>
+									<div>
+										<div className="flex items-center gap-2 flex-wrap">
+											<h3 className="text-lg font-bold text-slate-900 leading-tight">
+												{emp.firstName} {emp.middleName ? `${emp.middleName} ` : ''}{emp.lastName}
+											</h3>
+											<span className={cn(
+												"px-2 py-0.5 text-[9px] font-bold rounded-full uppercase tracking-wider border",
+												emp.employmentStatus === 'Active' 
+													? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+													: "bg-amber-50 text-amber-700 border-amber-200"
+											)}>
+												{emp.employmentStatus || 'Active'}
+											</span>
+										</div>
+										<p className="text-xs text-brand-600 font-semibold mt-0.5">{emp.role || 'Employee'}</p>
+										<div className="flex items-center gap-3 text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1.5">
+											<span>ID: {emp.id}</span>
+											<span>•</span>
+											<span>Wing: {emp.wingName || '—'}</span>
+											<span>•</span>
+											<span>Lead: {emp.wingLeadName || '—'}</span>
+										</div>
+									</div>
+								</div>
+								<button 
+									onClick={() => { setViewingEmployee(null); setViewingTab('personal'); }} 
+									className="text-slate-400 hover:text-slate-700 font-semibold text-sm cursor-pointer p-2 rounded-xl hover:bg-slate-100 transition-colors sm:self-start"
+								>
+									✕ Close
+								</button>
+							</div>
+
+							{/* Navigation Tabs */}
+							<div className="flex border-b border-slate-100 bg-white px-6 shrink-0 overflow-x-auto scrollbar-none">
+								{(['personal', 'verification', 'attendance'] as const).map((t) => (
+									<button
+										key={t}
+										onClick={() => setViewingTab(t)}
+										className={cn(
+											"py-3 px-4 border-b-2 text-xs font-semibold uppercase tracking-wider cursor-pointer transition-all whitespace-nowrap",
+											viewingTab === t 
+												? "border-[#E61E32] text-slate-900" 
+												: "border-transparent text-slate-400 hover:text-slate-650"
+										)}
+									>
+										{t === 'personal' && 'Personal & Contact'}
+										{t === 'verification' && 'Verification & Dossier'}
+										{t === 'attendance' && 'Attendance & Stats'}
+									</button>
+								))}
+							</div>
+
+							{/* Scrollable Content Pane */}
+							<div className="flex-1 overflow-y-auto p-6 bg-slate-50/50 space-y-6">
+								{viewingTab === 'personal' && (
+									<div className="space-y-6">
+										{/* Personal & Contact Grid */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+												Basic Information
+											</h4>
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Email Address</span>
+													<a href={`mailto:${emp.email}`} className="text-brand-600 hover:underline font-medium break-all select-all">{emp.email}</a>
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Phone Number</span>
+													<a href={`tel:${emp.phone}`} className="text-slate-800 hover:underline font-medium select-all">{emp.phone}</a>
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Gender / Sex</span>
+													<span className="text-slate-800 font-medium">
+														{String(emp.gender || 'UNSPECIFIED').toUpperCase() === 'FEMALE' ? 'Female' : 
+														 String(emp.gender || 'UNSPECIFIED').toUpperCase() === 'MALE' ? 'Male' : 'Not Specified'}
+													</span>
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Registered Since</span>
+													<span className="text-slate-800 font-medium">
+														{new Date(emp.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+													</span>
+												</div>
+											</div>
+										</div>
+
+										{/* Address details */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+												Home Setup & Location
+											</h4>
+											<div className="space-y-3 text-xs">
+												<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+													<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+														<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Home Address</span>
+														<span className="text-slate-800 font-medium leading-relaxed">{emp.homeAddress || 'No home address recorded'}</span>
+													</div>
+													<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+														<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Plus Code</span>
+														<span className="text-slate-800 font-mono font-medium">{emp.homePlusCode || 'No location coordinates linked'}</span>
+													</div>
+												</div>
+											</div>
+										</div>
+
+										{/* Emergency Contacts */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+												Emergency Contact Details
+											</h4>
+											<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Contact Person</span>
+													<span className="text-slate-800 font-semibold">{emp.emergencyContactName || '—'}</span>
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Phone Number</span>
+													{emp.emergencyContactPhone ? (
+														<a href={`tel:${emp.emergencyContactPhone}`} className="text-[#E61E32] hover:underline font-medium">{emp.emergencyContactPhone}</a>
+													) : (
+														<span className="text-slate-400 font-medium">—</span>
+													)}
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Relationship</span>
+													<span className="text-slate-800 font-medium">{emp.emergencyContactRelation || '—'}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								)}
+
+								{viewingTab === 'verification' && (
+									<div className="space-y-6">
+										{/* Dossier Files */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+												Dossier Attachments & Credentials
+											</h4>
+											<div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+												{emp.personalFileUrl ? (
+													<a href={emp.personalFileUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 hover:bg-slate-100/80 rounded-xl transition-all cursor-pointer">
+														<span className="font-semibold text-slate-700 truncate">Personal Dossier (PDF/Image)</span>
+														<span className="text-brand-600 font-bold shrink-0">View ↗</span>
+													</a>
+												) : (
+													<div className="p-3.5 bg-slate-50/40 border border-dashed border-slate-200 text-slate-400 rounded-xl text-center">
+														No Personal File attached
+													</div>
+												)}
+												{emp.summaryFileUrl ? (
+													<a href={emp.summaryFileUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 hover:bg-slate-100/80 rounded-xl transition-all cursor-pointer">
+														<span className="font-semibold text-slate-700 truncate">Summary / Resume File</span>
+														<span className="text-brand-600 font-bold shrink-0">View ↗</span>
+													</a>
+												) : (
+													<div className="p-3.5 bg-slate-50/40 border border-dashed border-slate-200 text-slate-400 rounded-xl text-center">
+														No Resume File attached
+													</div>
+												)}
+												{emp.skillsFileUrl ? (
+													<a href={emp.skillsFileUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 hover:bg-slate-100/80 rounded-xl transition-all cursor-pointer">
+														<span className="font-semibold text-slate-700 truncate">Skills & Certifications Dossier</span>
+														<span className="text-brand-600 font-bold shrink-0">View ↗</span>
+													</a>
+												) : (
+													<div className="p-3.5 bg-slate-50/40 border border-dashed border-slate-200 text-slate-400 rounded-xl text-center">
+														No Skills File attached
+													</div>
+												)}
+											</div>
+											{emp.idCardUrl && (
+												<div className="mt-4 bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col items-center">
+													<span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider block mb-2 self-start">ID Card Preview</span>
+													<img src={emp.idCardUrl} alt="Employee ID card" className="max-h-48 object-contain border border-slate-200 rounded-xl shadow-xs" />
+												</div>
+											)}
+										</div>
+
+										{/* Performance Parameters */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+												Performance & Conduct Verification
+											</h4>
+											<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Overall score</span>
+													<span className="text-slate-900 font-bold font-sans text-sm">{emp.overallScore || '—'}</span>
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Conduct review</span>
+													<span className="text-slate-900 font-semibold">{emp.conduct || '—'}</span>
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Months Worked</span>
+													<span className="text-slate-900 font-medium">{emp.monthWorked || '—'}</span>
+												</div>
+												<div className="space-y-1 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
+													<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider">Former Company</span>
+													<span className="text-slate-900 font-medium">{emp.companyWorkedFor || '—'}</span>
+												</div>
+											</div>
+											
+											{/* Badges Grid */}
+											<div className="mt-4 pt-4 border-t border-slate-100">
+												<span className="block text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-2">Awarded Badges</span>
+												{badgesList.length === 0 ? (
+													<p className="text-xs text-slate-400 italic">No badges assigned yet.</p>
+												) : (
+													<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+														{badgesList.map((badge: any) => (
+															<div key={badge.id} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-xs shadow-2xs">
+																<div className="shrink-0 size-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center">
+																	<BadgeIcon name={badge.icon} className={cn(
+																		"size-4.5",
+																		badge.color === 'blue' && "text-blue-500",
+																		badge.color === 'green' && "text-emerald-500",
+																		badge.color === 'purple' && "text-purple-500",
+																		badge.color === 'orange' && "text-amber-500",
+																		badge.color === 'red' && "text-rose-500",
+																		badge.color === 'yellow' && "text-yellow-600",
+																		!badge.color && "text-slate-500"
+																	)} />
+																</div>
+																<div className="min-w-0">
+																	<p className="font-bold text-slate-800 truncate">{badge.title}</p>
+																	{badge.description && <p className="text-[10px] text-slate-500 truncate leading-tight mt-0.5">{badge.description}</p>}
+																</div>
+															</div>
+														))}
+													</div>
+												)}
+											</div>
+
+											{/* Remarks */}
+											<div className="mt-4 bg-amber-50/40 border border-amber-200/60 rounded-xl p-3.5 text-xs text-slate-700 italic">
+												<span className="block text-[10px] text-amber-800 font-bold uppercase tracking-wider not-italic mb-1">Official Remarks</span>
+												"{emp.remarks || 'No remarks recorded for this period.'}"
+											</div>
+										</div>
+
+										{/* Tech Profiles & Social Links */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+												Professional Profiles & Social Links
+											</h4>
+											<div className="flex flex-wrap gap-2.5">
+												{emp.linkedinUrl && (
+													<a href={emp.linkedinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+														LinkedIn ↗
+													</a>
+												)}
+												{emp.githubUrl && (
+													<a href={emp.githubUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+														GitHub ↗
+													</a>
+												)}
+												{emp.portfolioUrl && (
+													<a href={emp.portfolioUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+														Portfolio ↗
+													</a>
+												)}
+												{emp.leetcodeUrl && (
+													<a href={emp.leetcodeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+														LeetCode ↗
+													</a>
+												)}
+												{emp.codeforcesUrl && (
+													<a href={emp.codeforcesUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+														Codeforces ↗
+													</a>
+												)}
+												{emp.codechefUrl && (
+													<a href={emp.codechefUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+														CodeChef ↗
+													</a>
+												)}
+												{emp.hackerrankUrl && (
+													<a href={emp.hackerrankUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+														HackerRank ↗
+													</a>
+												)}
+												{!emp.linkedinUrl && !emp.githubUrl && !emp.portfolioUrl && !emp.leetcodeUrl && !emp.codeforcesUrl && !emp.codechefUrl && !emp.hackerrankUrl && (
+													<p className="text-xs text-slate-400 italic">No social or coding profiles linked.</p>
+												)}
+											</div>
+										</div>
+
+										{/* Education & Experience Details */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-5">
+											<div>
+												<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+													Professional Dossier Summary
+												</h4>
+												{emp.professionalTitle && (
+													<p className="text-xs font-semibold text-slate-700 mt-2">Title: <span className="text-slate-900 font-bold">{emp.professionalTitle}</span></p>
+												)}
+												{emp.careerObjective && (
+													<div className="mt-3 bg-slate-50 border border-slate-150 rounded-xl p-3 text-xs text-slate-650 leading-relaxed">
+														<span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Career Objective</span>
+														{emp.careerObjective}
+													</div>
+												)}
+											</div>
+
+											{/* Experience History */}
+											<div>
+												<span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2.5">Work History & Experience</span>
+												{parsedProfile.experience.length === 0 ? (
+													<p className="text-xs text-slate-400 italic">No professional work experience listed.</p>
+												) : (
+													<div className="space-y-3">
+														{parsedProfile.experience.map((exp) => (
+															<div key={exp.id} className="border border-slate-200/75 p-3 rounded-xl bg-slate-50/40 text-xs">
+																<div className="flex justify-between items-start gap-2 flex-wrap">
+																	<div>
+																		<h5 className="font-bold text-slate-950">{exp.title}</h5>
+																		<p className="text-slate-600 mt-0.5">{exp.company} {exp.location ? `• ${exp.location}` : ''}</p>
+																	</div>
+																	<span className="px-2 py-0.5 bg-slate-200 text-slate-755 font-semibold rounded text-[10px] tracking-wide shrink-0">
+																		{exp.from} - {exp.current ? 'Present' : exp.to}
+																	</span>
+																</div>
+																{exp.description && <p className="text-slate-600 mt-2 whitespace-pre-line leading-relaxed">{exp.description}</p>}
+																{exp.technologiesUsed && <p className="text-[10px] text-slate-500 font-mono mt-1.5"><span className="font-bold text-slate-600">Tech Stack:</span> {exp.technologiesUsed}</p>}
+															</div>
+														))}
+													</div>
+												)}
+											</div>
+
+											{/* Education History */}
+											<div>
+												<span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2.5">Education History</span>
+												{parsedProfile.education.length === 0 ? (
+													<p className="text-xs text-slate-400 italic">No education details recorded.</p>
+												) : (
+													<div className="space-y-3">
+														{parsedProfile.education.map((edu) => (
+															<div key={edu.id} className="border border-slate-200/75 p-3 rounded-xl bg-slate-50/40 text-xs">
+																<div className="flex justify-between items-start gap-2 flex-wrap">
+																	<div>
+																		<h5 className="font-bold text-slate-950">{edu.degree} {edu.specialization ? `in ${edu.specialization}` : ''}</h5>
+																		<p className="text-slate-650 mt-0.5">{edu.institution}</p>
+																	</div>
+																	<span className="px-2 py-0.5 bg-slate-200 text-slate-755 font-semibold rounded text-[10px] tracking-wide shrink-0">
+																		{edu.from} - {edu.to}
+																	</span>
+																</div>
+																{edu.cgpa && <p className="text-[11px] font-bold text-[#E61E32] mt-1.5">CGPA/Percentage: {edu.cgpa}</p>}
+															</div>
+														))}
+													</div>
+												)}
+											</div>
+
+											{/* Projects */}
+											<div>
+												<span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2.5">Projects Built</span>
+												{parsedProfile.projects.length === 0 ? (
+													<p className="text-xs text-slate-400 italic">No projects listed.</p>
+												) : (
+													<div className="space-y-3">
+														{parsedProfile.projects.map((proj) => (
+															<div key={proj.id} className="border border-slate-200/75 p-3 rounded-xl bg-slate-50/40 text-xs">
+																<div className="flex justify-between items-start gap-2 flex-wrap">
+																	<div>
+																		<h5 className="font-bold text-slate-950">{proj.name}</h5>
+																		<p className="text-[#E61E32] font-semibold text-[10px] mt-0.5">Role: {proj.role}</p>
+																	</div>
+																	<div className="flex gap-2 shrink-0">
+																		{proj.githubUrl && <a href={proj.githubUrl} target="_blank" rel="noreferrer" className="text-blue-650 font-semibold hover:underline text-[10px]">GitHub ↗</a>}
+																		{proj.liveUrl && <a href={proj.liveUrl} target="_blank" rel="noreferrer" className="text-emerald-650 font-semibold hover:underline text-[10px]">Live URL ↗</a>}
+																	</div>
+																</div>
+																{proj.description && <p className="text-slate-605 mt-2 leading-relaxed">{proj.description}</p>}
+																{proj.tech && <p className="text-[10px] text-slate-500 font-mono mt-1.5"><span className="font-bold text-slate-600">Tech Stack:</span> {proj.tech}</p>}
+															</div>
+														))}
+													</div>
+												)}
+											</div>
+										</div>
+									</div>
+								)}
+
+								{viewingTab === 'attendance' && (
+									<div className="space-y-6 animate-in fade-in duration-200">
+										{/* Statistics Grid */}
+										<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+											<div className="bg-white border border-slate-250/90 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+												<span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Logs</span>
+												<span className="text-2xl font-black text-slate-900 mt-2">{totalLogsCount} Days</span>
+											</div>
+											<div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+												<span className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider">Days Present</span>
+												<span className="text-2xl font-black text-emerald-700 mt-2">{presentCount} Days</span>
+											</div>
+											<div className="bg-rose-50/60 border border-rose-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+												<span className="text-[10px] text-rose-800 font-bold uppercase tracking-wider">Days Absent</span>
+												<span className="text-2xl font-black text-rose-700 mt-2">{absentCount} Days</span>
+											</div>
+											<div className="bg-blue-50/60 border border-blue-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
+												<span className="text-[10px] text-blue-800 font-bold uppercase tracking-wider">Attendance Rate</span>
+												<span className="text-2xl font-black text-blue-700 mt-2">{attendanceRate}%</span>
+											</div>
+										</div>
+
+										{/* Attendance logs list */}
+										<div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs space-y-4">
+											<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
+												Attendance History Logs ({empLogs.length})
+											</h4>
+											
+											{empLogs.length === 0 ? (
+												<p className="text-xs text-slate-400 italic text-center py-6">No attendance logs found in directory for this employee.</p>
+											) : (
+												<div className="overflow-x-auto max-h-[40vh] scrollbar-thin">
+													<table className="w-full text-xs text-left border-collapse">
+														<thead>
+															<tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+																<th className="py-2.5 px-3">Date</th>
+																<th className="py-2.5 px-3">Check-In</th>
+																<th className="py-2.5 px-3">Check-Out</th>
+																<th className="py-2.5 px-3">Status</th>
+															</tr>
+														</thead>
+														<tbody>
+															{empLogs.map((log: any) => (
+																<tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/40 text-slate-700">
+																	<td className="py-2.5 px-3 font-semibold text-slate-900">{log.date}</td>
+																	<td className="py-2.5 px-3">
+																		<span className={cn(
+																			"px-1.5 py-0.5 rounded text-[10px] font-mono",
+																			log.checkIn === 'Absent' ? "text-rose-700 bg-rose-50" : "text-slate-800 bg-slate-100"
+																		)}>
+																			{log.checkIn}
+																		</span>
+																	</td>
+																	<td className="py-2.5 px-3">
+																		{log.checkOut ? (
+																			<span className={cn(
+																				"px-1.5 py-0.5 rounded text-[10px] font-mono",
+																				log.checkOut === 'Absent' ? "text-rose-700 bg-rose-50" : "text-slate-800 bg-slate-100"
+																			)}>
+																				{log.checkOut}
+																			</span>
+																		) : (
+																			<span className="text-slate-400 font-light">—</span>
+																		)}
+																	</td>
+																	<td className="py-2.5 px-3">
+																		<span className={cn(
+																			"inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border",
+																			(log.status === 'Checked In' || log.status === 'Present') 
+																				? "bg-emerald-50 text-emerald-700 border-emerald-150" 
+																				: "bg-rose-50 text-rose-700 border-rose-150"
+																		)}>
+																			<span className={cn(
+																				"size-1.5 rounded-full",
+																				(log.status === 'Checked In' || log.status === 'Present') ? "bg-emerald-500" : "bg-rose-500"
+																			)}/>
+																			{log.status}
+																		</span>
+																	</td>
+																</tr>
+															))}
+														</tbody>
+													</table>
+												</div>
+											)}
+										</div>
+									</div>
+								)}
+							</div>
+
+							{/* Footer */}
+							<div className="bg-slate-50 border-t border-slate-100 p-4 flex justify-end shrink-0">
+								<Button 
+									onClick={() => { setViewingEmployee(null); setViewingTab('personal'); }} 
+									className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold py-2 px-5 rounded-xl cursor-pointer"
+								>
+									Close View
+								</Button>
+							</div>
+						</div>
+					</div>
+				)
+			})()}
 
 			{showEditLeadModal && editingLead && (<div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
 					<div className="w-full max-w-lg bg-white border border-slate-200/90 rounded-2xl p-6 space-y-4 shadow-2xl relative">
