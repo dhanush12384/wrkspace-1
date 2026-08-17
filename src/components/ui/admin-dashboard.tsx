@@ -14,6 +14,7 @@ import { CalendarIcon, MapPinIcon, FileTextIcon, CheckCircleIcon, XCircleIcon, C
 import { profileFromEmployee } from '@/lib/employee-professional-profile';
 import { cn } from '@/lib/utils';
 import { UnanimousFormGate } from './unanimous-form-gate';
+import { EmployeeDetailsView } from './employee-details-view';
 import { MessagesView } from './messages-view';
 import { ChatAvatar } from './chat-avatar';
 import { AdminAlertSender } from './admin-alert-sender';
@@ -3285,7 +3286,17 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>)}
 
 				
-				{activeTab === 'employees' && (<div className="space-y-6">
+				{activeTab === 'employees' && (
+					<div className="space-y-6">
+						{viewingEmployee ? (
+							<EmployeeDetailsView 
+								employee={viewingEmployee}
+								viewingTab={viewingTab}
+								setViewingTab={setViewingTab}
+								onBack={() => { setViewingEmployee(null); setViewingTab('personal'); }}
+								attendanceList={attendanceList}
+							/>
+						) : (<>
 						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 							<div className="flex items-center gap-2">
 								<UsersIcon className="size-5 text-brand-500"/>
@@ -3507,6 +3518,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 										</div>
 									</div>))}
 							</div>)}
+						</>)}
 					</div>)}
 
 				
@@ -4921,7 +4933,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 					</div>
 				</div>)}
 
-			{viewingEmployee && (() => {
+			{false && viewingEmployee && (() => {
 				const emp = viewingEmployee;
 				const parsedProfile = profileFromEmployee(emp);
 				
