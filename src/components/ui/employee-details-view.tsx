@@ -60,25 +60,109 @@ export const EmployeeDetailsView: React.FC<EmployeeDetailsViewProps> = ({
 		return '';
 	};
 
-	// Parse available months from attendance logs
+	// Parse available months from employee join date to today
 	const availableMonths = React.useMemo(() => {
-		const months = new Set<string>();
-		empLogs.forEach((log: any) => {
-			if (log.date) {
-				const monthYear = getMonthYearStr(log.date);
-				if (monthYear) {
-					months.add(monthYear);
+		const months: string[] = [];
+		const today = new Date();
+		const joinDate = new Date(emp.createdAt || new Date());
+		if (isNaN(joinDate.getTime())) {
+			return ['All'];
+		}
+		
+		const current = new Date(joinDate.getFullYear(), joinDate.getMonth(), 1);
+		const end = new Date(today.getFullYear(), today.getMonth(), 1);
+		
+		while (current <= end) {
+			const monthYear = current.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+			months.push(monthYear);
+			current.setMonth(current.getMonth() + 1);
+		}
+		return ['All', ...months.reverse()];
+	}, [emp.createdAt]);
+
+	// Generate all calendar dates in the selected range (descending order)
+	const generatedDates = React.useMemo(() => {
+		const dates: string[] = [];
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		const joinDate = new Date(emp.createdAt || new Date());
+		if (isNaN(joinDate.getTime())) {
+			return [];
+		}
+		joinDate.setHours(0, 0, 0, 0);
+
+		if (selectedMonth === 'All') {
+			const current = new Date(joinDate);
+			while (current <= today) {
+				const yyyy = current.getFullYear();
+				const mm = String(current.getMonth() + 1).padStart(2, '0');
+				const dd = String(current.getDate()).padStart(2, '0');
+				dates.push(`${yyyy}-${mm}-${dd}`);
+				current.setDate(current.getDate() + 1);
+			}
+		} else {
+			const parts = selectedMonth.split(' ');
+			if (parts.length === 2) {
+				const monthName = parts[0];
+				const yearNum = parseInt(parts[1], 10);
+				const monthIndex = new Date(`${monthName} 1, ${yearNum}`).getMonth();
+				
+				if (!isNaN(monthIndex)) {
+					let start = new Date(yearNum, monthIndex, 1);
+					if (joinDate.getFullYear() === yearNum && joinDate.getMonth() === monthIndex) {
+						start = new Date(joinDate);
+					}
+					
+					let end = new Date(yearNum, monthIndex + 1, 0);
+					if (today.getFullYear() === yearNum && today.getMonth() === monthIndex) {
+						end = new Date(today);
+					}
+					
+					const current = new Date(start);
+					while (current <= end) {
+						const yyyy = current.getFullYear();
+						const mm = String(current.getMonth() + 1).padStart(2, '0');
+						const dd = String(current.getDate()).padStart(2, '0');
+						dates.push(`${yyyy}-${mm}-${dd}`);
+						current.setDate(current.getDate() + 1);
+					}
 				}
 			}
-		});
-		return ['All', ...Array.from(months)];
-	}, [empLogs]);
+		}
+		return dates.reverse();
+	}, [emp.createdAt, selectedMonth]);
 
-	// Filter logs by selected month
+	// Map each generated date to a real log or a virtual Absent log
 	const filteredLogs = React.useMemo(() => {
-		if (selectedMonth === 'All') return empLogs;
-		return empLogs.filter((log: any) => getMonthYearStr(log.date) === selectedMonth);
-	}, [empLogs, selectedMonth]);
+		return generatedDates.map((dateStr) => {
+			const realLog = empLogs.find((log: any) => {
+				if (!log.date) return false;
+				try {
+					const d = new Date(log.date);
+					if (!isNaN(d.getTime())) {
+						const yyyy = d.getFullYear();
+						const mm = String(d.getMonth() + 1).padStart(2, '0');
+						const dd = String(d.getDate()).padStart(2, '0');
+						return `${yyyy}-${mm}-${dd}` === dateStr;
+					}
+				} catch (e) {}
+				return log.date === dateStr;
+			});
+
+			if (realLog) {
+				return realLog;
+			}
+
+			return {
+				id: `virtual-${dateStr}`,
+				date: dateStr,
+				checkIn: 'Absent',
+				checkOut: 'Absent',
+				status: 'Absent'
+			};
+		});
+	}, [generatedDates, empLogs]);
 
 	const presentCount = filteredLogs.filter((log: any) => log.status === 'Present' || log.status === 'Checked In').length;
 	const absentCount = filteredLogs.filter((log: any) => log.status === 'Absent').length;
