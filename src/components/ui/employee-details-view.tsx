@@ -46,9 +46,43 @@ export const EmployeeDetailsView: React.FC<EmployeeDetailsViewProps> = ({
 
 	// Calculate attendance statistics
 	const empLogs = attendanceList.filter((log: any) => log.employeeId === emp.id);
-	const presentCount = empLogs.filter((log: any) => log.status === 'Present' || log.status === 'Checked In').length;
-	const absentCount = empLogs.filter((log: any) => log.status === 'Absent').length;
-	const totalLogsCount = empLogs.length;
+
+	const [selectedMonth, setSelectedMonth] = React.useState<string>('All');
+
+	// Safe date parser to format a date to "Month Year" (e.g. "August 2026")
+	const getMonthYearStr = (dateStr: string) => {
+		try {
+			const d = new Date(dateStr);
+			if (!isNaN(d.getTime())) {
+				return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+			}
+		} catch (e) {}
+		return '';
+	};
+
+	// Parse available months from attendance logs
+	const availableMonths = React.useMemo(() => {
+		const months = new Set<string>();
+		empLogs.forEach((log: any) => {
+			if (log.date) {
+				const monthYear = getMonthYearStr(log.date);
+				if (monthYear) {
+					months.add(monthYear);
+				}
+			}
+		});
+		return ['All', ...Array.from(months)];
+	}, [empLogs]);
+
+	// Filter logs by selected month
+	const filteredLogs = React.useMemo(() => {
+		if (selectedMonth === 'All') return empLogs;
+		return empLogs.filter((log: any) => getMonthYearStr(log.date) === selectedMonth);
+	}, [empLogs, selectedMonth]);
+
+	const presentCount = filteredLogs.filter((log: any) => log.status === 'Present' || log.status === 'Checked In').length;
+	const absentCount = filteredLogs.filter((log: any) => log.status === 'Absent').length;
+	const totalLogsCount = filteredLogs.length;
 	const attendanceRate = totalLogsCount > 0 ? ((presentCount / totalLogsCount) * 100).toFixed(1) : '100.0';
 
 	// Parse badges
@@ -451,32 +485,49 @@ export const EmployeeDetailsView: React.FC<EmployeeDetailsViewProps> = ({
 					<div className="space-y-6">
 						{/* Statistics Grid */}
 						<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-							<div className="bg-white border border-slate-150 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
-								<span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Logs</span>
-								<span className="text-2xl font-black text-slate-900 mt-2">{totalLogsCount} Days</span>
+							<div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+								<span className="text-[10px] text-slate-450 uppercase font-bold tracking-wider">Total Logs</span>
+								<span className="text-lg font-bold text-slate-900 mt-1">{totalLogsCount} Days</span>
 							</div>
-							<div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
-								<span className="text-[10px] text-emerald-850 font-bold uppercase tracking-wider">Days Present</span>
-								<span className="text-2xl font-black text-emerald-700 mt-2">{presentCount} Days</span>
+							<div className="bg-emerald-50/45 border border-emerald-100 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+								<span className="text-[10px] text-emerald-850 uppercase font-bold tracking-wider">Days Present</span>
+								<span className="text-lg font-bold text-emerald-700 mt-1">{presentCount} Days</span>
 							</div>
-							<div className="bg-rose-50/40 border border-rose-100 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
-								<span className="text-[10px] text-rose-850 font-bold uppercase tracking-wider">Days Absent</span>
-								<span className="text-2xl font-black text-rose-700 mt-2">{absentCount} Days</span>
+							<div className="bg-rose-50/45 border border-rose-100 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+								<span className="text-[10px] text-rose-850 uppercase font-bold tracking-wider">Days Absent</span>
+								<span className="text-lg font-bold text-rose-700 mt-1">{absentCount} Days</span>
 							</div>
-							<div className="bg-blue-50/40 border border-blue-100 rounded-2xl p-5 shadow-2xs flex flex-col justify-between">
-								<span className="text-[10px] text-blue-850 font-bold uppercase tracking-wider">Attendance Rate</span>
-								<span className="text-2xl font-black text-blue-700 mt-2">{attendanceRate}%</span>
+							<div className="bg-blue-50/45 border border-blue-100 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+								<span className="text-[10px] text-blue-850 uppercase font-bold tracking-wider">Attendance Rate</span>
+								<span className="text-lg font-bold text-blue-700 mt-1">{attendanceRate}%</span>
 							</div>
 						</div>
 
 						{/* Attendance logs list */}
 						<div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-2xs space-y-4">
-							<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">
-								Attendance History Logs ({empLogs.length})
-							</h4>
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+								<h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
+									Attendance History Logs ({filteredLogs.length})
+								</h4>
+								
+								{availableMonths.length > 1 && (
+									<div className="flex items-center gap-2">
+										<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Filter Month:</span>
+										<select 
+											value={selectedMonth} 
+											onChange={(e) => setSelectedMonth(e.target.value)}
+											className="bg-slate-50 border border-slate-200 rounded-lg text-xs py-1 px-2.5 outline-none font-sans text-slate-700 cursor-pointer hover:bg-slate-100 transition-colors"
+										>
+											{availableMonths.map(m => (
+												<option key={m} value={m}>{m}</option>
+											))}
+										</select>
+									</div>
+								)}
+							</div>
 							
-							{empLogs.length === 0 ? (
-								<p className="text-xs text-slate-400 italic text-center py-6">No attendance logs found for this employee.</p>
+							{filteredLogs.length === 0 ? (
+								<p className="text-xs text-slate-400 italic text-center py-6">No attendance logs found for this filter.</p>
 							) : (
 								<div className="overflow-x-auto max-h-[40vh] scrollbar-thin">
 									<table className="w-full text-xs text-left border-collapse">
@@ -489,7 +540,7 @@ export const EmployeeDetailsView: React.FC<EmployeeDetailsViewProps> = ({
 											</tr>
 										</thead>
 										<tbody>
-											{empLogs.map((log: any) => (
+											{filteredLogs.map((log: any) => (
 												<tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/40 text-slate-700">
 													<td className="py-2.5 px-3 font-semibold text-slate-900">{log.date}</td>
 													<td className="py-2.5 px-3">
