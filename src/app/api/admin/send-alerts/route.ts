@@ -9,45 +9,56 @@ export async function POST(req: NextRequest) {
         const subject = String(body.subject || '').trim();
         const bodyText = String(body.body || '').trim();
         const employeeIds = body.employeeIds as string[] | undefined;
+        const customEmails = (body.recipientEmails || body.customEmails || body.recipients) as string[] | string | undefined;
+
         if (!subject)
             return jsonError('Subject is required', 400);
         if (!bodyText)
             return jsonError('Body message is required', 400);
-        let employees;
-        if (employeeIds && Array.isArray(employeeIds) && employeeIds.length > 0) {
-            employees = await db.employee.findMany({
+
+        let targetEmails: string[] = [];
+
+        if (customEmails) {
+            const list = Array.isArray(customEmails) ? customEmails : [customEmails];
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            for (const item of list) {
+                if (typeof item === 'string') {
+                    const parts = item.split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
+                    for (const email of parts) {
+                        if (emailRegex.test(email) && !targetEmails.includes(email)) {
+                            targetEmails.push(email);
+                        }
+                    }
+                }
+            }
+        } else if (employeeIds && Array.isArray(employeeIds) && employeeIds.length > 0) {
+            const employees = await db.employee.findMany({
                 where: {
                     id: { in: employeeIds },
                     employmentStatus: 'Active',
                 },
-                select: {
-                    id: true,
-                    email: true,
-                    firstName: true,
-                    lastName: true,
-                },
+                select: { email: true },
             });
-        }
-        else {
-            employees = await db.employee.findMany({
+            targetEmails = employees.map(emp => emp.email);
+        } else {
+            const employees = await db.employee.findMany({
                 where: {
                     employmentStatus: 'Active',
                 },
-                select: {
-                    id: true,
-                    email: true,
-                    firstName: true,
-                    lastName: true,
-                },
+                select: { email: true },
             });
+            targetEmails = employees.map(emp => emp.email);
         }
-        if (employees.length === 0) {
-            return jsonError('No active employees selected/found to notify.', 404);
+
+        if (targetEmails.length === 0) {
+            return jsonError('No active recipients or valid emails found to notify.', 404);
         }
-        const result = await addAlertJobsToQueue(employees.map(emp => emp.email), subject, bodyText);
+
+        const result = await addAlertJobsToQueue(targetEmails, subject, bodyText);
         return Response.json({
             success: true,
-            count: employees.length,
+            count: targetEmails.length,
+            recipients: targetEmails,
             result
         });
     }

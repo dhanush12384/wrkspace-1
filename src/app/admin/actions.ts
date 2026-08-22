@@ -3515,6 +3515,48 @@ export async function sendBulkAlerts(subject: string, bodyText: string, employee
         return { success: false, error: err.message || 'Failed to dispatch alerts.' };
     }
 }
+
+export async function sendDirectEmail(recipientEmails: string | string[], subject: string, bodyText: string) {
+    try {
+        const subjectClean = String(subject || '').trim();
+        const bodyClean = String(bodyText || '').trim();
+        if (!subjectClean)
+            return { success: false, error: 'Subject is required' };
+        if (!bodyClean)
+            return { success: false, error: 'Body message is required' };
+
+        const emailList = Array.isArray(recipientEmails) ? recipientEmails : [recipientEmails];
+        const extractedEmails: string[] = [];
+
+        for (const item of emailList) {
+            if (typeof item === 'string') {
+                const parts = item.split(/[\s,;]+/).map(e => e.trim().toLowerCase()).filter(Boolean);
+                extractedEmails.push(...parts);
+            }
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const validEmails = Array.from(new Set(extractedEmails.filter(email => emailRegex.test(email))));
+
+        if (validEmails.length === 0) {
+            return { success: false, error: 'Please provide at least one valid recipient email address.' };
+        }
+
+        const { addAlertJobsToQueue } = await import('@/lib/queue');
+        const queueRes = await addAlertJobsToQueue(validEmails, subjectClean, bodyClean);
+
+        return { 
+            success: true, 
+            count: validEmails.length, 
+            recipients: validEmails,
+            queueResult: queueRes 
+        };
+    }
+    catch (err: any) {
+        console.error('Error in sendDirectEmail server action:', err);
+        return { success: false, error: err.message || 'Failed to dispatch email.' };
+    }
+}
 export async function getUnanimousFeedbackSubmissions() {
     try {
         const submissions = await db.unanimousFeedback.findMany({
@@ -3631,3 +3673,110 @@ export async function allocateAbsentEmployeesForToday() {
         return { success: false, error: error.message };
     }
 }
+
+export async function getAugustAttendanceOverviewAction() {
+    try {
+        const { getAugustWorkingDates, getEmployeeAugustAttendanceData } = await import('@/lib/august-attendance-report');
+        const workingDates = await getAugustWorkingDates();
+        const employees = await db.employee.findMany({
+            select: {
+                id: true,
+                firstName: true,
+                middleName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                role: true,
+                wingName: true,
+            },
+            orderBy: { firstName: 'asc' },
+        });
+
+        const list: Array<{
+            id: string;
+            name: string;
+            email: string;
+            role: string;
+            wingName: string;
+            totalWorkingDays: number;
+            presentDays: number;
+            absentDays: number;
+            attendancePercentage: number;
+            isBelowSixty: boolean;
+        }> = [];
+
+        let belowSixtyCount = 0;
+        let compliantCount = 0;
+
+        for (const emp of employees) {
+            const data = await getEmployeeAugustAttendanceData(emp.id, workingDates);
+            const fullName = `${emp.firstName}${emp.middleName ? ' ' + emp.middleName : ''} ${emp.lastName}`.trim();
+            if (data) {
+                if (data.stats.isBelowSixty) belowSixtyCount++;
+                else compliantCount++;
+
+                list.push({
+                    id: emp.id,
+                    name: fullName,
+                    email: emp.email,
+                    role: emp.role,
+                    wingName: emp.wingName,
+                    totalWorkingDays: data.stats.totalWorkingDays,
+                    presentDays: data.stats.presentDays,
+                    absentDays: data.stats.absentDays,
+                    attendancePercentage: data.stats.attendancePercentage,
+                    isBelowSixty: data.stats.isBelowSixty,
+                });
+            }
+        }
+
+        return {
+            success: true,
+            totalEmployees: employees.length,
+            workingDaysCount: workingDates.length,
+            workingDates,
+            belowSixtyCount,
+            compliantCount,
+            employees: list,
+        };
+    } catch (error: any) {
+        console.error('Error in getAugustAttendanceOverviewAction:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function previewAugustAttendancePdfAction(employeeId: string) {
+    try {
+        const { getEmployeeAugustAttendanceData, generateAugustAttendancePdf } = await import('@/lib/august-attendance-report');
+        const data = await getEmployeeAugustAttendanceData(employeeId);
+        if (!data) {
+            return { success: false, error: 'Employee not found' };
+        }
+        const pdfBytes = await generateAugustAttendancePdf(data);
+        const base64 = Buffer.from(pdfBytes).toString('base64');
+        return {
+            success: true,
+            base64,
+            filename: `August_2026_Attendance_${employeeId}.pdf`,
+            stats: data.stats,
+        };
+    } catch (error: any) {
+        console.error('Error in previewAugustAttendancePdfAction:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function sendAugustAttendanceReportsAction(opts?: { employeeId?: string; dryRun?: boolean }) {
+    try {
+        const { sendAugustAttendanceReports } = await import('@/lib/august-attendance-report');
+        const res = await sendAugustAttendanceReports({
+            employeeId: opts?.employeeId,
+            dryRun: opts?.dryRun ?? false,
+        });
+        return { success: true, result: res };
+    } catch (error: any) {
+        console.error('Error in sendAugustAttendanceReportsAction:', error);
+        return { success: false, error: error.message };
+    }
+}
+

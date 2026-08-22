@@ -18,6 +18,7 @@ import { EmployeeDetailsView } from './employee-details-view';
 import { MessagesView } from './messages-view';
 import { ChatAvatar } from './chat-avatar';
 import { AdminAlertSender } from './admin-alert-sender';
+import { AdminAugustAttendanceModal } from './admin-august-attendance-modal';
 const BadgeIcon = ({ name, className }: { name: string; className?: string }) => {
     switch (name) {
         case 'Trophy':
@@ -483,6 +484,7 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
     const [leavesSearchQuery, setLeavesSearchQuery] = useState('');
     const [showAddManualAttendance, setShowAddManualAttendance] = useState(false);
     const [showTodayAttendanceSummary, setShowTodayAttendanceSummary] = useState(false);
+    const [showAugustAttendanceModal, setShowAugustAttendanceModal] = useState(false);
     const [attendanceSearchQuery, setAttendanceSearchQuery] = useState('');
     const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('All');
     const [showAddManualHr, setShowAddManualHr] = useState(false);
@@ -2741,6 +2743,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
                     setShowAddManualAttendance(!showAddManualAttendance);
                 }} className="inline-flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#c9182a] text-white text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer transition-all shadow-xs">
 										{showAddManualAttendance ? 'Cancel Log' : '+ Log Attendance'}
+									</button>
+									<button onClick={() => setShowAugustAttendanceModal(true)} className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-xl cursor-pointer transition-all shadow-xs border border-slate-700">
+										<MailIcon className="size-3.5 text-[#E61E32]"/>
+										<span>Send August Statements & PDFs</span>
 									</button>
 									<button onClick={fetchAttendance} className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all rounded-xl cursor-pointer shadow-2xs" title="Refresh Logs">
 										<RefreshCwIcon className="size-4"/>
@@ -5512,5 +5518,10 @@ export function AdminDashboard({ email, onLogout }: AdminDashboardProps) {
 						</form>
 					</div>
 				</div>)}
+
+			<AdminAugustAttendanceModal
+				isOpen={showAugustAttendanceModal}
+				onClose={() => setShowAugustAttendanceModal(false)}
+			/>
 		</main>);
 }
